@@ -34,7 +34,46 @@ button, [role="button"], .btn, [data-action] {
 
 ---
 
-### 2. Responsive Mobile Web
+### 2. Clear Inbox Button
+
+**Problem**: After triaging the inbox (adding interesting episodes to library), users are left with dozens of episodes they want to skip. Clicking "Skip" on each one is tedious.
+
+**Solution**: Add a "Clear Inbox" button that skips all remaining episodes at once.
+
+**UI Placement**:
+- Top of inbox view, near the episode count
+- Only visible when inbox has items
+- Styled as secondary/destructive action (not primary)
+
+**Behavior**:
+- Confirmation dialog: "Skip all 47 episodes in your inbox?"
+- On confirm: move all inbox episodes to trash
+- Show success toast: "Cleared 47 episodes"
+- Redirect to empty inbox state
+
+**Implementation**:
+```ruby
+# inbox_controller.rb
+def clear
+  count = current_user.user_episodes.in_inbox.count
+  current_user.user_episodes.in_inbox.update_all(
+    location: :trash,
+    trashed_at: Time.current
+  )
+  redirect_to inbox_path, notice: "Cleared #{count} episodes"
+end
+```
+
+**Acceptance Criteria**:
+- [ ] Button visible at top of inbox when episodes exist
+- [ ] Confirmation dialog prevents accidental clears
+- [ ] All inbox episodes moved to trash
+- [ ] Success message shows count
+- [ ] Empty inbox state displays after clear
+
+---
+
+### 3. Responsive Mobile Web
 
 **Problem**: The UI is designed for desktop and doesn't adapt well to mobile screen sizes. Elements overflow, text is too small, and touch targets are inadequate.
 
@@ -72,7 +111,7 @@ button, [role="button"], .btn, [data-action] {
 
 ---
 
-### 3. Daily Digest Email
+### 4. Daily Digest Email
 
 **Problem**: Users forget to check their inbox and miss new episodes. Opening the app daily feels like a chore.
 
@@ -198,8 +237,9 @@ Manage digest settings: https://listen.davepaola.com/settings
 ## Implementation Order
 
 1. **Cursor fix** (30 min) — Quick win, ship immediately
-2. **Mobile responsive** (1-2 days) — Iterate view by view
-3. **Daily digest** (1 day) — New feature, needs mailer + job + settings
+2. **Clear inbox button** (1 hr) — Quick win, high value for power users
+3. **Mobile responsive** (1-2 days) — Iterate view by view
+4. **Daily digest** (1 day) — New feature, needs mailer + job + settings
 
 ---
 
