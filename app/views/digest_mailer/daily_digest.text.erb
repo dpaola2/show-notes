@@ -1,0 +1,56 @@
+Your Daily Podcast Digest - <%= @date %>
+========================================
+
+<% if @inbox_episodes.any? %>
+INBOX (<%= @inbox_count %> new episode<%= 's' unless @inbox_count == 1 %>)
+----------------------------------------
+
+<% @inbox_episodes.each do |user_episode| %>
+* <%= user_episode.title %>
+  <%= user_episode.podcast.title %><% if user_episode.duration_seconds.present? %> (<%= format_duration(user_episode.duration_seconds) %>)<% end %>
+
+<% end %>
+<% if @inbox_count > 5 %>
++ <%= @inbox_count - 5 %> more episode<%= 's' unless (@inbox_count - 5) == 1 %>
+
+<% end %>
+Open Inbox: <%= inbox_index_url %>
+
+<% end %>
+<% if @library_episodes.any? %>
+RECENTLY READY
+----------------------------------------
+
+<% @library_episodes.each do |user_episode| %>
+<%= user_episode.title.upcase %>
+<%= user_episode.podcast.title %><% if user_episode.duration_seconds.present? %> | <%= format_duration(user_episode.duration_seconds) %><% end %> | Ready <%= time_ago_in_words(user_episode.updated_at) %> ago
+
+<% if user_episode.episode.summary.present? %>
+Sections:
+<% user_episode.episode.summary.sections.first(2).each_with_index do |section, i| %>
+<%= i + 1 %>. <%= section["title"] %>
+   <%= truncate(section["content"], length: 200) %>
+
+<% end %>
+<% if user_episode.episode.summary.quotes.any? %>
+Notable Quote:
+<% user_episode.episode.summary.quotes.first(1).each do |quote| %>
+"<%= truncate(quote["text"], length: 150) %>" (<%= format_duration(quote["start_time"].to_i) %>)
+<% end %>
+<% end %>
+<% end %>
+Read full summary: <%= library_url(user_episode) %>
+
+---
+
+<% end %>
+<% end %>
+<% if @inbox_episodes.empty? && @library_episodes.empty? %>
+No new episodes today. Check back tomorrow!
+
+<% end %>
+----------------------------------------
+Open Show Notes: <%= root_url %>
+
+You're receiving this because you have daily digest enabled.
+Manage your settings to unsubscribe: <%= root_url %>
