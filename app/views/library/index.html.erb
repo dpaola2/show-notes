@@ -1,0 +1,47 @@
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Library</h1>
+
+  <% if @user_episodes.any? %>
+    <div class="space-y-3">
+      <% @user_episodes.each do |user_episode| %>
+        <div class="flex gap-4 p-4 bg-white rounded-lg shadow border border-gray-200">
+          <div class="flex-1 min-w-0">
+            <%= link_to library_path(user_episode), class: "block" do %>
+              <h3 class="font-medium truncate hover:text-blue-600"><%= user_episode.title %></h3>
+            <% end %>
+            <p class="text-gray-600 text-sm"><%= user_episode.podcast.title %></p>
+            <p class="text-gray-500 text-sm mt-1">
+              <% case user_episode.processing_status %>
+              <% when "pending" %>
+                <span class="text-yellow-600">Pending...</span>
+              <% when "downloading" %>
+                <span class="text-yellow-600">Downloading audio...</span>
+              <% when "transcribing" %>
+                <span class="text-yellow-600">Transcribing...</span>
+              <% when "summarizing" %>
+                <span class="text-yellow-600">Generating summary...</span>
+              <% when "ready" %>
+                <span class="text-green-600">Ready</span>
+              <% when "error" %>
+                <span class="text-red-600">Error</span>
+              <% end %>
+            </p>
+          </div>
+
+          <div class="flex-shrink-0 self-center">
+            <% if user_episode.ready? %>
+              <%= link_to "View",
+                  library_path(user_episode),
+                  class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12">
+      <p class="text-gray-500 mb-4">Your library is empty. Add episodes from your inbox to process them.</p>
+      <%= link_to "Go to Inbox", inbox_index_path, class: "text-blue-600 hover:underline" %>
+    </div>
+  <% end %>
+</div>

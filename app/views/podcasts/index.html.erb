@@ -1,0 +1,31 @@
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Find Podcasts</h1>
+
+  <%= form_with url: podcasts_path, method: :get, class: "mb-8", data: { turbo_frame: "search_results" } do |f| %>
+    <div class="flex gap-2">
+      <%= f.search_field :q,
+          value: params[:q],
+          placeholder: "Search for podcasts...",
+          class: "flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+          autofocus: true %>
+      <%= f.submit "Search",
+          class: "bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer" %>
+    </div>
+  <% end %>
+
+  <%= turbo_frame_tag "search_results" do %>
+    <% if params[:q].present? %>
+      <% if @podcasts.any? %>
+        <div class="space-y-4">
+          <% @podcasts.each do |podcast| %>
+            <%= render "podcast_result", podcast: podcast %>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 text-center py-8">No podcasts found for "<%= params[:q] %>"</p>
+      <% end %>
+    <% else %>
+      <p class="text-gray-500 text-center py-8">Enter a search term to find podcasts</p>
+    <% end %>
+  <% end %>
+</div>

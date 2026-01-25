@@ -1,0 +1,62 @@
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <div class="mb-6">
+    <%= link_to "&larr; Back to Archive".html_safe, archive_index_path, class: "text-blue-600 hover:underline" %>
+  </div>
+
+  <h1 class="text-2xl font-bold mb-2"><%= @episode.title %></h1>
+  <p class="text-gray-600 mb-6"><%= @episode.podcast.title %></p>
+
+  <% if @episode.summary.present? %>
+    <section class="mb-8">
+      <h2 class="text-xl font-semibold mb-4">Summary</h2>
+
+      <div class="space-y-6">
+        <% @episode.summary.sections.each do |section| %>
+          <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <h3 class="font-semibold mb-2"><%= section["title"] %></h3>
+            <p class="text-gray-700"><%= section["content"] %></p>
+          </div>
+        <% end %>
+      </div>
+
+      <% if @episode.summary.quotes.any? %>
+        <h3 class="text-lg font-semibold mt-6 mb-4">Notable Quotes</h3>
+        <div class="space-y-3">
+          <% @episode.summary.quotes.each do |quote| %>
+            <blockquote class="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 rounded-r cursor-pointer hover:bg-blue-100"
+                        data-controller="audio-seek"
+                        data-audio-seek-time-value="<%= quote['start_time'] %>">
+              <p class="text-gray-800">"<%= quote["text"] %>"</p>
+              <p class="text-gray-500 text-sm mt-1">
+                <%= format_duration(quote["start_time"].to_i) %>
+              </p>
+            </blockquote>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+
+    <details class="mb-8">
+      <summary class="cursor-pointer text-gray-600 hover:text-gray-800">Original Show Notes</summary>
+      <div class="mt-4 prose prose-sm max-w-none">
+        <%= sanitize @episode.description %>
+      </div>
+    </details>
+
+    <section class="mb-8">
+      <h2 class="text-lg font-semibold mb-4">Audio</h2>
+      <audio controls
+             src="<%= @episode.audio_url %>"
+             class="w-full"
+             data-controller="audio-player">
+      </audio>
+    </section>
+
+    <div class="flex gap-4">
+      <%= button_to "Restore to Library",
+          restore_archive_path(@user_episode),
+          method: :post,
+          class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition" %>
+    </div>
+  <% end %>
+</div>
