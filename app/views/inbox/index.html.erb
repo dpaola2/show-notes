@@ -32,11 +32,11 @@
 
             <div class="flex gap-2 flex-shrink-0 self-center">
               <%= button_to "Add to Library",
-                  inbox_add_to_library_path(id: user_episode.id),
+                  add_to_library_inbox_index_path(id: user_episode.id),
                   method: :post,
                   class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm" %>
               <%= button_to "Skip",
-                  inbox_skip_path(id: user_episode.id),
+                  skip_inbox_index_path(id: user_episode.id),
                   method: :post,
                   class: "bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm" %>
             </div>
