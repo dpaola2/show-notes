@@ -4,8 +4,7 @@
   <% if @user_episodes.any? %>
     <div class="space-y-3">
       <% @user_episodes.each do |user_episode| %>
-        <%= turbo_frame_tag dom_id(user_episode) do %>
-          <div class="flex gap-4 p-4 bg-white rounded-lg shadow border border-gray-200">
+        <div id="<%= dom_id(user_episode) %>" class="flex gap-4 p-4 bg-white rounded-lg shadow border border-gray-200">
             <div class="flex-1 min-w-0">
               <h3 class="font-medium truncate"><%= user_episode.title %></h3>
               <p class="text-gray-600 text-sm"><%= user_episode.podcast.title %></p>
@@ -41,7 +40,7 @@
                   class: "bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm" %>
             </div>
           </div>
-        <% end %>
+        </div>
       <% end %>
     </div>
   <% else %>
