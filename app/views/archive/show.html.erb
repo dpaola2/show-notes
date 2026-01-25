@@ -25,7 +25,8 @@
           <% @episode.summary.quotes.each do |quote| %>
             <blockquote class="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 rounded-r cursor-pointer hover:bg-blue-100"
                         data-controller="audio-seek"
-                        data-audio-seek-time-value="<%= quote['start_time'] %>">
+                        data-audio-seek-time-value="<%= quote['start_time'] %>"
+                        data-action="click->audio-seek#seek">
               <p class="text-gray-800">"<%= quote["text"] %>"</p>
               <p class="text-gray-500 text-sm mt-1">
                 <%= format_duration(quote["start_time"].to_i) %>
