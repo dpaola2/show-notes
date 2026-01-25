@@ -28,7 +28,7 @@ class ProcessEpisodeJob < ApplicationJob
     # Step 2: Summarize with Claude (if not already done)
     unless episode.summary.present?
       user_episode.update!(processing_status: :summarizing)
-      summary = ClaudeClient.summarize(episode.transcript.content)
+      summary = ClaudeClient.summarize_chunked(episode.transcript.content)
       episode.create_summary!(
         sections: summary["sections"],
         quotes: summary["quotes"]

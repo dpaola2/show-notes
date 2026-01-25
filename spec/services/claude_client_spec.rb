@@ -138,4 +138,141 @@ RSpec.describe ClaudeClient do
       expect(result).to eq({ "sections" => [], "quotes" => [] })
     end
   end
+
+  describe "#summarize_chunked" do
+    let(:client) { described_class.new(api_key: "test-api-key") }
+    let(:mock_anthropic_client) { instance_double(Anthropic::Client) }
+    let(:mock_messages) { double("messages") }
+
+    let(:valid_summary) do
+      {
+        "sections" => [
+          { "title" => "Section 1", "content" => "Content 1", "start_time" => 0, "end_time" => 100 }
+        ],
+        "quotes" => [
+          { "text" => "A quote", "start_time" => 50, "end_time" => 55 }
+        ]
+      }
+    end
+
+    let(:api_response) do
+      content_block = double("content_block", text: valid_summary.to_json)
+      double("response", content: [ content_block ])
+    end
+
+    before do
+      allow(Anthropic::Client).to receive(:new).and_return(mock_anthropic_client)
+      allow(mock_anthropic_client).to receive(:messages).and_return(mock_messages)
+      allow(mock_messages).to receive(:create).and_return(api_response)
+      # Stub sleep to speed up tests
+      allow(client).to receive(:sleep)
+    end
+
+    context "with a single chunk transcript" do
+      let(:short_transcript) do
+        {
+          "utterances" => [
+            { "text" => "Hello world.", "start" => 0, "end" => 2000, "speaker" => "A" }
+          ]
+        }.to_json
+      end
+
+      it "delegates to regular summarize method" do
+        allow(client).to receive(:summarize).and_call_original
+
+        result = client.summarize_chunked(short_transcript)
+
+        expect(result["sections"]).to be_an(Array)
+      end
+
+      it "makes only one API call" do
+        client.summarize_chunked(short_transcript)
+
+        expect(mock_messages).to have_received(:create).once
+      end
+    end
+
+    context "with multiple chunks" do
+      let(:long_utterance_text) { "word " * 6500 }
+      let(:long_transcript) do
+        {
+          "utterances" => [
+            { "text" => long_utterance_text, "start" => 0, "end" => 60_000, "speaker" => "A" },
+            { "text" => long_utterance_text, "start" => 60_000, "end" => 120_000, "speaker" => "B" }
+          ]
+        }.to_json
+      end
+
+      it "makes multiple API calls (one per chunk plus synthesis)" do
+        client.summarize_chunked(long_transcript)
+
+        # 2 chunks + 1 synthesis = 3 calls
+        expect(mock_messages).to have_received(:create).exactly(3).times
+      end
+
+      it "includes chunk position in the prompt" do
+        client.summarize_chunked(long_transcript)
+
+        expect(mock_messages).to have_received(:create).with(
+          hash_including(
+            messages: [ hash_including(content: a_string_including("chunk 1 of 2")) ]
+          )
+        )
+      end
+
+      it "includes synthesis prompt for final merge" do
+        client.summarize_chunked(long_transcript)
+
+        expect(mock_messages).to have_received(:create).with(
+          hash_including(
+            messages: [ hash_including(content: a_string_including("combining summaries")) ]
+          )
+        )
+      end
+
+      it "adds delay between chunk requests" do
+        client.summarize_chunked(long_transcript)
+
+        # Should sleep between chunks and before synthesis
+        expect(client).to have_received(:sleep).with(ClaudeClient::CHUNK_DELAY).at_least(2).times
+      end
+
+      it "returns the synthesized result" do
+        result = client.summarize_chunked(long_transcript)
+
+        expect(result["sections"]).to be_an(Array)
+        expect(result["quotes"]).to be_an(Array)
+      end
+    end
+
+    context "when rate limited" do
+      let(:transcript) do
+        {
+          "utterances" => [
+            { "text" => "Hello world.", "start" => 0, "end" => 2000, "speaker" => "A" }
+          ]
+        }.to_json
+      end
+
+      it "raises RateLimitError on Faraday rate limit" do
+        allow(mock_messages).to receive(:create).and_raise(Faraday::TooManyRequestsError.new("rate limited"))
+
+        expect { client.summarize_chunked(transcript) }
+          .to raise_error(ClaudeClient::RateLimitError)
+      end
+    end
+  end
+
+  describe ".summarize_chunked" do
+    it "delegates to instance method" do
+      mock_instance = instance_double(described_class)
+
+      allow(described_class).to receive(:new).and_return(mock_instance)
+      allow(mock_instance).to receive(:summarize_chunked).and_return({ "sections" => [], "quotes" => [] })
+
+      result = described_class.summarize_chunked("transcript")
+
+      expect(result).to eq({ "sections" => [], "quotes" => [] })
+    end
+  end
 end
