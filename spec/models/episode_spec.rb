@@ -66,15 +66,19 @@ RSpec.describe Episode, type: :model do
     end
 
     it "calculates cost based on duration" do
-      episode = build(:episode, duration_seconds: 3600)  # 1 hour = 60 min
-      # 60 min * 0.6 cents/min = 36 cents
-      expect(episode.estimated_cost_cents).to eq(36)
+      episode = build(:episode, duration_seconds: 3600)  # 1 hour
+      # AssemblyAI: 3600 * 0.065 = 234 cents
+      # Claude summarization: ~10 cents
+      # Total: 244 cents
+      expect(episode.estimated_cost_cents).to eq(244)
     end
 
-    it "rounds up partial minutes" do
-      episode = build(:episode, duration_seconds: 61)  # 1 min 1 sec
-      # ceil(61/60) = 2 min * 0.6 = 1.2, ceil = 2 cents
-      expect(episode.estimated_cost_cents).to eq(2)
+    it "includes Claude summarization cost" do
+      episode = build(:episode, duration_seconds: 60)  # 1 min
+      # AssemblyAI: 60 * 0.065 = 3.9, ceil = 4 cents
+      # Claude summarization: ~10 cents
+      # Total: 14 cents
+      expect(episode.estimated_cost_cents).to eq(14)
     end
   end
 end

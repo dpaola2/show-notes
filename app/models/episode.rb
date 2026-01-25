@@ -10,7 +10,10 @@ class Episode < ApplicationRecord
 
   def estimated_cost_cents
     return 0 unless duration_seconds
-    minutes = (duration_seconds / 60.0).ceil
-    (minutes * 0.6).ceil  # $0.006/min = 0.6 cents/min for Whisper
+    # AssemblyAI: $0.00065/second = 0.065 cents/second
+    # Plus Claude summarization estimate: ~$0.01 per 1K tokens, roughly $0.10 per episode
+    transcription_cost = (duration_seconds * 0.065).ceil
+    summarization_cost = 10 # ~10 cents for Claude
+    transcription_cost + summarization_cost
   end
 end

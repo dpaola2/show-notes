@@ -14,7 +14,7 @@
 | Audio | Stream from source | No storage costs, play directly from podcast CDN |
 | Auth | Magic link (passwordless) | Simple, secure, no passwords to manage |
 | Config | Environment variables | No Rails credentials; simpler with Heroku |
-| Transcription | OpenAI Whisper API | Accurate, ~$0.006/min |
+| Transcription | AssemblyAI | URL-based (no upload limit), ~$0.0065/sec |
 | Summarization | Claude API | Strong summarization, quote extraction |
 
 ---
@@ -43,8 +43,8 @@
            │                    │                    │
            ▼                    ▼                    ▼
     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-    │  Podcast    │     │   OpenAI    │     │   Claude    │
-    │  Index API  │     │  Whisper    │     │   API       │
+    │  Podcast    │     │ AssemblyAI  │     │   Claude    │
+    │  Index API  │     │             │     │   API       │
     └─────────────┘     └─────────────┘     └─────────────┘
 ```
 

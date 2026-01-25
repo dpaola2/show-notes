@@ -45,8 +45,8 @@ gem "image_processing", "~> 1.2"
 # Environment variables (instead of Rails credentials)
 gem "dotenv-rails"
 
-# OpenAI API (for Whisper transcription)
-gem "ruby-openai"
+# AssemblyAI API (for transcription)
+gem "assemblyai"
 
 # Anthropic API (for Claude summarization)
 gem "anthropic"

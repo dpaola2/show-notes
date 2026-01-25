@@ -115,7 +115,8 @@ RSpec.describe UserEpisode, type: :model do
       episode = create(:episode, duration_seconds: 3600)  # 1 hour
       user_episode = create(:user_episode, episode: episode)
 
-      expect(user_episode.estimated_cost_cents).to eq(36)  # 60 min * 0.6 cents
+      # AssemblyAI: 234 cents + Claude: 10 cents = 244 cents
+      expect(user_episode.estimated_cost_cents).to eq(244)
     end
   end
 end

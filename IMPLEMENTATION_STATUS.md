@@ -159,7 +159,7 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
 |--------|--------|----------------|-------|
 | `PodcastIndexClient` | ✅ Done | `app/services/podcast_index_client.rb` | Search, podcast details, episodes |
 | `PodcastFeedParser` | ✅ Done | `app/services/podcast_feed_parser.rb` | RSS parsing with Feedjira |
-| `WhisperClient` | ✅ Done | `app/services/whisper_client.rb` | Transcription API |
+| `AssemblyAIClient` | ✅ Done | `app/services/assembly_ai_client.rb` | Transcription API (replaced Whisper) |
 | `ClaudeClient` | ✅ Done | `app/services/claude_client.rb` | Summarization API |
 
 ---
