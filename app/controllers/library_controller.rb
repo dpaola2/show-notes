@@ -21,7 +21,12 @@ class LibraryController < ApplicationController
     user_episode = current_user.user_episodes.find(params[:id])
     # Delete existing summary and re-process
     user_episode.episode.summary&.destroy
-    user_episode.update!(processing_status: :summarizing)
+    user_episode.update!(
+      processing_status: :summarizing,
+      retry_count: 0,
+      next_retry_at: nil,
+      processing_error: nil
+    )
     ProcessEpisodeJob.perform_later(user_episode.id)
     redirect_to library_path(user_episode), notice: "Regenerating summary..."
   end

@@ -1,5 +1,6 @@
 class AssemblyAiClient
   class Error < StandardError; end
+  class RateLimitError < Error; end
 
   def initialize(api_key: ENV["ASSEMBLYAI_API_KEY"])
     @api_key = api_key

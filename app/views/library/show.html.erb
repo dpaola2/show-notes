@@ -77,6 +77,31 @@
         Processing: <%= @user_episode.processing_status.humanize %>...
       </p>
       <p class="text-yellow-600 text-sm mt-2">This page will update when ready.</p>
+
+      <% if @user_episode.next_retry_at.present? %>
+        <div class="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded text-sm font-mono">
+          <p class="font-semibold text-yellow-900">⏳ Retry Debug Info</p>
+          <ul class="mt-2 space-y-1 text-yellow-800">
+            <li>Retry attempt: <%= @user_episode.retry_count %> / 5</li>
+            <li>Next retry at: <%= @user_episode.next_retry_at.strftime("%Y-%m-%d %H:%M:%S %Z") %></li>
+            <li>
+              Time until retry:
+              <% seconds_until = (@user_episode.next_retry_at - Time.current).to_i %>
+              <% if seconds_until > 0 %>
+                <%= seconds_until / 60 %>m <%= seconds_until % 60 %>s
+              <% else %>
+                <span class="text-green-700">Executing now...</span>
+              <% end %>
+            </li>
+            <% if @user_episode.last_error_at.present? %>
+              <li>Last error: <%= time_ago_in_words(@user_episode.last_error_at) %> ago</li>
+            <% end %>
+            <% if @user_episode.processing_error.present? %>
+              <li>Status: <%= @user_episode.processing_error %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
     </div>
   <% end %>
 </div>

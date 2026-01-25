@@ -1,5 +1,6 @@
 class ClaudeClient
   class Error < StandardError; end
+  class RateLimitError < Error; end
 
   SUMMARIZE_PROMPT = <<~PROMPT
     You are summarizing a podcast episode transcript. Create:
@@ -48,11 +49,22 @@ class ClaudeClient
 
     # Parse the JSON response
     parse_summary_response(text_content)
+  rescue Anthropic::RateLimitError => e
+    raise RateLimitError, "Claude rate limit exceeded: #{e.message}"
+  rescue Faraday::TooManyRequestsError => e
+    raise RateLimitError, "Claude rate limit exceeded: #{e.message}"
   rescue Faraday::Error => e
     raise Error, "Claude API error: #{e.message}"
   rescue StandardError => e
     # Re-raise our own errors, wrap others
     raise e if e.is_a?(Error)
+
+    # Check for rate limit indicators in the error message
+    error_str = e.message.to_s
+    if error_str.include?("rate_limit") || error_str.include?("status=>429") || error_str.include?(":status=>429")
+      raise RateLimitError, "Claude rate limit exceeded: #{e.message}"
+    end
+
     raise Error, "Claude API error: #{e.message}"
   end
 

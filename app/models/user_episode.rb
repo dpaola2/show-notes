@@ -25,7 +25,14 @@ class UserEpisode < ApplicationRecord
            :podcast, :transcript, :summary, :estimated_cost_cents, to: :episode
 
   def move_to_library!
-    update!(location: :library, processing_status: :pending, trashed_at: nil)
+    update!(
+      location: :library,
+      processing_status: :pending,
+      trashed_at: nil,
+      retry_count: 0,
+      next_retry_at: nil,
+      processing_error: nil
+    )
   end
 
   def move_to_inbox!

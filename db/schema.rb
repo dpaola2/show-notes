@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_25_143629) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_25_204205) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -72,9 +72,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_25_143629) do
   create_table "user_episodes", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "episode_id", null: false
+    t.datetime "last_error_at"
     t.integer "location", default: 0, null: false
+    t.datetime "next_retry_at"
     t.text "processing_error"
     t.integer "processing_status", default: 0, null: false
+    t.integer "retry_count", default: 0, null: false
     t.datetime "trashed_at"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
