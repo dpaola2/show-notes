@@ -32,11 +32,32 @@ You subscribe to more podcasts than you can listen to. Traditional apps present 
 
 ## Status
 
-**Pre-development** — PRD and technical gameplan complete. Ready to build.
+**Phase 1 Complete** — Core MVP functional. 128 passing specs.
 
 ## Getting Started
 
-(Setup instructions will be added once the app is scaffolded)
+```bash
+# Clone and install dependencies
+git clone <repo-url>
+cd show-notes
+bundle install
+
+# Setup database
+rails db:create db:migrate
+
+# Copy environment template and add your API keys
+cp .env.example .env
+# Edit .env with your actual keys
+
+# Create a test user (temporary until auth is implemented)
+rails console
+> User.create!(email: "you@example.com")
+
+# Start the server
+bin/dev
+```
+
+Visit `http://localhost:3000` to use the app.
 
 ### Required API Keys
 
