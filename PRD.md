@@ -352,7 +352,17 @@ For personal use, success is qualitative:
 - Push notifications when new episodes arrive
 - Email digest of Inbox activity
 
+### Potential Business Opportunity: Transcript API Service
+
+Existing podcast transcript APIs (Taddy, Podchaser) only cover the top ~5,000 podcasts. There's a gap in the market for a service that provides pre-generated transcripts for the long tail of podcasts. Since Show Notes already transcribes episodes, this infrastructure could be exposed as a paid API:
+
+- **Model**: Store transcripts permanently, serve via API
+- **Pricing**: Per-request or subscription tiers
+- **Differentiator**: Cover podcasts beyond the "top 5,000" that existing services focus on
+- **Synergy**: Revenue could offset transcription costs for the core Show Notes product
+- **Technical**: Would need to build out API authentication, rate limiting, billing integration
+
 ---
 
-*Document version: 1.4*
+*Document version: 1.5*
 *Last updated: 2025-01-25*
