@@ -121,7 +121,7 @@ A "read-first" podcast player that:
 |-------------|----------|-------|
 | Holds skipped episodes | P0 | |
 | Restore to Inbox action | P1 | Undo a skip |
-| Auto-delete episodes older than 90 days | P1 | Configurable retention period |
+| Auto-delete episodes older than 90 days | P1 | Fixed at 90 days |
 | Manual empty trash | P2 | |
 
 ### Show Archive (Podcast Browser)
@@ -138,7 +138,7 @@ A "read-first" podcast player that:
 | Requirement | Priority | Notes |
 |-------------|----------|-------|
 | List of all active episodes | P0 | Sorted by date added |
-| Status indicators | P0 | Downloading, Transcribing, Ready |
+| Status indicators | P0 | Downloading, Transcribing, Summarizing, Ready |
 | Detailed error states | P0 | If processing fails, show what went wrong (not just "Error") |
 | Episode detail view | P0 | Summary first, audio second |
 | "Done" action (move to Archive) | P0 | Marks episode as finished |
@@ -162,7 +162,7 @@ A "read-first" podcast player that:
 | Notable quotes extraction with timestamps | P0 | Tappable to jump to audio position |
 | Background processing with status updates | P1 | User shouldn't have to wait |
 | Retry failed transcriptions | P1 | |
-| Regenerate summary | P1 | Re-run summarization if user isn't satisfied |
+| Regenerate summary | P1 | Re-run Claude on existing transcript (not re-transcribe) |
 
 ### Audio Playback
 
@@ -270,15 +270,18 @@ A "read-first" podcast player that:
 
 Given past challenges with iOS scope, a **web-first approach** is recommended:
 
-1. **Phase 1**: Web application (responsive, works on mobile browsers)
+1. **Phase 1-3**: Web application (responsive, works on mobile browsers)
    - Faster iteration, easier deployment
    - Validates core concept before native investment
-   - PWA capabilities for app-like experience on mobile
 
-2. **Phase 2** (optional): Native iOS app
+2. **Phase 4**: PWA enhancements
+   - Service worker for better mobile experience
+   - Add to home screen
+
+3. **Future** (optional): Native iOS app
    - Once web version is stable and concept is validated
    - Better background audio, notifications, offline support
-   - Could share backend with web version
+   - Would share backend with web version
 
 ### AI Pipeline
 
@@ -311,12 +314,12 @@ Episode Audio
   - Transcript input + summary output
   - Estimate ~$0.02–0.10 per episode depending on length
 
-### Open Technical Questions
+### Technical Decisions (see TECHNICAL_GAMEPLAN.md for details)
 
-1. **Podcast directory API**: Apple Podcasts API, Podcast Index, or other?
-2. **Audio hosting**: Stream from original source or cache locally?
-3. **Database**: SQLite (simple), PostgreSQL (scalable), or other?
-4. **Hosting**: Vercel, Railway, self-hosted VPS?
+- **Podcast directory API**: Podcast Index
+- **Audio**: Stream from source
+- **Database**: PostgreSQL
+- **Hosting**: Heroku
 
 ---
 
@@ -351,5 +354,5 @@ For personal use, success is qualitative:
 
 ---
 
-*Document version: 1.3*
+*Document version: 1.4*
 *Last updated: 2025-01-25*
