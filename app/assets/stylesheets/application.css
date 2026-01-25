@@ -8,3 +8,15 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+/* Ensure all interactive elements show pointer cursor */
+button,
+[type="button"],
+[type="submit"],
+[role="button"],
+a[href],
+[data-action],
+[data-turbo-method],
+.cursor-pointer {
+  cursor: pointer;
+}
