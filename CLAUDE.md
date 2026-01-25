@@ -1,0 +1,94 @@
+# Claude Code Instructions
+
+## Git Commit Policy
+
+After completing each task:
+
+1. **Run specs first** — `bundle exec rspec` must pass before committing
+2. **Stage only the files related to that task** — use `git add <specific files>` rather than `git add .`
+3. **Write a clear commit message** following this format:
+   ```
+   <type>: <short description>
+
+   Task #<N>: <task subject>
+
+   - Bullet points of what was done
+   - Keep it concise but informative
+
+   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+   ```
+
+4. **Commit types**:
+   - `feat` — new feature or functionality
+   - `chore` — setup, config, dependencies
+   - `refactor` — code changes that don't add features
+   - `fix` — bug fixes
+   - `docs` — documentation only
+   - `test` — adding or updating tests
+
+5. **Example commit**:
+   ```
+   feat: add podcast and episode models
+
+   Task #2: Create data models and migrations
+
+   - Added User, Podcast, Subscription, Episode, UserEpisode models
+   - Added Transcript and Summary models
+   - Configured enums for location and processing_status
+   - Added model specs
+
+   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+   ```
+
+6. **Do not**:
+   - Commit if specs are failing
+   - Combine multiple tasks into one commit
+   - Commit broken or incomplete work
+   - Commit files unrelated to the current task
+
+## Task Workflow
+
+1. Mark task as `in_progress` before starting
+2. Write failing specs first (where applicable)
+3. Implement the feature
+4. Ensure all specs pass: `bundle exec rspec`
+5. Commit with message referencing the task
+6. Mark task as `completed`
+7. Move to next unblocked task
+
+## Testing Strategy
+
+### What to test:
+- **Models**: Validations, associations, enums, scopes, instance methods
+- **Services**: Core logic, API interactions (mocked), error handling
+- **Jobs**: Job behavior, status updates, error handling
+- **Requests**: Happy path, error cases, authentication (when added)
+
+### What NOT to test:
+- Views/templates
+- System/browser tests
+- Simple CRUD without business logic
+
+### Test commands:
+```bash
+bundle exec rspec                    # Run all specs
+bundle exec rspec spec/models        # Run model specs only
+bundle exec rspec spec/requests      # Run request specs only
+bundle exec rspec --format doc       # Verbose output
+```
+
+## Code Style
+
+- Follow Rails conventions
+- Use Tailwind utility classes for styling
+- Keep controllers thin, models handle business logic
+- Use service objects for external API integrations
+- Write clear, self-documenting code
+
+## Autonomous Execution
+
+When running autonomously:
+1. Complete tasks in dependency order
+2. If specs fail, fix the issue before proceeding
+3. If stuck on a failing spec for more than 2 attempts, stop and report the issue
+4. Commit after each task completes with passing specs
