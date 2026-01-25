@@ -17,6 +17,11 @@ production:
     class: CleanupTrashJob
     schedule: every day at 3am
 
+  # Send daily digest email (7 AM Eastern / 12 PM UTC)
+  send_daily_digest:
+    class: SendDailyDigestJob
+    schedule: every day at 12pm
+
 development:
   # More frequent feed refresh for testing
   refresh_all_feeds:
@@ -27,3 +32,8 @@ development:
   cleanup_trash:
     class: CleanupTrashJob
     schedule: every day at 3am
+
+  # Send daily digest (same time as production for consistency)
+  send_daily_digest:
+    class: SendDailyDigestJob
+    schedule: every day at 12pm
