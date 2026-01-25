@@ -184,7 +184,7 @@ Manage digest settings: https://listen.davepaola.com/settings
 **Technical Implementation**:
 
 1. **Scheduled Job**: `SendDailyDigestJob`
-   - Runs via Solid Queue recurring task at 7:00 AM UTC (adjust per user timezone later)
+   - Runs via Solid Queue recurring task at 7:00 AM Eastern (12:00 PM UTC)
    - Queries users with `digest_enabled: true`
    - Skips if no new inbox items AND no recent library items
 
@@ -204,7 +204,7 @@ Manage digest settings: https://listen.davepaola.com/settings
    ```
 
 **Acceptance Criteria**:
-- [ ] Digest email sends daily at 7 AM UTC
+- [ ] Digest email sends daily at 7 AM Eastern
 - [ ] Email includes inbox count and episode titles
 - [ ] Email includes recent library summaries with sections and quotes
 - [ ] Email has working links to app
@@ -227,7 +227,7 @@ Manage digest settings: https://listen.davepaola.com/settings
 - May need to adjust some absolute positioning
 
 ### Daily Digest
-- Timezone handling is complex — start with UTC, add user timezone later
+- Hardcoded to 7 AM Eastern (will be 8 AM during DST) — add user timezone support later
 - Email rendering: use Rails layouts, inline CSS for email clients
 - Rate limiting: process users in batches if list grows
 - Unsubscribe: include one-click unsubscribe link (CAN-SPAM compliance)

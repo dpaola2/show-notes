@@ -500,7 +500,7 @@ end
 # Add to existing recurring tasks
 send_daily_digest:
   class: SendDailyDigestJob
-  schedule: "0 7 * * *"  # 7:00 AM UTC daily
+  schedule: "0 12 * * *"  # 12:00 PM UTC = 7:00 AM EST daily
   description: "Send daily digest emails to subscribed users"
 ```
 
@@ -526,7 +526,7 @@ end
 <%= form_with model: current_user, url: settings_path, method: :patch do |f| %>
   <div class="flex items-center gap-3">
     <%= f.check_box :digest_enabled, class: "h-5 w-5" %>
-    <%= f.label :digest_enabled, "Send me a daily digest at 7:00 AM UTC" %>
+    <%= f.label :digest_enabled, "Send me a daily digest at 7:00 AM Eastern" %>
   </div>
 
   <%= f.submit "Save", class: "btn btn-primary mt-4" %>
@@ -647,7 +647,7 @@ end
 | Mobile layout breaks desktop | Use responsive prefixes only, test both |
 | Digest spam | Only send if new content, include unsubscribe |
 | Digest email delivery | Monitor Resend dashboard, add error logging |
-| Timezone confusion | Document that 7 AM is UTC, add user timezone later |
+| Timezone confusion | Hardcoded to 7 AM Eastern (12 PM UTC), will be 8 AM during DST |
 
 ---
 
