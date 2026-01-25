@@ -46,6 +46,8 @@ class ProcessEpisodeJob < ApplicationJob
 
   private
 
+  MAX_FILE_SIZE = 24.megabytes # Whisper API limit is 25MB
+
   def download_audio(url)
     require "open-uri"
     require "tempfile"
@@ -58,6 +60,40 @@ class ProcessEpisodeJob < ApplicationJob
     end
 
     temp_file.rewind
+
+    # Compress if file is too large for Whisper API
+    if temp_file.size > MAX_FILE_SIZE
+      temp_file = compress_audio(temp_file)
+    end
+
     temp_file
+  end
+
+  def compress_audio(input_file)
+    require "tempfile"
+
+    output_file = Tempfile.new([ "audio_compressed", ".mp3" ])
+
+    # Use ffmpeg to compress: mono, 16kHz sample rate, 64k bitrate
+    # This is sufficient quality for speech transcription
+    system(
+      "ffmpeg", "-y", "-i", input_file.path,
+      "-ac", "1",           # mono
+      "-ar", "16000",       # 16kHz sample rate
+      "-b:a", "64k",        # 64kbps bitrate
+      output_file.path,
+      out: File::NULL,
+      err: File::NULL
+    )
+
+    input_file.close
+    input_file.unlink
+
+    unless File.exist?(output_file.path) && File.size(output_file.path) > 0
+      raise "Audio compression failed. Is ffmpeg installed?"
+    end
+
+    output_file.rewind
+    output_file
   end
 end
