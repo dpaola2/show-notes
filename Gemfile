@@ -51,6 +51,9 @@ gem "assemblyai"
 # Anthropic API (for Claude summarization)
 gem "anthropic"
 
+# Resend (for transactional email)
+gem "resend"
+
 # RSS/Feed parsing
 gem "feedjira"
 
