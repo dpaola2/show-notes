@@ -26,6 +26,7 @@
       <%= button_to "Subscribe",
           podcasts_path(feed_id: podcast[:feed_id]),
           method: :post,
+          data: { turbo_frame: "_top" },
           class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm" %>
     <% end %>
   </div>
