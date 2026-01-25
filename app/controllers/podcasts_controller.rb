@@ -1,5 +1,4 @@
 class PodcastsController < ApplicationController
-  before_action :require_current_user
   before_action :set_podcast, only: [ :show, :destroy ]
 
   def index
@@ -86,16 +85,4 @@ class PodcastsController < ApplicationController
   def subscribed_feed_ids
     @subscribed_feed_ids ||= current_user.podcasts.pluck(:guid)
   end
-
-  def require_current_user
-    unless current_user
-      redirect_to root_path, alert: "Please sign in to continue"
-    end
-  end
-
-  def current_user
-    # TODO: Replace with real authentication in Phase 3
-    @current_user ||= User.first
-  end
-  helper_method :current_user
 end

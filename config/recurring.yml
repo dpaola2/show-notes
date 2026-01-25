@@ -1,15 +1,29 @@
-# examples:
-#   periodic_cleanup:
-#     class: CleanSoftDeletedRecordsJob
-#     queue: background
-#     args: [ 1000, { batch_size: 500 } ]
-#     schedule: every hour
-#   periodic_cleanup_with_command:
-#     command: "SoftDeletedRecord.due.delete_all"
-#     priority: 2
-#     schedule: at 5am every day
+# Solid Queue recurring job schedule
+# These jobs run automatically on the configured schedule
 
 production:
+  # Clear finished Solid Queue jobs to prevent database bloat
   clear_solid_queue_finished_jobs:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12
+
+  # Fetch new episodes from all subscribed podcast feeds
+  refresh_all_feeds:
+    class: RefreshAllFeedsJob
+    schedule: every hour
+
+  # Delete episodes that have been in trash for more than 90 days
+  cleanup_trash:
+    class: CleanupTrashJob
+    schedule: every day at 3am
+
+development:
+  # More frequent feed refresh for testing
+  refresh_all_feeds:
+    class: RefreshAllFeedsJob
+    schedule: every 15 minutes
+
+  # Delete old trashed episodes
+  cleanup_trash:
+    class: CleanupTrashJob
+    schedule: every day at 3am

@@ -1,4 +1,11 @@
 Rails.application.routes.draw do
+  # Authentication
+  get "login", to: "sessions#new", as: :login
+  post "login", to: "sessions#create"
+  get "login/sent", to: "sessions#sent", as: :magic_link_sent
+  get "auth/verify", to: "sessions#verify", as: :verify_magic_link
+  delete "logout", to: "sessions#destroy", as: :logout
+
   # Podcasts: search, view, subscribe/unsubscribe
   resources :podcasts, only: [ :index, :show, :create, :destroy ]
 

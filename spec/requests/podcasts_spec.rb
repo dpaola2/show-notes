@@ -3,6 +3,10 @@ require "rails_helper"
 RSpec.describe "Podcasts", type: :request do
   let!(:user) { create(:user) }
 
+  before do
+    sign_in_as(user)
+  end
+
   describe "GET /podcasts" do
     it "renders the search page" do
       get podcasts_path

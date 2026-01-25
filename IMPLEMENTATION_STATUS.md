@@ -10,9 +10,9 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| Phase 1: Core Loop | ⚠️ 90% | Missing: real feed refresh, Turbo Streams for processing status |
+| Phase 1: Core Loop | ⚠️ 95% | Missing: Turbo Streams for processing status |
 | Phase 2: Triage Flow | ✅ Done | All episode lifecycle transitions work |
-| Phase 3: Polish & Auth | ⚠️ 30% | Auth stubbed, search partially done, cost estimates missing |
+| Phase 3: Polish & Auth | ⚠️ 70% | Auth done, cost estimates done, inbox badge done, search UI missing |
 | Phase 4: PWA | ❌ Not Started | |
 
 ---
@@ -21,12 +21,13 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
 
 | Requirement | Status | Implementation | Notes |
 |-------------|--------|----------------|-------|
-| Magic link authentication | 🔧 Stubbed | `User.first` in controllers | **BLOCKER**: No login flow exists |
+| Magic link authentication | ✅ Done | `SessionsController` | Full flow: email → token → verify |
 | User model with tokens | ✅ Done | `app/models/user.rb` | `generate_magic_token!`, `magic_token_valid?` |
-| SessionsController | ❌ Not Started | | Need new, create, verify actions |
-| Email sending | ❌ Not Started | | Need Action Mailer setup |
+| SessionsController | ✅ Done | `app/controllers/sessions_controller.rb` | new, create, sent, verify, destroy |
+| Email sending | ✅ Done | `app/mailers/user_mailer.rb` | `magic_link` action |
+| Logout functionality | ✅ Done | Nav bar + `sessions#destroy` | Confirmation dialog |
 
-**Current behavior**: All controllers use `def current_user; User.first; end` as a temporary stub. Anyone can access any user's data.
+**Current behavior**: All controllers inherit authentication from `ApplicationController`. Users must sign in via magic link to access the app.
 
 ---
 
@@ -38,7 +39,7 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
 | "Add to Library" action | P0 | ✅ Done | `InboxController#add_to_library` |
 | "Skip" action | P0 | ✅ Done | `InboxController#skip` → moves to trash |
 | Episodes persist until acted upon | P0 | ✅ Done | No auto-expiration logic |
-| Badge count showing Inbox size | P1 | ❌ Not Started | Need to add to nav |
+| Badge count showing Inbox size | P1 | ✅ Done | Red badge in nav header |
 
 ---
 
@@ -93,7 +94,7 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
 
 | Requirement | Priority | Status | Implementation |
 |-------------|----------|--------|----------------|
-| Cost estimate before processing | P0 | ⚠️ Partial | Model method exists, not shown in UI prominently |
+| Cost estimate before processing | P0 | ✅ Done | Shown in Inbox and Show Archive with color-coded badges |
 | Automatic transcription | P0 | ✅ Done | `ProcessEpisodeJob` → `WhisperClient` |
 | AI-generated summary | P0 | ✅ Done | `ProcessEpisodeJob` → `ClaudeClient` |
 | Notable quotes with timestamps | P0 | ✅ Done | `quotes` jsonb field, displayed in detail view |
@@ -146,9 +147,9 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
 |-----|--------|----------------|-------|
 | `FetchPodcastFeedJob` | ✅ Done | `app/jobs/fetch_podcast_feed_job.rb` | Fetches RSS, creates episodes |
 | `ProcessEpisodeJob` | ✅ Done | `app/jobs/process_episode_job.rb` | Download → Whisper → Claude |
-| `RefreshAllFeedsJob` | ❌ Not Started | | Enqueue feed fetches for all subscribed podcasts |
+| `RefreshAllFeedsJob` | ✅ Done | `app/jobs/refresh_all_feeds_job.rb` | Enqueues feed fetches for all subscribed podcasts |
 | `CleanupTrashJob` | ✅ Done | `app/jobs/cleanup_trash_job.rb` | Deletes episodes trashed >90 days |
-| Recurring schedule | ❌ Not Started | `config/recurring.yml` missing | Need to configure Solid Queue |
+| Recurring schedule | ✅ Done | `config/recurring.yml` | Hourly feed refresh, daily trash cleanup |
 
 ---
 
@@ -195,8 +196,9 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
 |------|--------|-------|
 | Model specs | ✅ Done | 65 examples |
 | Service specs | ✅ Done | 45 examples |
-| Request specs | ✅ Done | 18 examples |
-| **Total** | ✅ Done | **128 examples, 0 failures** |
+| Request specs | ✅ Done | 37 examples |
+| Job specs | ✅ Done | 9 examples |
+| **Total** | ✅ Done | **156 examples, 0 failures** |
 
 ---
 
@@ -204,18 +206,19 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
 
 ### Must Have (before real use)
 
-1. **Authentication** — Currently anyone can access everything
-   - Create `SessionsController` with magic link flow
-   - Add `before_action :require_authentication` to all controllers
-   - Set up Action Mailer for sending magic link emails
+1. ~~**Authentication**~~ ✅ Complete
+   - SessionsController with magic link flow
+   - All controllers require authentication
+   - UserMailer sends magic link emails
 
-2. **Recurring Job Schedule** — Feeds won't auto-refresh
-   - Create `config/recurring.yml` with RefreshAllFeedsJob schedule
-   - Create `RefreshAllFeedsJob` to enqueue individual feed fetches
+2. ~~**Recurring Job Schedule**~~ ✅ Complete
+   - `config/recurring.yml` with hourly feed refresh and daily trash cleanup
+   - `RefreshAllFeedsJob` enqueues feed fetches for subscribed podcasts
+   - `CleanupTrashJob` deletes 90+ day old trashed episodes
 
-3. **Cost Estimate Display** — Users don't see cost before processing
-   - Add prominent cost display in Inbox cards
-   - Show confirmation before expensive episodes
+3. ~~**Cost Estimate Display**~~ ✅ Complete
+   - Color-coded cost badges in Inbox and Show Archive
+   - Helper methods: `format_cost_cents`, `cost_badge_class`
 
 ### Should Have (for good experience)
 
@@ -227,7 +230,7 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
    - Add search route and controller
    - Build search results page
 
-6. **Inbox Badge** — Can't see unread count in nav
+6. ~~**Inbox Badge**~~ ✅ Complete — Red badge shows count in nav
 
 ### Nice to Have
 
@@ -237,4 +240,4 @@ Tracks what has been built against the PRD and Technical Gameplan requirements.
 
 ---
 
-*Last updated: 2025-01-25*
+*Last updated: 2026-01-25*
