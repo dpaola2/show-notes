@@ -17,6 +17,7 @@ Rails.application.routes.draw do
     collection do
       post :add_to_library
       post :skip
+      delete :clear
     end
   end
 

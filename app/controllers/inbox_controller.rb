@@ -47,4 +47,21 @@ class InboxController < ApplicationController
     redirect_to inbox_index_path, notice: "Moved to Trash"
   end
 
+  def clear
+    count = current_user.user_episodes.in_inbox.count
+
+    if count.zero?
+      redirect_to inbox_index_path, alert: "Inbox is already empty"
+      return
+    end
+
+    current_user.user_episodes.in_inbox.update_all(
+      location: "trash",
+      trashed_at: Time.current,
+      updated_at: Time.current
+    )
+
+    redirect_to inbox_index_path, notice: "Cleared #{count} episode#{'s' unless count == 1} from inbox"
+  end
+
 end

@@ -1,5 +1,17 @@
 <div class="max-w-4xl mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-6">Inbox</h1>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Inbox (<%= @user_episodes.count %>)</h1>
+
+    <% if @user_episodes.any? %>
+      <%= button_to "Clear Inbox",
+          clear_inbox_index_path,
+          method: :delete,
+          class: "bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm",
+          data: {
+            turbo_confirm: "Skip all #{@user_episodes.count} episodes in your inbox?"
+          } %>
+    <% end %>
+  </div>
 
   <% if @user_episodes.any? %>
     <div class="space-y-3">
