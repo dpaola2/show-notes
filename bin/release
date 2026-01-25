@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e
+
+echo "Running database migrations..."
+bundle exec rails db:migrate
+
+echo "Release complete!"
