@@ -1,12 +1,12 @@
-<div class="max-w-4xl mx-auto px-4 py-8">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold">Inbox (<%= @user_episodes.count %>)</h1>
+<div class="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+  <div class="flex items-center justify-between mb-4 sm:mb-6">
+    <h1 class="text-xl sm:text-2xl font-bold">Inbox (<%= @user_episodes.count %>)</h1>
 
     <% if @user_episodes.any? %>
       <%= button_to "Clear Inbox",
           clear_inbox_index_path,
           method: :delete,
-          class: "bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm",
+          class: "bg-gray-100 text-gray-700 px-3 py-2 sm:px-4 rounded-lg hover:bg-gray-200 transition text-sm",
           data: {
             turbo_confirm: "Skip all #{@user_episodes.count} episodes in your inbox?"
           } %>
@@ -16,48 +16,48 @@
   <% if @user_episodes.any? %>
     <div class="space-y-3">
       <% @user_episodes.each do |user_episode| %>
-        <div id="<%= dom_id(user_episode) %>" class="flex gap-4 p-4 bg-white rounded-lg shadow border border-gray-200">
-            <div class="flex-1 min-w-0">
-              <h3 class="font-medium truncate"><%= user_episode.title %></h3>
-              <p class="text-gray-600 text-sm"><%= user_episode.podcast.title %></p>
-              <div class="flex items-center gap-2 mt-2 text-sm">
-                <% if user_episode.episode.published_at.present? %>
-                  <span class="text-gray-500">
-                    <%= user_episode.episode.published_at.strftime("%b %d, %Y") %>
-                  </span>
-                <% end %>
-                <% if user_episode.duration_seconds.present? %>
-                  <span class="text-gray-400">&middot;</span>
-                  <span class="text-gray-500">
-                    <%= format_duration(user_episode.duration_seconds) %>
-                  </span>
-                <% end %>
-                <% if user_episode.estimated_cost_cents > 0 %>
-                  <span class="text-gray-400">&middot;</span>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= cost_badge_class(user_episode.estimated_cost_cents) %>">
-                    ~<%= format_cost_cents(user_episode.estimated_cost_cents) %> to process
-                  </span>
-                <% end %>
-              </div>
-            </div>
-
-            <div class="flex gap-2 flex-shrink-0 self-center">
-              <%= button_to "Add to Library",
-                  add_to_library_inbox_index_path(id: user_episode.id),
-                  method: :post,
-                  class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm" %>
-              <%= button_to "Skip",
-                  skip_inbox_index_path(id: user_episode.id),
-                  method: :post,
-                  class: "bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm" %>
+        <div id="<%= dom_id(user_episode) %>" class="p-4 bg-white rounded-lg shadow border border-gray-200">
+          <div class="min-w-0">
+            <h3 class="font-medium line-clamp-2 sm:truncate"><%= user_episode.title %></h3>
+            <p class="text-gray-600 text-sm mt-0.5"><%= user_episode.podcast.title %></p>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-sm">
+              <% if user_episode.episode.published_at.present? %>
+                <span class="text-gray-500">
+                  <%= user_episode.episode.published_at.strftime("%b %d, %Y") %>
+                </span>
+              <% end %>
+              <% if user_episode.duration_seconds.present? %>
+                <span class="text-gray-400 hidden sm:inline">&middot;</span>
+                <span class="text-gray-500">
+                  <%= format_duration(user_episode.duration_seconds) %>
+                </span>
+              <% end %>
+              <% if user_episode.estimated_cost_cents > 0 %>
+                <span class="text-gray-400 hidden sm:inline">&middot;</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= cost_badge_class(user_episode.estimated_cost_cents) %>">
+                  ~<%= format_cost_cents(user_episode.estimated_cost_cents) %> to process
+                </span>
+              <% end %>
             </div>
           </div>
+
+          <div class="flex gap-2 mt-3 sm:mt-4">
+            <%= button_to "Add to Library",
+                add_to_library_inbox_index_path(id: user_episode.id),
+                method: :post,
+                class: "flex-1 sm:flex-none bg-blue-600 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium" %>
+            <%= button_to "Skip",
+                skip_inbox_index_path(id: user_episode.id),
+                method: :post,
+                class: "flex-1 sm:flex-none bg-gray-100 text-gray-700 px-4 py-2.5 sm:py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium" %>
+          </div>
+        </div>
       <% end %>
     </div>
   <% else %>
     <div class="text-center py-12">
       <p class="text-gray-500 mb-4">Your inbox is empty. Subscribe to podcasts to see new episodes here.</p>
-      <%= link_to "Find Podcasts", podcasts_path, class: "text-blue-600 hover:underline" %>
+      <%= link_to "Find Podcasts", podcasts_path, class: "text-blue-600 hover:underline font-medium py-2 inline-block" %>
     </div>
   <% end %>
 </div>
