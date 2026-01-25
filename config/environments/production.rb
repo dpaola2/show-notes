@@ -58,11 +58,8 @@ Rails.application.configure do
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "shownotes.app") }
 
-  # Use Resend for transactional email
+  # Use Resend for transactional email (API key set in config/initializers/resend.rb)
   config.action_mailer.delivery_method = :resend
-  config.action_mailer.resend_settings = {
-    api_key: ENV["RESEND_API_KEY"]
-  }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
