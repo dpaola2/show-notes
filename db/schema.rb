@@ -10,10 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_25_225129) do
-  # These are extensions that must be enabled in order to support this database
-  enable_extension "pg_catalog.plpgsql"
-
+ActiveRecord::Schema[8.1].define(version: 2026_02_05_124020) do
   create_table "episodes", force: :cascade do |t|
     t.string "audio_url"
     t.datetime "created_at", null: false
@@ -196,9 +193,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_25_225129) do
   create_table "summaries", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "episode_id", null: false
-    t.jsonb "quotes"
+    t.json "quotes"
     t.text "searchable_text"
-    t.jsonb "sections"
+    t.json "sections"
     t.datetime "updated_at", null: false
     t.index ["episode_id"], name: "index_summaries_on_episode_id"
   end
