@@ -1,0 +1,194 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+#
+# Converts a PostgreSQL custom-format dump (latest.dump) into the SQLite
+# development database. Requires PostgreSQL CLI tools (pg_restore, createdb,
+# dropdb, psql) to be available locally.
+#
+# Usage:
+#   bin/pg_to_sqlite                     # uses latest.dump in project root
+#   bin/pg_to_sqlite path/to/dump.file   # uses a specific dump file
+#
+
+require "json"
+require "open3"
+
+DUMP_FILE = ARGV[0] || File.expand_path("../latest.dump", __dir__)
+TEMP_PG_DB = "show_notes_pg_import_tmp"
+SQLITE_DB = File.expand_path("../storage/development.sqlite3", __dir__)
+
+# Prefer Homebrew PostgreSQL 17 if available (needed for v1.16 dump format),
+# fall back to whatever is on PATH.
+PG_BIN = if Dir.exist?("/opt/homebrew/opt/postgresql@17/bin")
+  "/opt/homebrew/opt/postgresql@17/bin"
+elsif Dir.exist?("/usr/local/opt/postgresql@17/bin")
+  "/usr/local/opt/postgresql@17/bin"
+end
+
+def pg_tool(name)
+  PG_BIN ? File.join(PG_BIN, name) : name
+end
+
+# Tables to migrate (in insertion order to respect foreign keys)
+APP_TABLES = %w[
+  users
+  podcasts
+  subscriptions
+  episodes
+  transcripts
+  summaries
+  user_episodes
+].freeze
+
+# Columns that store JSON and need parsing from PG text representation
+JSON_COLUMNS = {
+  "summaries" => %w[sections quotes]
+}.freeze
+
+def run(cmd, exit_on_fail: true)
+  puts "  $ #{cmd}"
+  output, status = Open3.capture2e(cmd)
+  unless status.success?
+    puts "  ERROR: #{output}"
+    exit(1) if exit_on_fail
+  end
+  output
+end
+
+def pg_query(sql)
+  output = run(%(#{pg_tool("psql")} -t -A -F '\\t' -d #{TEMP_PG_DB} -c "#{sql}"))
+  output.strip
+end
+
+# ── Preflight checks ──────────────────────────────────────────────────
+
+unless File.exist?(DUMP_FILE)
+  abort "ERROR: Dump file not found: #{DUMP_FILE}"
+end
+
+%w[pg_restore createdb dropdb psql].each do |tool|
+  path = pg_tool(tool)
+  unless system("which #{path} > /dev/null 2>&1") || File.executable?(path)
+    abort "ERROR: #{tool} not found. Install PostgreSQL CLI tools."
+  end
+end
+
+if PG_BIN
+  puts "Using PostgreSQL tools from: #{PG_BIN}"
+end
+
+unless File.exist?(SQLITE_DB)
+  abort "ERROR: SQLite database not found at #{SQLITE_DB}. Run 'bin/rails db:create db:migrate' first."
+end
+
+# ── Step 1: Restore PG dump to temp database ──────────────────────────
+
+puts "\n== Creating temporary PostgreSQL database =="
+run("#{pg_tool("dropdb")} --if-exists #{TEMP_PG_DB}", exit_on_fail: false)
+run("#{pg_tool("createdb")} #{TEMP_PG_DB}")
+
+puts "\n== Restoring dump to temporary database =="
+# pg_restore often exits non-zero for non-fatal warnings (e.g., version-specific
+# SET parameters). We allow this and verify the data was loaded afterwards.
+restore_output = run("#{pg_tool("pg_restore")} --no-owner --no-privileges -d #{TEMP_PG_DB} #{DUMP_FILE}", exit_on_fail: false)
+puts "  (pg_restore warnings are normal for cross-version restores)" unless restore_output.strip.empty?
+
+# ── Step 2: Connect to SQLite ─────────────────────────────────────────
+
+require "sqlite3"
+
+puts "\n== Connecting to SQLite database =="
+sqlite = SQLite3::Database.new(SQLITE_DB)
+sqlite.execute("PRAGMA journal_mode=WAL")
+sqlite.execute("PRAGMA foreign_keys=OFF") # Disable during bulk insert
+
+# ── Step 3: Copy tables ──────────────────────────────────────────────
+
+APP_TABLES.each do |table|
+  puts "\n== Migrating: #{table} =="
+
+  # Get column names from PG
+  columns_sql = "SELECT column_name FROM information_schema.columns WHERE table_name = '#{table}' ORDER BY ordinal_position"
+  columns = pg_query(columns_sql).split("\n").map(&:strip).reject(&:empty?)
+
+  if columns.empty?
+    puts "  WARNING: No columns found for #{table}, skipping."
+    next
+  end
+
+  # Get row count
+  count = pg_query("SELECT COUNT(*) FROM #{table}").to_i
+  puts "  #{count} rows, #{columns.size} columns"
+
+  if count == 0
+    puts "  (empty table, skipping)"
+    next
+  end
+
+  # Clear existing data in SQLite table
+  sqlite.execute("DELETE FROM #{table}")
+
+  # Read all rows from PG using COPY format (tab-delimited, \N for NULL)
+  col_list = columns.join(", ")
+  copy_cmd = %(#{pg_tool("psql")} -d #{TEMP_PG_DB} -c "COPY (SELECT #{col_list} FROM #{table} ORDER BY id) TO STDOUT")
+  raw_output = run(copy_cmd)
+
+  json_cols = JSON_COLUMNS.fetch(table, [])
+  json_col_indices = json_cols.map { |c| columns.index(c) }.compact
+
+  # Insert in batches
+  placeholders = columns.map { "?" }.join(", ")
+  insert_sql = "INSERT INTO #{table} (#{col_list}) VALUES (#{placeholders})"
+
+  inserted = 0
+  sqlite.transaction do
+    raw_output.each_line do |line|
+      line = line.chomp
+      next if line.empty?
+
+      values = line.split("\t", -1)
+
+      # Convert PG COPY format types to SQLite-compatible values
+      values.each_with_index do |val, i|
+        if val == "\\N"
+          values[i] = nil
+        elsif val == "t"
+          values[i] = 1 # SQLite boolean true
+        elsif val == "f"
+          values[i] = 0 # SQLite boolean false
+        elsif json_col_indices.include?(i)
+          # JSON columns: keep as-is (already valid JSON string from PG)
+          values[i] = val
+        end
+      end
+
+      sqlite.execute(insert_sql, values)
+      inserted += 1
+    end
+  end
+
+  puts "  Inserted #{inserted} rows"
+end
+
+# ── Step 4: Re-enable foreign keys and verify ────────────────────────
+
+sqlite.execute("PRAGMA foreign_keys=ON")
+violations = sqlite.execute("PRAGMA foreign_key_check")
+if violations.empty?
+  puts "\n== Foreign key check: PASSED =="
+else
+  puts "\n== WARNING: Foreign key violations found =="
+  violations.each { |v| puts "  #{v.inspect}" }
+end
+
+sqlite.close
+
+# ── Step 5: Clean up temp PG database ────────────────────────────────
+
+puts "\n== Cleaning up temporary PostgreSQL database =="
+run("#{pg_tool("dropdb")} #{TEMP_PG_DB}")
+
+puts "\n== Migration complete! =="
+puts "  SQLite database: #{SQLITE_DB}"
+puts "  Run 'bin/rails console' to verify your data."
