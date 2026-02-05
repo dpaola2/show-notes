@@ -46,6 +46,52 @@ RSpec.describe "Inbox", type: :request do
       end
     end
 
+    context "with pagination" do
+      let(:podcast) { create(:podcast) }
+
+      before do
+        25.times do |i|
+          episode = create(:episode, podcast: podcast, title: "Episode #{i.to_s.rjust(2, '0')}", published_at: i.days.ago)
+          create(:user_episode, user: user, episode: episode, location: :inbox)
+        end
+      end
+
+      it "returns only the first page of results" do
+        get inbox_index_path
+
+        expect(response.body).to include("Episode 00") # most recent
+        expect(response.body).not_to include("Episode 24") # oldest, on page 2
+      end
+
+      it "shows total count in the header" do
+        get inbox_index_path
+
+        expect(response.body).to include("Inbox (25)")
+      end
+
+      it "renders pagination nav" do
+        get inbox_index_path
+
+        expect(response.body).to include("pagy")
+      end
+
+      it "returns the second page when requested" do
+        get inbox_index_path, params: { page: 2 }
+
+        expect(response.body).to include("Episode 24") # oldest, on page 2
+        expect(response.body).not_to include("Episode 00") # most recent, on page 1
+      end
+
+      it "does not render pagination when items fit on one page" do
+        # Remove enough to fit in one page
+        user.user_episodes.in_inbox.limit(10).destroy_all
+
+        get inbox_index_path
+
+        expect(response.body).not_to include("series-nav")
+      end
+    end
+
     context "with empty inbox" do
       it "shows empty state message" do
         get inbox_index_path

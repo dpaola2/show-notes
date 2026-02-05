@@ -9,6 +9,37 @@
  * Consider organizing styles into separate files for maintainability.
  */
 
+/* Pagy pagination nav */
+.pagy.series-nav {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+.pagy.series-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  transition: background-color 0.15s;
+}
+.pagy.series-nav a:hover:not([aria-disabled]) {
+  background-color: #f3f4f6;
+}
+.pagy.series-nav a[aria-current="page"] {
+  background-color: #2563eb;
+  color: #fff;
+}
+.pagy.series-nav a[aria-disabled="true"] {
+  color: #9ca3af;
+  cursor: default;
+}
+
 /* Ensure all interactive elements show pointer cursor */
 button,
 [type="button"],

@@ -1,9 +1,11 @@
 class InboxController < ApplicationController
   def index
-    @user_episodes = current_user.user_episodes
-      .in_inbox
-      .includes(episode: :podcast)
-      .order("episodes.published_at DESC")
+    @pagy, @user_episodes = pagy(
+      current_user.user_episodes
+        .in_inbox
+        .includes(episode: :podcast)
+        .order("episodes.published_at DESC")
+    )
   end
 
   def create

@@ -38,6 +38,12 @@
         </div>
       <% end %>
     </div>
+
+    <% if @pagy.last > 1 %>
+      <nav class="flex justify-center mt-6">
+        <%== @pagy.series_nav %>
+      </nav>
+    <% end %>
   <% else %>
     <div class="text-center py-12">
       <p class="text-gray-500 mb-4">Your library is empty. Add episodes from your inbox to process them.</p>
