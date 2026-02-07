@@ -42,4 +42,12 @@
           class: "bg-blue-600 text-white px-6 py-2.5 sm:py-2 rounded-lg hover:bg-blue-700 transition font-medium" %>
     </div>
   <% end %>
+
+  <section class="bg-white rounded-lg shadow border border-gray-200 p-4 sm:p-6">
+    <h2 class="text-lg font-semibold mb-4">Import Podcasts</h2>
+    <p class="text-sm text-gray-600 mb-3">
+      Import your podcast subscriptions from another app via OPML file.
+    </p>
+    <%= link_to "Import Podcasts", new_import_path, class: "text-blue-600 hover:underline font-medium" %>
+  </section>
 </div>

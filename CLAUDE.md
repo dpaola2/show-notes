@@ -87,6 +87,8 @@ bundle exec rspec --format doc       # Verbose output
 
 ## Codebase Patterns & Gotchas
 
+See also [AGENTS.md](AGENTS.md) for agent-discovered patterns and gotchas.
+
 ### Authentication
 - Magic link auth — `User.find_or_create_by!(email:)` in `SessionsController#create`
 - `previously_new_record?` is cleared by `update!` — capture it in a local variable **before** calling any method that saves the record (e.g., `generate_magic_token!`)
