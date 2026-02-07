@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>My Podcast Subscriptions</title>
+  </head>
+  <body>
+    <outline text="The Daily" xmlUrl="https://feeds.simplecast.com/the-daily" />
+    <outline text="Acquired" xmlUrl="https://feeds.example.com/acquired" />
+    <outline text="Hardcore History" xmlUrl="https://feeds.example.com/hardcore-history" />
+  </body>
+</opml>
