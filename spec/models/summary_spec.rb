@@ -51,7 +51,7 @@ RSpec.describe Summary, type: :model do
     end
 
     it "handles empty sections gracefully" do
-      summary = build(:summary, sections: [], quotes: [{ "text" => "A quote" }])
+      summary = build(:summary, sections: [], quotes: [ { "text" => "A quote" } ])
       # Bypass validation for this edge case test
       summary.save(validate: false)
 
@@ -59,7 +59,7 @@ RSpec.describe Summary, type: :model do
     end
 
     it "handles empty quotes gracefully" do
-      summary = build(:summary, sections: [{ "title" => "Title", "content" => "Content" }], quotes: [])
+      summary = build(:summary, sections: [ { "title" => "Title", "content" => "Content" } ], quotes: [])
       # Bypass validation for this edge case test
       summary.save(validate: false)
 
@@ -70,7 +70,7 @@ RSpec.describe Summary, type: :model do
       summary = create(:summary)
       original_text = summary.searchable_text
 
-      summary.update!(sections: [{ "title" => "New Section", "content" => "Brand new content" }])
+      summary.update!(sections: [ { "title" => "New Section", "content" => "Brand new content" } ])
 
       expect(summary.searchable_text).not_to eq(original_text)
       expect(summary.searchable_text).to include("New Section")

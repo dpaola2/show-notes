@@ -65,5 +65,4 @@ class InboxController < ApplicationController
 
     redirect_to inbox_index_path, notice: "Cleared #{count} episode#{'s' unless count == 1} from inbox"
   end
-
 end

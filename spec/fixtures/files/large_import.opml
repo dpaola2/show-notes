@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Large Podcast Library</title>
+  </head>
+  <body>
+    <outline text="Technology">
+      <outline text="Accidental Tech Podcast" xmlUrl="https://feeds.example.com/atp" />
+      <outline text="Upgrade" xmlUrl="https://feeds.example.com/upgrade" />
+      <outline text="Connected" xmlUrl="https://feeds.example.com/connected" />
+    </outline>
+    <outline text="Business">
+      <outline text="Acquired" xmlUrl="https://feeds.example.com/acquired" />
+      <outline text="Invest Like the Best" xmlUrl="https://feeds.example.com/invest" />
+      <outline text="All-In Podcast" xmlUrl="https://feeds.example.com/all-in" />
+    </outline>
+    <outline text="News">
+      <outline text="The Daily" xmlUrl="https://feeds.simplecast.com/the-daily" />
+      <outline text="Up First" xmlUrl="https://feeds.example.com/up-first" />
+      <outline text="The Journal" xmlUrl="https://feeds.example.com/the-journal" />
+    </outline>
+    <outline text="Science">
+      <outline text="Radiolab" xmlUrl="https://feeds.example.com/radiolab" />
+      <outline text="Hidden Brain" xmlUrl="https://feeds.example.com/hidden-brain" />
+    </outline>
+    <outline text="Hardcore History" xmlUrl="https://feeds.example.com/hardcore-history" />
+  </body>
+</opml>

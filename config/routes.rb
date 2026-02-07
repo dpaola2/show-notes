@@ -43,6 +43,12 @@ Rails.application.routes.draw do
     end
   end
 
+  # OPML Import
+  resource :import, only: [ :new, :create ]
+  get "import/select_favorites", to: "imports#select_favorites", as: :select_favorites_imports
+  post "import/process_favorites", to: "imports#process_favorites", as: :process_favorites_imports
+  get "import/complete", to: "imports#complete", as: :complete_imports
+
   # User settings
   resource :settings, only: [ :show, :update ]
 
