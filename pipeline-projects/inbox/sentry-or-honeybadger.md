@@ -1,0 +1,2 @@
+project: show notes
+we need a way to detect unhandled exceptions and potentially even performance monitoring. need to figure out which service(s) to use. for now they need to be free or very cheap. probably other considerations too
