@@ -158,35 +158,35 @@ RSpec.describe OpmlImportService do
       # Mock RSS feed parsing for selected podcasts
       allow(PodcastFeedParser).to receive(:parse)
         .with(podcast1.feed_url)
-        .and_return([episode1_struct])
+        .and_return([ episode1_struct ])
 
       allow(PodcastFeedParser).to receive(:parse)
         .with(podcast2.feed_url)
-        .and_return([episode2_struct])
+        .and_return([ episode2_struct ])
     end
 
     context "PRC-001: fetching and processing latest episode from each favorite" do
       it "creates Episode records for each selected podcast" do
         expect {
-          described_class.process_favorites(user, [podcast1.id, podcast2.id])
+          described_class.process_favorites(user, [ podcast1.id, podcast2.id ])
         }.to change(Episode, :count).by(2)
       end
 
       it "creates UserEpisode records for each selected podcast" do
         expect {
-          described_class.process_favorites(user, [podcast1.id, podcast2.id])
+          described_class.process_favorites(user, [ podcast1.id, podcast2.id ])
         }.to change(UserEpisode, :count).by(2)
       end
 
       it "creates UserEpisode in library location (not inbox)" do
-        described_class.process_favorites(user, [podcast1.id])
+        described_class.process_favorites(user, [ podcast1.id ])
 
         user_episode = UserEpisode.last
         expect(user_episode.location).to eq("library")
       end
 
       it "sets processing_status to pending" do
-        described_class.process_favorites(user, [podcast1.id])
+        described_class.process_favorites(user, [ podcast1.id ])
 
         user_episode = UserEpisode.last
         expect(user_episode.processing_status).to eq("pending")
@@ -196,12 +196,12 @@ RSpec.describe OpmlImportService do
     context "PRC-003: background processing via ProcessEpisodeJob" do
       it "enqueues ProcessEpisodeJob for each selected podcast" do
         expect {
-          described_class.process_favorites(user, [podcast1.id, podcast2.id])
+          described_class.process_favorites(user, [ podcast1.id, podcast2.id ])
         }.to have_enqueued_job(ProcessEpisodeJob).twice
       end
 
       it "passes the user_episode id to the job" do
-        described_class.process_favorites(user, [podcast1.id])
+        described_class.process_favorites(user, [ podcast1.id ])
 
         user_episode = UserEpisode.last
         expect(ProcessEpisodeJob).to have_been_enqueued.with(user_episode.id)
@@ -212,7 +212,7 @@ RSpec.describe OpmlImportService do
       it "does not fetch the feed for unselected podcasts" do
         expect(PodcastFeedParser).not_to receive(:parse).with(unselected_podcast.feed_url)
 
-        described_class.process_favorites(user, [podcast1.id])
+        described_class.process_favorites(user, [ podcast1.id ])
       end
     end
 
@@ -221,7 +221,7 @@ RSpec.describe OpmlImportService do
 
       it "ignores podcast IDs not belonging to the user" do
         expect {
-          described_class.process_favorites(user, [other_user_podcast.id])
+          described_class.process_favorites(user, [ other_user_podcast.id ])
         }.not_to change(Episode, :count)
       end
     end
@@ -235,14 +235,14 @@ RSpec.describe OpmlImportService do
 
       it "continues processing remaining podcasts" do
         expect {
-          described_class.process_favorites(user, [podcast1.id, podcast2.id])
+          described_class.process_favorites(user, [ podcast1.id, podcast2.id ])
         }.to change(Episode, :count).by(1) # only podcast2 succeeds
       end
 
       it "logs a warning for the failed feed" do
         expect(Rails.logger).to receive(:warn).with(/Failed to fetch feed/)
 
-        described_class.process_favorites(user, [podcast1.id, podcast2.id])
+        described_class.process_favorites(user, [ podcast1.id, podcast2.id ])
       end
     end
 
@@ -254,13 +254,13 @@ RSpec.describe OpmlImportService do
 
       it "does not create a duplicate episode" do
         expect {
-          described_class.process_favorites(user, [podcast1.id])
+          described_class.process_favorites(user, [ podcast1.id ])
         }.not_to change(Episode, :count)
       end
 
       it "still creates a UserEpisode and enqueues processing" do
         expect {
-          described_class.process_favorites(user, [podcast1.id])
+          described_class.process_favorites(user, [ podcast1.id ])
         }.to change(UserEpisode, :count).by(1)
           .and have_enqueued_job(ProcessEpisodeJob)
       end
@@ -277,7 +277,7 @@ RSpec.describe OpmlImportService do
 
       it "does not enqueue ProcessEpisodeJob again" do
         expect {
-          described_class.process_favorites(user, [podcast1.id])
+          described_class.process_favorites(user, [ podcast1.id ])
         }.not_to have_enqueued_job(ProcessEpisodeJob)
       end
     end

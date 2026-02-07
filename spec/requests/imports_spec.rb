@@ -165,19 +165,19 @@ RSpec.describe "Imports", type: :request do
       create(:subscription, user: user, podcast: podcast1)
       create(:subscription, user: user, podcast: podcast2)
 
-      allow(PodcastFeedParser).to receive(:parse).and_return([episode_struct])
+      allow(PodcastFeedParser).to receive(:parse).and_return([ episode_struct ])
     end
 
     context "PRC-001/PRC-003: processing selected favorites" do
       it "redirects to the complete page" do
-        post process_favorites_imports_path, params: { podcast_ids: [podcast1.id] }
+        post process_favorites_imports_path, params: { podcast_ids: [ podcast1.id ] }
 
         expect(response).to redirect_to(complete_imports_path)
       end
 
       it "enqueues ProcessEpisodeJob for selected podcasts" do
         expect {
-          post process_favorites_imports_path, params: { podcast_ids: [podcast1.id, podcast2.id] }
+          post process_favorites_imports_path, params: { podcast_ids: [ podcast1.id, podcast2.id ] }
         }.to have_enqueued_job(ProcessEpisodeJob).twice
       end
     end
@@ -202,7 +202,7 @@ RSpec.describe "Imports", type: :request do
       end
 
       it "redirects to login" do
-        post process_favorites_imports_path, params: { podcast_ids: [podcast1.id] }
+        post process_favorites_imports_path, params: { podcast_ids: [ podcast1.id ] }
 
         expect(response).to redirect_to(root_path)
       end
