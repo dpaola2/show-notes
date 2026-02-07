@@ -47,17 +47,15 @@ class OpmlImportService
       latest = episodes.first
       next unless latest
 
-      episode = podcast.episodes.find_or_initialize_by(guid: latest.guid)
-      if episode.new_record?
-        episode.assign_attributes(
-          title: latest.title,
-          description: latest.description,
-          audio_url: latest.audio_url,
-          duration_seconds: latest.duration_seconds,
-          published_at: latest.published_at
-        )
-        episode.save!
+      episode = Episode.find_or_initialize_by(guid: latest.guid) do |ep|
+        ep.podcast = podcast
+        ep.title = latest.title
+        ep.description = latest.description
+        ep.audio_url = latest.audio_url
+        ep.duration_seconds = latest.duration_seconds
+        ep.published_at = latest.published_at
       end
+      episode.save! if episode.new_record?
 
       user_episode = @user.user_episodes.find_or_initialize_by(episode: episode)
       if user_episode.new_record?

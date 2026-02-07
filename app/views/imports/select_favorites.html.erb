@@ -1,0 +1,43 @@
+<div class="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+  <h1 class="text-xl sm:text-2xl font-bold mb-2">
+    We found <%= @podcasts.count %> podcasts!
+  </h1>
+
+  <% if @result.skipped.any? %>
+    <p class="text-gray-600 mb-4">
+      <%= @result.skipped.count %> were already in your library.
+    </p>
+  <% end %>
+
+  <p class="text-gray-600 mb-6">Pick 5-10 of your favorites to process right away.</p>
+
+  <%= form_with url: process_favorites_imports_path, method: :post, class: "space-y-6" do |f| %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <% @podcasts.each do |podcast| %>
+        <label class="flex items-center gap-3 p-3 bg-white rounded-lg shadow border border-gray-200 cursor-pointer hover:border-blue-300 transition">
+          <input type="checkbox" name="podcast_ids[]" value="<%= podcast.id %>"
+                 class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+          <% if podcast.artwork_url.present? %>
+            <img src="<%= podcast.artwork_url %>" alt="<%= podcast.title %>"
+                 class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
+          <% else %>
+            <div class="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+              </svg>
+            </div>
+          <% end %>
+          <span class="font-medium text-sm truncate"><%= podcast.title %></span>
+        </label>
+      <% end %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow border border-gray-200 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <p class="text-sm text-gray-600">
+        Estimated cost: $0.46 per episode
+      </p>
+      <%= f.submit "Process my favorites",
+          class: "bg-blue-600 text-white px-6 py-2.5 sm:py-2 rounded-lg hover:bg-blue-700 transition font-medium" %>
+    </div>
+  <% end %>
+</div>
