@@ -16,5 +16,4 @@ class ArchiveController < ApplicationController
     user_episode.move_to_library!
     redirect_to archive_index_path, notice: "Restored to Library"
   end
-
 end

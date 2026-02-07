@@ -19,7 +19,7 @@ class TranscriptChunker
 
       # If no utterances, fall back to a single chunk with full text
       if utterances.empty?
-        return [build_fallback_chunk(data)]
+        return [ build_fallback_chunk(data) ]
       end
 
       chunks = split_into_chunks(utterances)

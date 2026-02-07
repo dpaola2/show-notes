@@ -32,5 +32,4 @@ class LibraryController < ApplicationController
     ProcessEpisodeJob.perform_later(user_episode.id)
     redirect_to library_path(user_episode), notice: "Regenerating summary..."
   end
-
 end
