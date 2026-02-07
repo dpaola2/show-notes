@@ -85,6 +85,22 @@ bundle exec rspec --format doc       # Verbose output
 - Use service objects for external API integrations
 - Write clear, self-documenting code
 
+## Codebase Patterns & Gotchas
+
+### Authentication
+- Magic link auth — `User.find_or_create_by!(email:)` in `SessionsController#create`
+- `previously_new_record?` is cleared by `update!` — capture it in a local variable **before** calling any method that saves the record (e.g., `generate_magic_token!`)
+
+### Mailers
+- `ApplicationMailer` sends from `noreply@listen.davepaola.com`, uses `layout "mailer"`
+- `UserMailer` — user-facing auth emails (magic links)
+- `DigestMailer` — user-facing daily digest, includes `ApplicationHelper`
+- `SignupNotificationMailer` — internal admin notifications (separate class for different audience)
+- All mailers use multipart templates (HTML + text) in `app/views/<mailer_name>/`
+- Production: Resend (`config.action_mailer.delivery_method = :resend`)
+- Development: Letter Opener (`config.action_mailer.delivery_method = :letter_opener`)
+- Test: `:test` (accumulates in `ActionMailer::Base.deliveries`)
+
 ## Autonomous Execution
 
 When running autonomously:

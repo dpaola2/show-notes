@@ -16,8 +16,10 @@ class SessionsController < ApplicationController
     end
 
     user = User.find_or_create_by!(email: @email)
+    new_signup = user.previously_new_record?
     token = user.generate_magic_token!
 
+    SignupNotificationMailer.new_signup(user).deliver_later if new_signup
     UserMailer.magic_link(user, token).deliver_later
 
     redirect_to magic_link_sent_path, notice: "Check your email for a login link"
