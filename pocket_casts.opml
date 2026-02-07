@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+        <opml version="1.0">
+            <head>
+                <title>Pocket Casts Feeds</title>
+            </head>
+            <body>
+                <outline text="feeds">
+                    
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/hackers-inc"
+                                    type="rss"
+                                    text="Hackers Incorporated"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://anchor.fm/s/572fc68/podcast/rss"
+                                    type="rss"
+                                    text="Swift over Coffee"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feed.podbean.com/swiftcoders/feed.xml"
+                                    type="rss"
+                                    text="SwiftCoders: Interviews with Swift Developers"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://museapp.com/podcast.rss"
+                                    type="rss"
+                                    text="Metamuse"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.soundcloud.com/users/soundcloud:users:388437987/sounds.rss"
+                                    type="rss"
+                                    text="How I Raised It - The podcast where we interview startup founders who raised capital."
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.buzzsprout.com/1411126.rss"
+                                    type="rss"
+                                    text="Maintenance Phase"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://rss.art19.com/being-in-the-way"
+                                    type="rss"
+                                    text="Alan Watts Being in the Way"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.megaphone.fm/RSV2347142881"
+                                    type="rss"
+                                    text="Honestly with Bari Weiss"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.buzzsprout.com/2218321.rss"
+                                    type="rss"
+                                    text="The OctoClean Podcast"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/doing-daily"
+                                    type="rss"
+                                    text="Doing Daily"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://chatsinthecupboard.com/podcast.xml"
+                                    type="rss"
+                                    text="Chats in the Cupboard"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.buzzsprout.com/1863461.rss"
+                                    type="rss"
+                                    text="Coffee with Developers"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.simplecast.com/_IjaDYAj"
+                                    type="rss"
+                                    text="Deep Questions with Cal Newport"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/build-your-saas"
+                                    type="rss"
+                                    text="Build Your SaaS"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.megaphone.fm/BPP3479664818"
+                                    type="rss"
+                                    text="Fat Leonard"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/indierails"
+                                    type="rss"
+                                    text="IndieRails"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://stacktracepodcast.fm/feed.rss"
+                                    type="rss"
+                                    text="Stacktrace"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/building-liminal"
+                                    type="rss"
+                                    text="Building Liminal"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.buzzsprout.com/1927628.rss"
+                                    type="rss"
+                                    text="Code and the Coding Coders who Code it"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.acast.com/public/shows/6183f163bc7be70013fcaa56"
+                                    type="rss"
+                                    text="Chatter"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.megaphone.fm/20k"
+                                    type="rss"
+                                    text="Twenty Thousand Hertz"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="http://warontherocks.libsyn.com/rss"
+                                    type="rss"
+                                    text="War on the Rocks"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/framework-friends"
+                                    type="rss"
+                                    text="Framework Friends"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://anchor.fm/s/5ddafbd0/podcast/rss"
+                                    type="rss"
+                                    text="Scaler Pod - The Software Engineer&#39;s Podcast"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/ruby-for-all"
+                                    type="rss"
+                                    text="Ruby for All"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://anchor.fm/s/f6891d6c/podcast/rss"
+                                    type="rss"
+                                    text="The Knowledge Project with Shane Parrish"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.simplecast.com/eew_vyNL"
+                                    type="rss"
+                                    text="Design Details"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.captivate.fm/thesocialradars/"
+                                    type="rss"
+                                    text="The Social Radars"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://begbal.libsyn.com/rss"
+                                    type="rss"
+                                    text="Beginning Balance"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.megaphone.fm/lateralcast"
+                                    type="rss"
+                                    text="Lateral with Tom Scott"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/eb445b2f-243f-4db6-9062-ae2b0012ff27/17082071-db1a-4132-8640-ae2b0012ff3a/podcast.rss"
+                                    type="rss"
+                                    text="Foundering"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/29897540-b4b9-47bd-a800-af3c00f0933b/2db1ce33-1985-44b7-9592-af3c00f09357/podcast.rss"
+                                    type="rss"
+                                    text="Jordan Klepper Fingers the Conspiracy"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://api.substack.com/feed/podcast/1042/s/24549.rss"
+                                    type="rss"
+                                    text="America This Week"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://access.acast.com/rss/65280dac52b38a00118a0cb7"
+                                    type="rss"
+                                    text="Wisdom From The Top with Guy Raz"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/yagni"
+                                    type="rss"
+                                    text="YAGNI"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://api.substack.com/feed/podcast/1231981.rss"
+                                    type="rss"
+                                    text="Joe Lonsdale: American Optimist"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="http://www.hellointernet.fm/podcast?format=rss"
+                                    type="rss"
+                                    text="Hello Internet"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://insearchofsoil.libsyn.com/rss"
+                                    type="rss"
+                                    text="In Search of Soil"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://api.substack.com/feed/podcast/1836206.rss"
+                                    type="rss"
+                                    text="The Daily Developer"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.fireside.fm/firesideswift/rss"
+                                    type="rss"
+                                    text="Fireside Swift"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/the-technium-podcast"
+                                    type="rss"
+                                    text="The Technium"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.buzzsprout.com/1801980.rss"
+                                    type="rss"
+                                    text="Boz To The Future"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://rss.art19.com/spellcaster"
+                                    type="rss"
+                                    text="Spellcaster: The Fall of Sam Bankman-Fried"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.megaphone.fm/tetragrammaton"
+                                    type="rss"
+                                    text="Tetragrammaton with Rick Rubin"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://api.substack.com/feed/podcast/10845.rss"
+                                    type="rss"
+                                    text="Lenny&#39;s Podcast: Product | Growth | Career"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.simplecast.com/wgl4xEgL"
+                                    type="rss"
+                                    text="EconTalk"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.megaphone.fm/NSR5328487243"
+                                    type="rss"
+                                    text="CONFLICTED"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.megaphone.fm/60-songs"
+                                    type="rss"
+                                    text="60 Songs That Explain the &#39;90s"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://anchor.fm/s/c31298dc/podcast/rss"
+                                    type="rss"
+                                    text="Exposing your Ignorance"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feed.therecipepodcast.com/"
+                                    type="rss"
+                                    text="The Recipe with Kenji and Deb"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/synthetic-a-priori"
+                                    type="rss"
+                                    text="Synthetic A Priori"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://api.substack.com/feed/podcast/791421.rss"
+                                    type="rss"
+                                    text="Lexicon Valley from Booksmart Studios"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.buzzsprout.com/1958315.rss"
+                                    type="rss"
+                                    text="The Yes-code Podcast"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/localfirstfm"
+                                    type="rss"
+                                    text="localfirst.fm"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://feeds.transistor.fm/acquired"
+                                    type="rss"
+                                    text="Acquired"
+                                />
+                            
+
+                                <outline
+                                    xmlUrl="https://rands.libsyn.com/feed"
+                                    type="rss"
+                                    text="The Important Thing"
+                                />
+                            
+                </outline>
+            </body>
+        </opml>
