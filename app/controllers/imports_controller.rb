@@ -2,6 +2,8 @@ class ImportsController < ApplicationController
   skip_before_action :require_authentication
   before_action :authenticate_user!
 
+  MAX_FILE_SIZE = 1.megabyte
+
   # GET /import/new
   def new
   end
@@ -11,6 +13,11 @@ class ImportsController < ApplicationController
     file = params[:opml_file]
     unless file.present?
       redirect_to new_import_path, alert: "Please select a file to upload"
+      return
+    end
+
+    if file.size > MAX_FILE_SIZE
+      redirect_to new_import_path, alert: "File is too large (max 1MB). Please upload a smaller OPML file."
       return
     end
 
