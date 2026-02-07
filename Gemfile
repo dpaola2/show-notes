@@ -93,4 +93,3 @@ group :development do
   # Preview emails in browser instead of sending
   gem "letter_opener"
 end
-
