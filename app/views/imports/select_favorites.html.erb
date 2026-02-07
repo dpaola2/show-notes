@@ -3,20 +3,20 @@
     We found <%= @podcasts.count %> podcasts!
   </h1>
 
-  <% if @result.skipped.any? %>
+  <% if @skipped_count > 0 %>
     <p class="text-gray-600 mb-4">
-      <%= @result.skipped.count %> were already in your library.
+      <%= @skipped_count %> were already in your library.
     </p>
   <% end %>
 
-  <% if @result.failed.any? %>
+  <% if @failed.any? %>
     <details class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
       <summary class="text-sm font-medium text-yellow-800 cursor-pointer">
-        We couldn't find <%= @result.failed.count %> feeds
+        We couldn't find <%= @failed.count %> feeds
       </summary>
       <ul class="mt-2 text-sm text-yellow-700 space-y-1">
-        <% @result.failed.each do |failure| %>
-          <li><%= failure[:feed].feed_url %> — <%= failure[:error] %></li>
+        <% @failed.each do |failure| %>
+          <li><%= failure["feed_url"] %> — <%= failure["error"] %></li>
         <% end %>
       </ul>
     </details>

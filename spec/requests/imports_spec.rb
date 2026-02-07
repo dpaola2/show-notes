@@ -54,10 +54,10 @@ RSpec.describe "Imports", type: :request do
     let(:empty_feeds_opml) { file_fixture("empty_feeds.opml") }
 
     context "IMP-003/IMP-004: uploading a valid OPML file" do
-      it "subscribes to all feeds and renders the favorites selection" do
+      it "subscribes to all feeds and redirects to favorites selection" do
         post import_path, params: { opml_file: fixture_file_upload("valid_podcasts.opml", "text/xml") }
 
-        expect(response).to have_http_status(:success)
+        expect(response).to redirect_to(select_favorites_imports_path)
       end
 
       it "SUB-001: creates Podcast and Subscription records" do
@@ -68,12 +68,14 @@ RSpec.describe "Imports", type: :request do
 
       it "IMP-006: displays the count of discovered podcasts" do
         post import_path, params: { opml_file: fixture_file_upload("valid_podcasts.opml", "text/xml") }
+        follow_redirect!
 
         expect(response.body).to include("3") # "We found 3 podcasts!"
       end
 
       it "IMP-005: displays podcast names in the response" do
         post import_path, params: { opml_file: fixture_file_upload("valid_podcasts.opml", "text/xml") }
+        follow_redirect!
 
         expect(response.body).to include("The Daily")
         expect(response.body).to include("Acquired")
@@ -82,18 +84,21 @@ RSpec.describe "Imports", type: :request do
 
       it "FAV-001: renders checkboxes for podcast selection" do
         post import_path, params: { opml_file: fixture_file_upload("valid_podcasts.opml", "text/xml") }
+        follow_redirect!
 
         expect(response.body).to include("podcast_ids")
       end
 
       it "FAV-003: shows the recommended range hint" do
         post import_path, params: { opml_file: fixture_file_upload("valid_podcasts.opml", "text/xml") }
+        follow_redirect!
 
         expect(response.body).to match(/5.?10/i) # "Pick 5-10 of your favorites"
       end
 
       it "PRC-002: displays cost estimate" do
         post import_path, params: { opml_file: fixture_file_upload("valid_podcasts.opml", "text/xml") }
+        follow_redirect!
 
         # Flat $0.46/episode cost estimate should appear somewhere
         expect(response.body).to include("0.46")
@@ -109,6 +114,7 @@ RSpec.describe "Imports", type: :request do
 
       it "shows how many were already subscribed" do
         post import_path, params: { opml_file: fixture_file_upload("valid_podcasts.opml", "text/xml") }
+        follow_redirect!
 
         expect(response).to have_http_status(:success)
         expect(response.body).to include("already")
