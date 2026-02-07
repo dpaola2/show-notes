@@ -47,8 +47,7 @@ class OpmlImportService
       latest = episodes.first
       next unless latest
 
-      episode = Episode.find_or_initialize_by(guid: latest.guid) do |ep|
-        ep.podcast = podcast
+      episode = podcast.episodes.find_or_initialize_by(guid: latest.guid) do |ep|
         ep.title = latest.title
         ep.description = latest.description
         ep.audio_url = latest.audio_url

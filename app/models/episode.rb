@@ -4,7 +4,7 @@ class Episode < ApplicationRecord
   has_one :transcript, dependent: :destroy
   has_one :summary, dependent: :destroy
 
-  validates :guid, presence: true, uniqueness: true
+  validates :guid, presence: true, uniqueness: { scope: :podcast_id }
   validates :title, presence: true
   validates :audio_url, presence: true
 

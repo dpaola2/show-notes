@@ -11,10 +11,17 @@ RSpec.describe Episode, type: :model do
       expect(subject).not_to be_valid
     end
 
-    it "requires unique guid" do
-      create(:episode, guid: "same-guid")
+    it "requires unique guid within the same podcast" do
+      existing = create(:episode, guid: "same-guid")
+      subject.podcast = existing.podcast
       subject.guid = "same-guid"
       expect(subject).not_to be_valid
+    end
+
+    it "allows duplicate guid across different podcasts" do
+      create(:episode, guid: "same-guid")
+      subject.guid = "same-guid"
+      expect(subject).to be_valid
     end
 
     it "requires title" do
