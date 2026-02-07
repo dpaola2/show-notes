@@ -9,6 +9,19 @@
     </p>
   <% end %>
 
+  <% if @result.failed.any? %>
+    <details class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <summary class="text-sm font-medium text-yellow-800 cursor-pointer">
+        We couldn't find <%= @result.failed.count %> feeds
+      </summary>
+      <ul class="mt-2 text-sm text-yellow-700 space-y-1">
+        <% @result.failed.each do |failure| %>
+          <li><%= failure[:feed].feed_url %> — <%= failure[:error] %></li>
+        <% end %>
+      </ul>
+    </details>
+  <% end %>
+
   <p class="text-gray-600 mb-6">Pick 5-10 of your favorites to process right away.</p>
 
   <%= form_with url: process_favorites_imports_path, method: :post, class: "space-y-6" do |f| %>
