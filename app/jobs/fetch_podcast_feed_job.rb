@@ -30,6 +30,9 @@ class FetchPodcastFeedJob < ApplicationJob
             location: :inbox
           )
         end
+
+        # Auto-process: enqueue transcription + summarization
+        AutoProcessEpisodeJob.perform_later(episode.id)
       end
     end
 
