@@ -20,7 +20,7 @@ RSpec.describe SendDailyDigestJob, type: :job do
       it "sends digest to users with new subscribed episodes" do
         expect {
           described_class.perform_now
-        }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user)
+        }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user, anything)
       end
 
       it "updates digest_sent_at timestamp" do

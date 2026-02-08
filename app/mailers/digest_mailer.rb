@@ -7,9 +7,15 @@ class DigestMailer < ApplicationMailer
   # to exist after calling DigestMailer.daily_digest(user), so we
   # pre-create them here and stash them in a thread-local for the
   # instance method to pick up during rendering.
-  def self.daily_digest(user)
+  #
+  # The `since` parameter captures the episode cutoff time. It is passed
+  # through to `super` so that deliver_later serialises it as a mailer
+  # argument. When the worker re-invokes this class method, `since` is
+  # already set, protecting against the race where `digest_sent_at` was
+  # bumped between scheduling and delivery.
+  def self.daily_digest(user, since = nil)
+    since ||= user.digest_sent_at || 1.day.ago
     digest_date = Date.current.to_s
-    since = user.digest_sent_at || 1.day.ago
 
     episodes_by_show = Episode
       .joins(podcast: :subscriptions)
@@ -22,21 +28,18 @@ class DigestMailer < ApplicationMailer
     episode_count = episodes_by_show.values.flatten.size
     return ActionMailer::Base::NullMail.new if episode_count.zero?
 
-    open_event = EmailEvent.create!(
-      user: user, token: SecureRandom.urlsafe_base64(16),
-      event_type: "open", digest_date: digest_date
+    open_event = find_or_create_event!(
+      user: user, event_type: "open", digest_date: digest_date
     )
     click_events = {}
     episodes_by_show.each_value do |episodes|
       episodes.each do |episode|
         click_events[episode.id] = {
-          summary: EmailEvent.create!(
-            user: user, token: SecureRandom.urlsafe_base64(16),
-            event_type: "click", link_type: "summary", episode: episode, digest_date: digest_date
+          summary: find_or_create_event!(
+            user: user, event_type: "click", link_type: "summary", episode: episode, digest_date: digest_date
           ),
-          listen: EmailEvent.create!(
-            user: user, token: SecureRandom.urlsafe_base64(16),
-            event_type: "click", link_type: "listen", episode: episode, digest_date: digest_date
+          listen: find_or_create_event!(
+            user: user, event_type: "click", link_type: "listen", episode: episode, digest_date: digest_date
           )
         }
       end
@@ -48,10 +51,17 @@ class DigestMailer < ApplicationMailer
       click_events: click_events
     }
 
-    super(user)
+    super(user, since)
   end
 
-  def daily_digest(user)
+  def self.find_or_create_event!(**attrs)
+    EmailEvent.find_or_create_by!(attrs) do |e|
+      e.token = SecureRandom.urlsafe_base64(16)
+    end
+  end
+  private_class_method :find_or_create_event!
+
+  def daily_digest(user, since = nil)
     @user = user
     @date = Date.current.strftime("%A, %B %-d")
 
@@ -65,7 +75,8 @@ class DigestMailer < ApplicationMailer
     else
       # Fallback for deliver_later (runs in a job, no thread-local).
       # Re-query episodes; events were already created eagerly.
-      since = user.digest_sent_at || 1.day.ago
+      # Use the passed `since` to avoid reading the already-bumped digest_sent_at.
+      since ||= user.digest_sent_at || 1.day.ago
       @episodes_by_show = Episode
         .joins(podcast: :subscriptions)
         .where(subscriptions: { user_id: user.id })

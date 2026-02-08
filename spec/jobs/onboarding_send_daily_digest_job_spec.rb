@@ -20,7 +20,7 @@ RSpec.describe SendDailyDigestJob, type: :job do
       it "sends digest to user with new episodes" do
         expect {
           described_class.perform_now
-        }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user)
+        }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user, anything)
       end
 
       it "updates digest_sent_at timestamp" do
@@ -95,7 +95,7 @@ RSpec.describe SendDailyDigestJob, type: :job do
       it "sends digest using 1.day.ago as the since threshold" do
         expect {
           described_class.perform_now
-        }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user_first_digest)
+        }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user_first_digest, anything)
       end
     end
 

@@ -92,6 +92,42 @@ RSpec.describe DigestMailer, type: :mailer do
       end
     end
 
+    context "deliver_later fallback (no thread-local data)" do
+      let(:podcast) { create(:podcast, title: "Fallback Podcast") }
+      let!(:subscription) { create(:subscription, user: user, podcast: podcast) }
+      let!(:episode) do
+        ep = create(:episode, podcast: podcast, title: "Fallback Episode", created_at: 1.hour.ago)
+        create(:summary, episode: ep)
+        ep
+      end
+
+      it "renders episodes when digest_sent_at was bumped after scheduling" do
+        # Simulate the deliver_later race condition:
+        # 1. Class method runs, creates EmailEvents, stashes thread-local
+        mail = DigestMailer.daily_digest(user)
+
+        # 2. Thread-local is gone (different thread in deliver_later)
+        Thread.current[:digest_mailer_data] = nil
+
+        # 3. Job bumped digest_sent_at after scheduling
+        user.update!(digest_sent_at: Time.current)
+
+        # 4. Instance method renders — should still find episodes
+        body = mail.html_part.body.to_s
+        expect(body).to include("Fallback Episode")
+      end
+
+      it "does not create duplicate EmailEvents on re-invocation" do
+        # First call (scheduling thread)
+        DigestMailer.daily_digest(user)
+        first_count = EmailEvent.count
+
+        # Second call (simulates deliver_later worker re-invoking class method)
+        DigestMailer.daily_digest(user)
+        expect(EmailEvent.count).to eq(first_count)
+      end
+    end
+
     it "includes unsubscribe information" do
       podcast = create(:podcast)
       create(:subscription, user: user, podcast: podcast)
