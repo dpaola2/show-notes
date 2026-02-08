@@ -6,25 +6,17 @@
       body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background: #f9fafb; margin: 0; padding: 20px; }
       .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; }
       .header { background: #1e40af; color: white; padding: 24px; }
-      .header h1 { margin: 0; font-size: 24px; }
-      .header p { margin: 8px 0 0; opacity: 0.9; }
+      .header h1 { margin: 0; font-size: 20px; }
+      .header p { margin: 8px 0 0; opacity: 0.9; font-size: 14px; }
       .content { padding: 24px; }
-      .section { margin-bottom: 32px; }
-      .section-header { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
+      .show-group { margin-bottom: 28px; }
+      .show-name { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #e5e7eb; }
       .episode { background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
-      .episode-title { font-weight: 600; color: #111827; margin: 0 0 4px; }
-      .episode-podcast { font-size: 14px; color: #6b7280; margin: 0; }
-      .episode-meta { font-size: 13px; color: #9ca3af; margin-top: 8px; }
-      .summary-section { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0; }
-      .summary-section h4 { margin: 0 0 8px; color: #1e40af; font-size: 15px; }
-      .summary-section p { margin: 0; font-size: 14px; color: #374151; }
-      .quote { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 8px 0; border-radius: 0 8px 8px 0; font-style: italic; }
-      .quote p { margin: 0; font-size: 14px; color: #78350f; }
-      .quote .timestamp { font-style: normal; font-size: 12px; color: #92400e; margin-top: 4px; }
-      .button { display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; margin-top: 8px; }
-      .button-secondary { background: #f3f4f6; color: #374151; }
-      .more-link { font-size: 14px; color: #6b7280; margin-top: 12px; }
-      .more-link a { color: #2563eb; text-decoration: none; }
+      .episode-title { font-weight: 600; color: #111827; margin: 0 0 8px; font-size: 15px; }
+      .episode-summary { font-size: 16px; color: #374151; line-height: 1.5; margin: 0 0 12px; }
+      .episode-processing { font-size: 14px; color: #92400e; background: #fef3c7; padding: 8px 12px; border-radius: 4px; margin: 0 0 12px; }
+      .episode-links { font-size: 14px; }
+      .episode-links a { color: #2563eb; text-decoration: none; margin-right: 16px; }
       .footer { padding: 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; font-size: 13px; color: #6b7280; text-align: center; }
       .footer a { color: #2563eb; text-decoration: none; }
     </style>
@@ -32,73 +24,32 @@
   <body>
     <div class="container">
       <div class="header">
-        <h1>Your Daily Podcast Digest</h1>
-        <p><%= @date %></p>
+        <h1>Your podcasts this morning</h1>
+        <p><%= @date %> &mdash; <%= @episode_count %> new episode<%= 's' unless @episode_count == 1 %></p>
       </div>
 
       <div class="content">
-        <% if @inbox_episodes.any? %>
-          <div class="section">
-            <div class="section-header">Inbox (<%= @inbox_count %> new episode<%= 's' unless @inbox_count == 1 %>)</div>
+        <% @episodes_by_show.each do |podcast, episodes| %>
+          <div class="show-group">
+            <div class="show-name"><%= podcast.title %></div>
 
-            <% @inbox_episodes.each do |user_episode| %>
+            <% episodes.each do |episode| %>
               <div class="episode">
-                <p class="episode-title"><%= user_episode.title %></p>
-                <p class="episode-podcast"><%= user_episode.podcast.title %></p>
-                <% if user_episode.duration_seconds.present? %>
-                  <p class="episode-meta"><%= format_duration(user_episode.duration_seconds) %></p>
-                <% end %>
-              </div>
-            <% end %>
+                <p class="episode-title"><%= episode.title %></p>
 
-            <% if @inbox_count > 5 %>
-              <p class="more-link">+ <%= @inbox_count - 5 %> more episode<%= 's' unless (@inbox_count - 5) == 1 %></p>
-            <% end %>
-
-            <a href="<%= inbox_index_url %>" class="button">Open Inbox</a>
-          </div>
-        <% end %>
-
-        <% if @library_episodes.any? %>
-          <div class="section">
-            <div class="section-header">Recently Ready</div>
-
-            <% @library_episodes.each do |user_episode| %>
-              <div class="episode">
-                <p class="episode-title"><%= user_episode.title %></p>
-                <p class="episode-podcast"><%= user_episode.podcast.title %></p>
-                <% if user_episode.duration_seconds.present? %>
-                  <p class="episode-meta"><%= format_duration(user_episode.duration_seconds) %> &bull; Ready <%= time_ago_in_words(user_episode.updated_at) %> ago</p>
+                <% if episode.summary.present? %>
+                  <p class="episode-summary"><%= truncate(episode.summary.sections.first["content"], length: 200) %></p>
+                <% else %>
+                  <p class="episode-processing">Summary processing...</p>
                 <% end %>
 
-                <% if user_episode.episode.summary.present? %>
-                  <% user_episode.episode.summary.sections.first(2).each do |section| %>
-                    <div class="summary-section">
-                      <h4><%= section["title"] %></h4>
-                      <p><%= truncate(section["content"], length: 200) %></p>
-                    </div>
-                  <% end %>
-
-                  <% if user_episode.episode.summary.quotes.any? %>
-                    <% user_episode.episode.summary.quotes.first(1).each do |quote| %>
-                      <div class="quote">
-                        <p>"<%= truncate(quote["text"], length: 150) %>"</p>
-                        <p class="timestamp"><%= format_duration(quote["start_time"].to_i) %></p>
-                      </div>
-                    <% end %>
-                  <% end %>
-                <% end %>
-
-                <a href="<%= library_url(user_episode) %>" class="button button-secondary">Read Full Summary</a>
+                <div class="episode-links">
+                  <a href="<%= tracking_click_url(@click_events[episode.id][:summary].token) %>">Read full summary</a>
+                  <a href="<%= tracking_click_url(@click_events[episode.id][:listen].token) %>">Listen</a>
+                </div>
               </div>
             <% end %>
           </div>
-        <% end %>
-
-        <% if @inbox_episodes.empty? && @library_episodes.empty? %>
-          <p style="text-align: center; color: #6b7280; padding: 32px 0;">
-            No new episodes today. Check back tomorrow!
-          </p>
         <% end %>
       </div>
 
@@ -112,5 +63,7 @@
         </p>
       </div>
     </div>
+
+    <img src="<%= tracking_pixel_url(@open_event.token) %>" width="1" height="1" alt="">
   </body>
 </html>

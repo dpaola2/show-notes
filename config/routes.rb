@@ -49,6 +49,13 @@ Rails.application.routes.draw do
   post "import/process_favorites", to: "imports#process_favorites", as: :process_favorites_imports
   get "import/complete", to: "imports#complete", as: :complete_imports
 
+  # Episodes: subscription-scoped episode detail (for digest links)
+  resources :episodes, only: [ :show ]
+
+  # Tracking: email open/click tracking (no auth required)
+  get "t/:token", to: "tracking#click", as: :tracking_click
+  get "t/:token/pixel.gif", to: "tracking#pixel", as: :tracking_pixel
+
   # User settings
   resource :settings, only: [ :show, :update ]
 

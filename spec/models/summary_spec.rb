@@ -13,10 +13,10 @@ RSpec.describe Summary, type: :model do
       expect(summary.errors[:sections]).to include("can't be blank")
     end
 
-    it "requires quotes" do
+    it "requires quotes to be an array" do
       summary = build(:summary, quotes: nil)
       expect(summary).not_to be_valid
-      expect(summary.errors[:quotes]).to include("can't be blank")
+      expect(summary.errors[:quotes]).to include("must be an array")
     end
   end
 

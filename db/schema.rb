@@ -10,7 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_07_213112) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_07_230000) do
+  create_table "email_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "digest_date", null: false
+    t.integer "episode_id"
+    t.string "event_type", null: false
+    t.string "link_type"
+    t.string "token", null: false
+    t.datetime "triggered_at"
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.integer "user_id", null: false
+    t.index ["episode_id", "event_type"], name: "index_email_events_on_episode_id_and_event_type"
+    t.index ["episode_id"], name: "index_email_events_on_episode_id"
+    t.index ["token"], name: "index_email_events_on_token", unique: true
+    t.index ["user_id", "digest_date"], name: "index_email_events_on_user_id_and_digest_date"
+    t.index ["user_id"], name: "index_email_events_on_user_id"
+  end
+
   create_table "episodes", force: :cascade do |t|
     t.string "audio_url"
     t.datetime "created_at", null: false
@@ -237,6 +255,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_07_213112) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "email_events", "episodes"
+  add_foreign_key "email_events", "users"
   add_foreign_key "episodes", "podcasts"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

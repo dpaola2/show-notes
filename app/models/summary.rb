@@ -2,11 +2,15 @@ class Summary < ApplicationRecord
   belongs_to :episode
 
   validates :sections, presence: true
-  validates :quotes, presence: true
+  validate :quotes_is_array
 
   before_save :update_searchable_text
 
   private
+
+  def quotes_is_array
+    errors.add(:quotes, "must be an array") unless quotes.is_a?(Array)
+  end
 
   # Extract text from jsonb sections for full-text search
   def update_searchable_text

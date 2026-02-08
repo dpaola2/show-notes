@@ -2,6 +2,7 @@ class User < ApplicationRecord
   has_many :subscriptions, dependent: :destroy
   has_many :podcasts, through: :subscriptions
   has_many :user_episodes, dependent: :destroy
+  has_many :email_events, dependent: :destroy
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
 
