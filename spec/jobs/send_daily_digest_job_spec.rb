@@ -1,47 +1,38 @@
 require "rails_helper"
 
+# These tests cover the redesigned subscription-based digest job.
+# The comprehensive test suite is in onboarding_send_daily_digest_job_spec.rb;
+# this file provides basic sanity checks for the core job behavior.
+
 RSpec.describe SendDailyDigestJob, type: :job do
   include ActiveJob::TestHelper
 
   describe "#perform" do
-    context "with users who have digest enabled" do
-      let!(:user_with_inbox) do
-        user = create(:user, digest_enabled: true)
-        episode = create(:episode)
-        create(:user_episode, user: user, episode: episode, location: :inbox)
+    context "with users who have digest enabled and new episodes" do
+      let!(:user) do
+        user = create(:user, digest_enabled: true, digest_sent_at: 2.hours.ago)
+        podcast = create(:podcast)
+        create(:subscription, user: user, podcast: podcast)
+        create(:episode, podcast: podcast, created_at: 1.hour.ago)
         user
       end
 
-      let!(:user_with_library) do
-        user = create(:user, digest_enabled: true)
-        episode = create(:episode)
-        create(:user_episode, user: user, episode: episode, location: :library, processing_status: :ready, updated_at: 1.hour.ago)
-        user
-      end
-
-      it "sends digest to users with inbox episodes" do
+      it "sends digest to users with new subscribed episodes" do
         expect {
           described_class.perform_now
-        }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user_with_inbox)
-      end
-
-      it "sends digest to users with recent library episodes" do
-        expect {
-          described_class.perform_now
-        }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user_with_library)
+        }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user)
       end
 
       it "updates digest_sent_at timestamp" do
         freeze_time do
           described_class.perform_now
 
-          expect(user_with_inbox.reload.digest_sent_at).to eq(Time.current)
-          expect(user_with_library.reload.digest_sent_at).to eq(Time.current)
+          expect(user.reload.digest_sent_at).to eq(Time.current)
         end
       end
     end
 
-    context "with users who have no content" do
+    context "with users who have no subscriptions" do
       let!(:user_no_content) { create(:user, digest_enabled: true) }
 
       it "does not send digest" do
@@ -59,9 +50,10 @@ RSpec.describe SendDailyDigestJob, type: :job do
 
     context "with users who have digest disabled" do
       let!(:user_disabled) do
-        user = create(:user, digest_enabled: false)
-        episode = create(:episode)
-        create(:user_episode, user: user, episode: episode, location: :inbox)
+        user = create(:user, digest_enabled: false, digest_sent_at: 2.hours.ago)
+        podcast = create(:podcast)
+        create(:subscription, user: user, podcast: podcast)
+        create(:episode, podcast: podcast, created_at: 1.hour.ago)
         user
       end
 
@@ -69,36 +61,6 @@ RSpec.describe SendDailyDigestJob, type: :job do
         expect {
           described_class.perform_now
         }.not_to have_enqueued_mail(DigestMailer, :daily_digest).with(user_disabled)
-      end
-    end
-
-    context "with old library episodes" do
-      let!(:user_old_library) do
-        user = create(:user, digest_enabled: true)
-        episode = create(:episode)
-        create(:user_episode, user: user, episode: episode, location: :library, processing_status: :ready, updated_at: 3.days.ago)
-        user
-      end
-
-      it "does not send digest for library episodes older than 2 days" do
-        expect {
-          described_class.perform_now
-        }.not_to have_enqueued_mail(DigestMailer, :daily_digest).with(user_old_library)
-      end
-    end
-
-    context "with pending library episodes" do
-      let!(:user_pending) do
-        user = create(:user, digest_enabled: true)
-        episode = create(:episode)
-        create(:user_episode, user: user, episode: episode, location: :library, processing_status: :pending, updated_at: 1.hour.ago)
-        user
-      end
-
-      it "does not send digest for non-ready library episodes" do
-        expect {
-          described_class.perform_now
-        }.not_to have_enqueued_mail(DigestMailer, :daily_digest).with(user_pending)
       end
     end
 

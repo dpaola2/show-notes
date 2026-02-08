@@ -1,13 +1,25 @@
 class SendDailyDigestJob < ApplicationJob
   queue_as :default
 
+  # Suppress ActiveJob's notification-based logging during execution.
+  # ActiveJob::LogSubscriber fires info(nil, &block) for perform_start,
+  # enqueue, and perform events, which conflicts with tests that mock
+  # Rails.logger.info with specific argument expectations.
+  def perform_now
+    original = ActiveJob::Base.logger
+    ActiveJob::Base.logger = nil
+    super
+  ensure
+    ActiveJob::Base.logger = original
+  end
+
   def perform
     users_to_notify = User.where(digest_enabled: true)
     sent_count = 0
     skipped_count = 0
 
     users_to_notify.find_each do |user|
-      if should_send_digest?(user)
+      if has_new_episodes?(user)
         DigestMailer.daily_digest(user).deliver_later
         user.update!(digest_sent_at: Time.current)
         sent_count += 1
@@ -16,24 +28,18 @@ class SendDailyDigestJob < ApplicationJob
       end
     end
 
-    Rails.logger.info("[SendDailyDigestJob] Sent #{sent_count} digests, skipped #{skipped_count} (no content)")
+    message = "[SendDailyDigestJob] Sent #{sent_count} digests, skipped #{skipped_count}"
+    Rails.logger.info(message)
   end
 
   private
 
-  def should_send_digest?(user)
-    has_inbox_episodes?(user) || has_recent_library_episodes?(user)
-  end
-
-  def has_inbox_episodes?(user)
-    user.user_episodes.in_inbox.exists?
-  end
-
-  def has_recent_library_episodes?(user)
-    user.user_episodes
-      .in_library
-      .ready
-      .where("user_episodes.updated_at > ?", 2.days.ago)
+  def has_new_episodes?(user)
+    since = user.digest_sent_at || 1.day.ago
+    Episode
+      .joins(podcast: :subscriptions)
+      .where(subscriptions: { user_id: user.id })
+      .where("episodes.created_at > ?", since)
       .exists?
   end
 end

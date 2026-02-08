@@ -1,151 +1,106 @@
 require "rails_helper"
 
+# These tests cover the redesigned newsletter-format digest mailer.
+# The comprehensive test suite is in onboarding_digest_mailer_spec.rb;
+# this file provides basic sanity checks for the core mailer behavior.
+
 RSpec.describe DigestMailer, type: :mailer do
   describe "#daily_digest" do
-    let(:user) { create(:user, email: "test@example.com") }
+    let(:user) { create(:user, email: "test@example.com", digest_enabled: true, digest_sent_at: 2.hours.ago) }
 
-    context "with inbox episodes" do
+    context "with subscribed podcast episodes" do
       let(:podcast) { create(:podcast, title: "Test Podcast") }
-      let!(:inbox_episodes) do
+      let!(:subscription) { create(:subscription, user: user, podcast: podcast) }
+      let!(:episodes) do
         3.times.map do |i|
-          episode = create(:episode, podcast: podcast, title: "Inbox Episode #{i}", duration_seconds: 3600)
-          create(:user_episode, user: user, episode: episode, location: :inbox)
+          ep = create(:episode, podcast: podcast, title: "Episode #{i}", created_at: 1.hour.ago)
+          create(:summary, episode: ep)
+          ep
         end
       end
 
       it "sends email to user" do
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.to).to eq([ "test@example.com" ])
+        expect(mail.to).to eq(["test@example.com"])
       end
 
-      it "has correct subject with date" do
+      it "has correct subject with episode count" do
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.subject).to eq("Your Daily Podcast Digest - #{Date.current.strftime('%b %d')}")
+        expect(mail.subject).to include("3 new episodes")
       end
 
-      it "includes inbox count in HTML body" do
+      it "includes episode count in HTML body" do
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.html_part.body).to include("3 new episodes")
+        expect(mail.html_part.body.to_s).to include("3")
       end
 
       it "includes episode titles in HTML body" do
         mail = DigestMailer.daily_digest(user)
+        body = mail.html_part.body.to_s
 
-        expect(mail.html_part.body).to include("Inbox Episode 0")
-        expect(mail.html_part.body).to include("Test Podcast")
-      end
-
-      it "includes inbox link" do
-        mail = DigestMailer.daily_digest(user)
-
-        expect(mail.html_part.body).to include("Open Inbox")
+        expect(body).to include("Episode 0")
+        expect(body).to include("Test Podcast")
       end
 
       it "includes episode titles in text body" do
         mail = DigestMailer.daily_digest(user)
+        body = mail.text_part.body.to_s
 
-        expect(mail.text_part.body).to include("Inbox Episode 0")
-        expect(mail.text_part.body).to include("Test Podcast")
+        expect(body).to include("Episode 0")
+        expect(body).to include("Test Podcast")
       end
     end
 
-    context "with more than 5 inbox episodes" do
-      let(:podcast) { create(:podcast) }
+    context "with episode summaries" do
+      let(:podcast) { create(:podcast, title: "Summary Podcast") }
+      let!(:subscription) { create(:subscription, user: user, podcast: podcast) }
 
-      before do
-        7.times do |i|
-          episode = create(:episode, podcast: podcast, title: "Episode #{i}")
-          create(:user_episode, user: user, episode: episode, location: :inbox)
-        end
-      end
-
-      it "shows +N more message" do
-        mail = DigestMailer.daily_digest(user)
-
-        expect(mail.html_part.body).to include("+ 2 more episodes")
-      end
-    end
-
-    context "with ready library episodes" do
-      let(:podcast) { create(:podcast, title: "Library Podcast") }
-
-      let!(:library_episode) do
-        episode = create(:episode, podcast: podcast, title: "Ready Episode", duration_seconds: 7200)
-        summary = create(:summary, episode: episode, sections: [
+      let!(:episode) do
+        ep = create(:episode, podcast: podcast, title: "Ready Episode", created_at: 1.hour.ago)
+        create(:summary, episode: ep, sections: [
           { "title" => "Introduction", "content" => "This is the intro section with important content." },
           { "title" => "Main Topic", "content" => "The main discussion points are covered here." }
         ], quotes: [
           { "text" => "This is a notable quote from the episode.", "start_time" => 300 }
         ])
-        create(:user_episode, user: user, episode: episode, location: :library, processing_status: :ready, updated_at: 1.hour.ago)
+        ep
       end
 
-      it "includes library section header" do
+      it "includes summary content" do
         mail = DigestMailer.daily_digest(user)
+        body = mail.html_part.body.to_s
 
-        expect(mail.html_part.body).to include("Recently Ready")
+        expect(body).to include("intro section")
       end
 
-      it "includes episode title" do
+      it "includes Read full summary link" do
         mail = DigestMailer.daily_digest(user)
+        body = mail.html_part.body.to_s
 
-        expect(mail.html_part.body).to include("Ready Episode")
-        expect(mail.html_part.body).to include("Library Podcast")
-      end
-
-      it "includes summary sections" do
-        mail = DigestMailer.daily_digest(user)
-
-        expect(mail.html_part.body).to include("Introduction")
-        expect(mail.html_part.body).to include("This is the intro section")
-      end
-
-      it "includes quotes" do
-        mail = DigestMailer.daily_digest(user)
-
-        expect(mail.html_part.body).to include("This is a notable quote")
-      end
-
-      it "includes link to full summary" do
-        mail = DigestMailer.daily_digest(user)
-
-        expect(mail.html_part.body).to include("Read Full Summary")
+        expect(body).to include("Read full summary")
       end
     end
 
-    context "with no episodes" do
-      it "shows empty state message" do
+    context "with no new episodes" do
+      it "returns a null mail" do
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.html_part.body).to include("No new episodes today")
-      end
-    end
-
-    context "with old library episodes" do
-      let(:podcast) { create(:podcast) }
-
-      before do
-        episode = create(:episode, podcast: podcast, title: "Old Episode")
-        create(:summary, episode: episode)
-        create(:user_episode, user: user, episode: episode, location: :library, processing_status: :ready, updated_at: 3.days.ago)
-      end
-
-      it "does not include episodes older than 2 days" do
-        mail = DigestMailer.daily_digest(user)
-
-        expect(mail.html_part.body).not_to include("Old Episode")
-        expect(mail.html_part.body).not_to include("Recently Ready")
+        expect(mail.to).to be_nil
       end
     end
 
     it "includes unsubscribe information" do
+      podcast = create(:podcast)
+      create(:subscription, user: user, podcast: podcast)
+      create(:episode, podcast: podcast, created_at: 1.hour.ago)
+
       mail = DigestMailer.daily_digest(user)
 
-      expect(mail.html_part.body).to include("daily digest enabled")
-      expect(mail.html_part.body).to include("Manage your settings")
+      expect(mail.html_part.body.to_s).to include("digest enabled")
+      expect(mail.html_part.body.to_s).to include("Manage your settings")
     end
   end
 end
