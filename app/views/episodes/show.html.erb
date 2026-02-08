@@ -1,0 +1,49 @@
+<div class="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+  <h1 class="text-xl sm:text-2xl font-bold mb-2"><%= @episode.title %></h1>
+  <p class="text-gray-600 mb-4 sm:mb-6"><%= @podcast.title %></p>
+
+  <% if @summary.present? %>
+    <section class="mb-6 sm:mb-8">
+      <h2 class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Summary</h2>
+
+      <div class="space-y-4 sm:space-y-6">
+        <% @summary.sections.each do |section| %>
+          <div class="bg-white p-3 sm:p-4 rounded-lg shadow border border-gray-200">
+            <h3 class="font-semibold mb-2"><%= section["title"] %></h3>
+            <p class="text-gray-700 text-sm sm:text-base leading-relaxed"><%= section["content"] %></p>
+          </div>
+        <% end %>
+      </div>
+
+      <% if @summary.quotes.any? %>
+        <h3 class="text-base sm:text-lg font-semibold mt-5 sm:mt-6 mb-3 sm:mb-4">Notable Quotes</h3>
+        <div class="space-y-3">
+          <% @summary.quotes.each do |quote| %>
+            <blockquote class="border-l-4 border-blue-500 pl-3 sm:pl-4 py-2 sm:py-3 bg-blue-50 rounded-r">
+              <p class="text-gray-800 text-sm sm:text-base">"<%= quote["text"] %>"</p>
+              <% if quote["start_time"] %>
+                <p class="text-gray-500 text-xs sm:text-sm mt-1">
+                  <%= format_duration(quote["start_time"].to_i) %>
+                </p>
+              <% end %>
+            </blockquote>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+  <% else %>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4 mb-6 sm:mb-8">
+      <p class="text-yellow-800 text-sm sm:text-base">Summary processing...</p>
+      <p class="text-yellow-600 text-xs sm:text-sm mt-2">This episode is still being processed. Check back soon.</p>
+    </div>
+  <% end %>
+
+  <section class="mb-6 sm:mb-8" id="audio">
+    <h2 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Audio</h2>
+    <audio controls
+           src="<%= @episode.audio_url %>"
+           class="w-full"
+           data-controller="audio-player">
+    </audio>
+  </section>
+</div>

@@ -3,6 +3,7 @@ class Episode < ApplicationRecord
   has_many :user_episodes, dependent: :destroy
   has_one :transcript, dependent: :destroy
   has_one :summary, dependent: :destroy
+  has_many :email_events, dependent: :destroy
 
   validates :guid, presence: true, uniqueness: { scope: :podcast_id }
   validates :title, presence: true
