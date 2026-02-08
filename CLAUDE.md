@@ -96,12 +96,27 @@ See also [AGENTS.md](AGENTS.md) for agent-discovered patterns and gotchas.
 ### Mailers
 - `ApplicationMailer` sends from `noreply@listen.davepaola.com`, uses `layout "mailer"`
 - `UserMailer` — user-facing auth emails (magic links)
-- `DigestMailer` — user-facing daily digest, includes `ApplicationHelper`
+- `DigestMailer` — user-facing daily digest (newsletter format), includes `ApplicationHelper`
+  - Uses class method + instance method architecture to work around ActionMailer's lazy `MessageDelivery` in Rails 8.1
+  - `self.daily_digest(user)` eagerly queries episodes and creates EmailEvent tracking records, stores in `Thread.current[:digest_mailer_data]`
+  - Instance method reads from thread-local (same-thread) or falls back to DB re-query (deliver_later in different thread)
+  - Returns `ActionMailer::Base::NullMail.new` when no new episodes exist (skips sending)
 - `SignupNotificationMailer` — internal admin notifications (separate class for different audience)
 - All mailers use multipart templates (HTML + text) in `app/views/<mailer_name>/`
 - Production: Resend (`config.action_mailer.delivery_method = :resend`)
 - Development: Letter Opener (`config.action_mailer.delivery_method = :letter_opener`)
 - Test: `:test` (accumulates in `ActionMailer::Base.deliveries`)
+
+### Engagement Tracking
+- `EmailEvent` model tracks digest email opens (pixel) and clicks (redirect links)
+- Tracking endpoints (`TrackingController`) skip authentication — opaque tokens, internal destinations only
+- `onboarding:engagement_report` rake task prints opens by user/date, clicks by episode, summary stats
+
+### Background Jobs
+- `SendDailyDigestJob` — subscription-based digest delivery, runs at 7 AM Eastern via Solid Queue
+  - Overrides `perform_now` to suppress `ActiveJob::Base.logger` during execution (avoids LogSubscriber interference with test mocks)
+- `AutoProcessEpisodeJob` — episode-level transcription + summarization with retry logic (MAX_RETRIES=5, exponential backoff)
+- `FetchPodcastFeedJob` — triggers `AutoProcessEpisodeJob.perform_later` after new episode creation
 
 ## Autonomous Execution
 
