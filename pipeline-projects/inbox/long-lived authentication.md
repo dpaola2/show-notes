@@ -1,0 +1,1 @@
+currently every time I tap a link in the email digest, I'm forced to re-enter my email address, then get the magic link, then tap. this flow is annoying. how do I get "remember me" to work correctly? is it even implemented? Ideally it works across platforms - e.g. i'm on my phone and my computer logged in no problem.
