@@ -19,6 +19,7 @@ class ApplicationController < ActionController::Base
 
   def require_authentication
     unless current_user
+      session[:return_to] = request.original_url if request.get?
       redirect_to login_path, alert: "Please sign in to continue"
     end
   end
