@@ -45,7 +45,7 @@ class SessionsController < ApplicationController
     if user&.magic_token_valid?(token)
       user.clear_magic_token!
       session[:user_id] = user.id
-      redirect_to root_path, notice: "Welcome back!"
+      redirect_to session.delete(:return_to) || root_path, notice: "Welcome back!"
     else
       redirect_to login_path, alert: "This link has expired or is invalid. Please request a new one."
     end
