@@ -22,7 +22,7 @@ RSpec.describe DigestMailer, type: :mailer do
       it "sends email to user" do
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.to).to eq(["test@example.com"])
+        expect(mail.to).to eq([ "test@example.com" ])
       end
 
       it "has correct subject with episode count" do

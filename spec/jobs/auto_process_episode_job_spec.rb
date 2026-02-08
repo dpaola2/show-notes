@@ -9,12 +9,12 @@ RSpec.describe AutoProcessEpisodeJob, type: :job do
   before do
     # Stub external API calls
     allow(AssemblyAiClient).to receive(:transcribe).and_return(
-      { "segments" => [{ "start" => 0.0, "end" => 10.0, "text" => "Hello world." }] }
+      { "segments" => [ { "start" => 0.0, "end" => 10.0, "text" => "Hello world." } ] }
     )
     allow(ClaudeClient).to receive(:summarize_chunked).and_return(
       {
-        "sections" => [{ "title" => "Overview", "content" => "A test summary." }],
-        "quotes" => [{ "text" => "Hello world.", "start_time" => 0 }]
+        "sections" => [ { "title" => "Overview", "content" => "A test summary." } ],
+        "quotes" => [ { "text" => "Hello world.", "start_time" => 0 } ]
       }
     )
   end

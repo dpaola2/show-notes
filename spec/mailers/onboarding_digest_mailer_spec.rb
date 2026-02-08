@@ -19,7 +19,7 @@ RSpec.describe DigestMailer, type: :mailer do
       ep = create(:episode, podcast: podcast_a, title: "Economics of Podcast Ads", created_at: 1.hour.ago, published_at: 2.hours.ago)
       create(:summary, episode: ep, sections: [
         { "title" => "Overview", "content" => "A deep dive into the economics of podcast advertising in 2026, with data showing CPM rates have dropped 30% while listenership grew." }
-      ], quotes: [{ "text" => "The market shifted.", "start_time" => 100 }])
+      ], quotes: [ { "text" => "The market shifted.", "start_time" => 100 } ])
       ep
     end
 
@@ -35,7 +35,7 @@ RSpec.describe DigestMailer, type: :mailer do
       ep = create(:episode, podcast: podcast_b, title: "TypeScript in 2026", created_at: 1.hour.ago, published_at: 1.hour.ago)
       create(:summary, episode: ep, sections: [
         { "title" => "Overview", "content" => "A breakdown of why TypeScript adoption plateaued in 2026 and what Deno is doing differently." }
-      ], quotes: [{ "text" => "Deno changed the game.", "start_time" => 500 }])
+      ], quotes: [ { "text" => "Deno changed the game.", "start_time" => 500 } ])
       ep
     end
 
@@ -132,7 +132,7 @@ RSpec.describe DigestMailer, type: :mailer do
 
       it "uses correct singular form for 1 episode" do
         # Remove all but one episode's subscriptions
-        Episode.where.not(id: episode_b1.id).where(podcast_id: [podcast_a.id, podcast_b.id]).destroy_all
+        Episode.where.not(id: episode_b1.id).where(podcast_id: [ podcast_a.id, podcast_b.id ]).destroy_all
 
         mail = DigestMailer.daily_digest(user)
 

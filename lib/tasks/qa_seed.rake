@@ -134,7 +134,7 @@ namespace :onboarding do
           link_type: "summary",
           episode: ep,
           digest_date: yesterday,
-          triggered_at: [1.day.ago + 7.hours + rand(1..30).minutes, nil].sample
+          triggered_at: [ 1.day.ago + 7.hours + rand(1..30).minutes, nil ].sample
         )
         EmailEvent.create!(
           user: user,
@@ -143,7 +143,7 @@ namespace :onboarding do
           link_type: "listen",
           episode: ep,
           digest_date: yesterday,
-          triggered_at: [1.day.ago + 7.hours + rand(30..60).minutes, nil].sample
+          triggered_at: [ 1.day.ago + 7.hours + rand(30..60).minutes, nil ].sample
         )
       end
     end
