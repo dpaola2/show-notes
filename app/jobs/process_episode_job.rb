@@ -1,5 +1,6 @@
 class ProcessEpisodeJob < ApplicationJob
   queue_as :default
+  limits_concurrency key: ->(user_episode_id) { "transcription" }, to: 3
 
   MAX_RETRIES = 5
   BASE_DELAY = 60 # 1 minute base delay
@@ -69,7 +70,7 @@ class ProcessEpisodeJob < ApplicationJob
       retry_count: new_retry_count,
       next_retry_at: next_retry,
       last_error_at: Time.current,
-      processing_error: "Rate limited, retry #{new_retry_count}/#{MAX_RETRIES} at #{next_retry.strftime('%H:%M:%S')}"
+      processing_error: "#{error.message} — retry #{new_retry_count}/#{MAX_RETRIES} at #{next_retry.strftime('%H:%M:%S')}"
     )
 
     # Schedule the retry

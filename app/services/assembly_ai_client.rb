@@ -45,6 +45,8 @@ class AssemblyAiClient
       "audio_duration" => transcript.audio_duration,
       "confidence" => transcript.confidence
     }
+  rescue Faraday::TooManyRequestsError => e
+    raise RateLimitError, "AssemblyAI rate limit exceeded: #{e.message}"
   rescue Faraday::Error => e
     raise Error, "AssemblyAI API error: #{e.message}"
   rescue StandardError => e

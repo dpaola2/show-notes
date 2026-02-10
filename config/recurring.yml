@@ -22,6 +22,11 @@ production:
     class: SendDailyDigestJob
     schedule: every day at 12pm
 
+  # Detect and timeout episodes stuck in transcribing/summarizing
+  detect_stuck_processing:
+    class: DetectStuckProcessingJob
+    schedule: every 10 minutes
+
 development:
   # More frequent feed refresh for testing
   refresh_all_feeds:
@@ -37,3 +42,8 @@ development:
   send_daily_digest:
     class: SendDailyDigestJob
     schedule: every day at 12pm
+
+  # Detect and timeout episodes stuck in transcribing/summarizing
+  detect_stuck_processing:
+    class: DetectStuckProcessingJob
+    schedule: every 10 minutes

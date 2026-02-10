@@ -17,6 +17,7 @@ Rails.application.routes.draw do
     collection do
       post :add_to_library
       post :skip
+      post :retry_processing
       delete :clear
     end
   end
@@ -26,6 +27,7 @@ Rails.application.routes.draw do
     member do
       post :archive
       post :regenerate
+      post :retry_processing
     end
   end
 

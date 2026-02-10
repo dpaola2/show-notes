@@ -89,6 +89,10 @@ bundle exec rspec --format doc       # Verbose output
 
 See also [AGENTS.md](AGENTS.md) for agent-discovered patterns and gotchas.
 
+### Test Environment
+- `show_exceptions = :none` — exceptions propagate as-is in tests (enables `raise_error(RecordNotFound)` in request specs)
+- `sign_in_as(user)` stubs `current_user` via `allow_any_instance_of` — bypasses magic link flow for speed
+
 ### Authentication
 - Magic link auth — `User.find_or_create_by!(email:)` in `SessionsController#create`
 - `previously_new_record?` is cleared by `update!` — capture it in a local variable **before** calling any method that saves the record (e.g., `generate_magic_token!`)
@@ -117,6 +121,8 @@ See also [AGENTS.md](AGENTS.md) for agent-discovered patterns and gotchas.
   - Overrides `perform_now` to suppress `ActiveJob::Base.logger` during execution (avoids LogSubscriber interference with test mocks)
 - `AutoProcessEpisodeJob` — episode-level transcription + summarization with retry logic (MAX_RETRIES=5, exponential backoff)
 - `FetchPodcastFeedJob` — triggers `AutoProcessEpisodeJob.perform_later` after new episode creation
+- `DetectStuckProcessingJob` — recurring (every 10 min), transitions UserEpisodes/Episodes stuck in transcribing/summarizing >30 min to error
+- Both `ProcessEpisodeJob` and `AutoProcessEpisodeJob` use `limits_concurrency key: "transcription", to: 3` — shared Solid Queue semaphore limits global concurrent transcription jobs
 
 ## Autonomous Execution
 

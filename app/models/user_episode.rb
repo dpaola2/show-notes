@@ -46,4 +46,13 @@ class UserEpisode < ApplicationRecord
   def move_to_trash!
     update!(location: :trash, trashed_at: Time.current)
   end
+
+  def retry_processing!
+    update!(
+      processing_status: :pending,
+      retry_count: 0,
+      next_retry_at: nil,
+      processing_error: nil
+    )
+  end
 end
