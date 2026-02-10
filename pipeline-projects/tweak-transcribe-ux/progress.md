@@ -14,6 +14,8 @@ pipeline_m5_started_at: "2026-02-10T07:40:00-0500"
 pipeline_m5_completed_at: "2026-02-10T07:45:00-0500"
 pipeline_m6_started_at: "2026-02-10T07:46:00-0500"
 pipeline_m6_completed_at: "2026-02-10T07:49:00-0500"
+pipeline_pr_created_at: "2026-02-10T07:50:45-0500"
+pipeline_pr_url: "https://github.com/dpaola2/show-notes/pull/13"
 ---
 
 # Implementation Progress — tweak-transcribe-ux
