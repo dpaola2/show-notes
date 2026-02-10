@@ -41,6 +41,21 @@
             </div>
           </div>
 
+          <% unless user_episode.pending? %>
+            <p class="text-sm mt-1">
+              <% case user_episode.processing_status %>
+              <% when "transcribing" %>
+                <span class="text-yellow-600">Transcribing...</span>
+              <% when "summarizing" %>
+                <span class="text-yellow-600">Generating summary...</span>
+              <% when "ready" %>
+                <span class="text-green-600">Ready</span>
+              <% when "error" %>
+                <span class="text-red-600">Failed: <%= user_episode.processing_error %></span>
+              <% end %>
+            </p>
+          <% end %>
+
           <div class="flex gap-2 mt-3 sm:mt-4">
             <%= button_to "Add to Library",
                 add_to_library_inbox_index_path(id: user_episode.id),
@@ -50,6 +65,12 @@
                 skip_inbox_index_path(id: user_episode.id),
                 method: :post,
                 class: "flex-1 sm:flex-none bg-gray-100 text-gray-700 px-4 py-2.5 sm:py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium" %>
+            <% if user_episode.error? %>
+              <%= button_to "Retry",
+                  retry_processing_inbox_index_path(id: user_episode.id),
+                  method: :post,
+                  class: "flex-1 sm:flex-none bg-red-600 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium" %>
+            <% end %>
           </div>
         </div>
       <% end %>

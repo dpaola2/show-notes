@@ -43,6 +43,13 @@ class InboxController < ApplicationController
     end
   end
 
+  def retry_processing
+    user_episode = current_user.user_episodes.find(params[:id])
+    user_episode.retry_processing!
+    ProcessEpisodeJob.perform_later(user_episode.id)
+    redirect_to inbox_index_path, notice: "Retrying transcription..."
+  end
+
   def skip
     user_episode = current_user.user_episodes.find(params[:id])
     user_episode.move_to_trash!
