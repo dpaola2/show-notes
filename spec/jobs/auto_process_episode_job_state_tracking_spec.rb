@@ -8,12 +8,12 @@ RSpec.describe AutoProcessEpisodeJob, type: :job do
 
   before do
     allow(AssemblyAiClient).to receive(:transcribe).and_return(
-      { "segments" => [{ "start" => 0.0, "end" => 10.0, "text" => "Hello world." }] }
+      { "segments" => [ { "start" => 0.0, "end" => 10.0, "text" => "Hello world." } ] }
     )
     allow(ClaudeClient).to receive(:summarize_chunked).and_return(
       {
-        "sections" => [{ "title" => "Overview", "content" => "A test summary." }],
-        "quotes" => [{ "text" => "Hello world.", "start_time" => 0 }]
+        "sections" => [ { "title" => "Overview", "content" => "A test summary." } ],
+        "quotes" => [ { "text" => "Hello world.", "start_time" => 0 } ]
       }
     )
   end
@@ -71,7 +71,7 @@ RSpec.describe AutoProcessEpisodeJob, type: :job do
       it "sets episode to transcribing during transcription" do
         allow(AssemblyAiClient).to receive(:transcribe) do
           expect(episode.reload.processing_status).to eq("transcribing")
-          { "segments" => [{ "start" => 0.0, "end" => 10.0, "text" => "Hello." }] }
+          { "segments" => [ { "start" => 0.0, "end" => 10.0, "text" => "Hello." } ] }
         end
 
         described_class.perform_now(episode.id)
@@ -81,8 +81,8 @@ RSpec.describe AutoProcessEpisodeJob, type: :job do
         allow(ClaudeClient).to receive(:summarize_chunked) do
           expect(episode.reload.processing_status).to eq("summarizing")
           {
-            "sections" => [{ "title" => "Overview", "content" => "Summary." }],
-            "quotes" => [{ "text" => "Hello.", "start_time" => 0 }]
+            "sections" => [ { "title" => "Overview", "content" => "Summary." } ],
+            "quotes" => [ { "text" => "Hello.", "start_time" => 0 } ]
           }
         end
 

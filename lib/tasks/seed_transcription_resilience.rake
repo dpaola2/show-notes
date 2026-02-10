@@ -44,7 +44,7 @@ namespace :seed do
 
       # Stuck episodes (transcribing with old updated_at — for DetectStuckProcessingJob testing)
       { slug: "stuck-transcribing",  title: "Stuck — Transcribing for 1 Hour",   location: :library, status: :transcribing, stuck: true },
-      { slug: "stuck-summarizing",   title: "Stuck — Summarizing for 2 Hours",   location: :inbox,   status: :summarizing,  stuck: true, stuck_hours: 2 },
+      { slug: "stuck-summarizing",   title: "Stuck — Summarizing for 2 Hours",   location: :inbox,   status: :summarizing,  stuck: true, stuck_hours: 2 }
     ]
 
     counts = Hash.new(0)

@@ -6,7 +6,7 @@ class DetectStuckProcessingJob < ApplicationJob
   def perform
     # Detect stuck UserEpisodes
     UserEpisode
-      .where(processing_status: [:transcribing, :summarizing])
+      .where(processing_status: [ :transcribing, :summarizing ])
       .where("updated_at < ?", STUCK_THRESHOLD.ago)
       .find_each do |ue|
         ue.update!(
@@ -18,7 +18,7 @@ class DetectStuckProcessingJob < ApplicationJob
 
     # Detect stuck Episodes
     Episode
-      .where(processing_status: [:transcribing, :summarizing])
+      .where(processing_status: [ :transcribing, :summarizing ])
       .where("updated_at < ?", STUCK_THRESHOLD.ago)
       .find_each do |ep|
         ep.update!(

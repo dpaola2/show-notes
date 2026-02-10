@@ -10,12 +10,12 @@ RSpec.describe ProcessEpisodeJob, type: :job do
 
   before do
     allow(AssemblyAiClient).to receive(:transcribe).and_return(
-      { "segments" => [{ "start" => 0.0, "end" => 10.0, "text" => "Hello world." }] }
+      { "segments" => [ { "start" => 0.0, "end" => 10.0, "text" => "Hello world." } ] }
     )
     allow(ClaudeClient).to receive(:summarize_chunked).and_return(
       {
-        "sections" => [{ "title" => "Overview", "content" => "A test summary." }],
-        "quotes" => [{ "text" => "Hello world.", "start_time" => 0 }]
+        "sections" => [ { "title" => "Overview", "content" => "A test summary." } ],
+        "quotes" => [ { "text" => "Hello world.", "start_time" => 0 } ]
       }
     )
   end
@@ -110,7 +110,7 @@ RSpec.describe ProcessEpisodeJob, type: :job do
         allow(AssemblyAiClient).to receive(:transcribe) do
           # During transcription, verify our episode is transcribing
           expect(user_episode.reload.processing_status).to eq("transcribing")
-          { "segments" => [{ "start" => 0.0, "end" => 10.0, "text" => "Hello." }] }
+          { "segments" => [ { "start" => 0.0, "end" => 10.0, "text" => "Hello." } ] }
         end
 
         described_class.perform_now(user_episode.id)
