@@ -67,7 +67,7 @@
     <div class="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
       <p class="text-red-800 text-sm sm:text-base">Processing failed: <%= @user_episode.processing_error %></p>
       <%= button_to "Retry",
-          regenerate_library_path(@user_episode),
+          retry_processing_library_path(@user_episode),
           method: :post,
           class: "mt-3 sm:mt-4 w-full sm:w-auto bg-red-600 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-red-700 transition font-medium" %>
     </div>

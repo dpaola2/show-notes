@@ -27,6 +27,7 @@ Rails.application.routes.draw do
     member do
       post :archive
       post :regenerate
+      post :retry_processing
     end
   end
 

@@ -19,6 +19,13 @@ class LibraryController < ApplicationController
     redirect_to library_index_path, notice: "Moved to Archive"
   end
 
+  def retry_processing
+    user_episode = current_user.user_episodes.find(params[:id])
+    user_episode.retry_processing!
+    ProcessEpisodeJob.perform_later(user_episode.id)
+    redirect_back fallback_location: library_index_path, notice: "Retrying transcription..."
+  end
+
   def regenerate
     user_episode = current_user.user_episodes.find(params[:id])
     # Delete existing summary and re-process
