@@ -72,3 +72,30 @@ podcast.episodes.find_or_initialize_by(guid: episode_data.guid)
 ### Composite Index Column Order
 
 `[podcast_id, guid]` means the index is also usable for queries filtered by `podcast_id` alone (like `podcast.episodes`), but *not* for queries filtered by `guid` alone. Put the scoping column first.
+
+## State Machine Completeness
+
+When modeling stateful workflows (e.g., background job processing), ensure every transitional state has an exit path for **both** success and failure. A state like `transcribing` that only transitions on success becomes a dead end when errors occur — the record gets stuck permanently with no recovery path.
+
+**Checklist for transitional states:**
+
+1. **Error transition** — What state does the record move to when the operation fails?
+2. **Error capture** — Is the failure reason stored so users can understand what happened?
+3. **Recovery action** — Can the user (or system) retry from the error state?
+4. **Timeout detection** — If the job silently dies, how is the stuck record detected?
+5. **Idempotency** — If retry is triggered multiple times, does only one job run?
+
+```ruby
+# Bad — only handles success
+after_perform { episode.update!(status: "transcribed") }
+
+# Good — handles both outcomes
+def perform(episode)
+  result = TranscriptionService.call(episode)
+  episode.update!(status: "transcribed", transcript: result)
+rescue TranscriptionService::RateLimitError => e
+  episode.update!(status: "transcription_failed", error_message: e.message)
+rescue => e
+  episode.update!(status: "transcription_failed", error_message: "Unexpected error: #{e.message}")
+end
+```
