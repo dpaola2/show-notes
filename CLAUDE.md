@@ -117,6 +117,8 @@ See also [AGENTS.md](AGENTS.md) for agent-discovered patterns and gotchas.
   - Overrides `perform_now` to suppress `ActiveJob::Base.logger` during execution (avoids LogSubscriber interference with test mocks)
 - `AutoProcessEpisodeJob` — episode-level transcription + summarization with retry logic (MAX_RETRIES=5, exponential backoff)
 - `FetchPodcastFeedJob` — triggers `AutoProcessEpisodeJob.perform_later` after new episode creation
+- `DetectStuckProcessingJob` — recurring (every 10 min), transitions UserEpisodes/Episodes stuck in transcribing/summarizing >30 min to error
+- Both `ProcessEpisodeJob` and `AutoProcessEpisodeJob` use `limits_concurrency key: "transcription", to: 3` — shared Solid Queue semaphore limits global concurrent transcription jobs
 
 ## Autonomous Execution
 
