@@ -5,6 +5,15 @@ class Episode < ApplicationRecord
   has_one :summary, dependent: :destroy
   has_many :email_events, dependent: :destroy
 
+  enum :processing_status, {
+    pending: 0,
+    downloading: 1,
+    transcribing: 2,
+    summarizing: 3,
+    ready: 4,
+    error: 5
+  }
+
   validates :guid, presence: true, uniqueness: { scope: :podcast_id }
   validates :title, presence: true
   validates :audio_url, presence: true

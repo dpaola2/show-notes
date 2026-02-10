@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_07_230000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_120000) do
   create_table "email_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "digest_date", null: false
@@ -35,7 +35,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_07_230000) do
     t.text "description"
     t.integer "duration_seconds"
     t.string "guid"
+    t.datetime "last_error_at"
     t.bigint "podcast_id", null: false
+    t.text "processing_error"
+    t.integer "processing_status", default: 0, null: false
     t.datetime "published_at"
     t.string "title"
     t.datetime "updated_at", null: false
