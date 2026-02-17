@@ -24,10 +24,10 @@ RSpec.describe FetchPodcastFeedJob, type: :job do
 
   describe "#perform — no auto-processing" do
     context "TRX-001: does not enqueue transcription on feed fetch" do
-      it "does not enqueue AutoProcessEpisodeJob for new episodes" do
+      it "does not enqueue ProcessEpisodeJob for new episodes" do
         expect {
           described_class.perform_now(podcast.id)
-        }.not_to have_enqueued_job(AutoProcessEpisodeJob)
+        }.not_to have_enqueued_job(ProcessEpisodeJob)
       end
     end
   end
