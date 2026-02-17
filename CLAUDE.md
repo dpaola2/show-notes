@@ -117,7 +117,7 @@ See also [AGENTS.md](AGENTS.md) for agent-discovered patterns and gotchas.
 - `onboarding:engagement_report` rake task prints opens by user/date, clicks by episode, summary stats
 
 ### Background Jobs
-- `SendDailyDigestJob` — subscription-based digest delivery, runs at 7 AM Eastern via Solid Queue
+- `SendDailyDigestJob` — library-scoped digest delivery, runs at 7 AM Eastern via Solid Queue
   - Overrides `perform_now` to suppress `ActiveJob::Base.logger` during execution (avoids LogSubscriber interference with test mocks)
 - `AutoProcessEpisodeJob` — episode-level transcription + summarization with retry logic (MAX_RETRIES=5, exponential backoff)
 - `FetchPodcastFeedJob` — triggers `AutoProcessEpisodeJob.perform_later` after new episode creation
