@@ -8,6 +8,8 @@ pipeline_m2_started_at: "2026-02-17T10:07:23-0500"
 pipeline_m2_completed_at: "2026-02-17T10:10:53-0500"
 pipeline_m3_started_at: "2026-02-17T10:14:40-0500"
 pipeline_m3_completed_at: "2026-02-17T10:16:28-0500"
+pipeline_m4_started_at: "2026-02-17T10:20:00-0500"
+pipeline_m4_completed_at: "2026-02-17T10:30:23-0500"
 ---
 
 # Implementation Progress — library-scoped-processing
@@ -26,7 +28,7 @@ pipeline_m3_completed_at: "2026-02-17T10:16:28-0500"
 | M1 | Shared Scope & Digest Query Change | **Complete** |
 | M2 | Remove Auto-Processing from Feed Fetch | **Complete** |
 | M3 | QA Test Data | **Complete** |
-| M4 | Edge Cases & Polish | Pending |
+| M4 | Edge Cases & Polish | **Complete** |
 
 ---
 
@@ -146,3 +148,38 @@ None (M3 has no automated tests by design)
 ### Notes
 - Dev database not migrated in this environment, so the task couldn't be executed end-to-end. Verified via `rake -T` (task loads) and `ruby -c` (syntax OK).
 - Task follows the same idempotency pattern as `qa_seed.rake` (`find_or_create_by` + `find_or_initialize_by`).
+
+---
+
+## M4: Edge Cases & Polish
+
+**Status:** Complete
+**Date:** 2026-02-17
+**Commit:** `fad60cb`
+
+### Files Created
+- None
+
+### Files Modified
+- `spec/jobs/onboarding_send_daily_digest_job_spec.rb` — Updated data setup to create UserEpisode records with `:ready` trait; updated comments from "subscription-based" to "library-scoped"
+- `spec/jobs/send_daily_digest_job_spec.rb` — Same UserEpisode data setup changes; updated comments
+- `spec/mailers/onboarding_digest_mailer_spec.rb` — Added UserEpisode records for all episodes; updated subject assertions ("new episodes" → "episodes ready"); updated edge case data setup
+- `spec/mailers/digest_mailer_spec.rb` — Same UserEpisode data setup changes; updated subject assertion
+- `spec/services/opml_import_service_spec.rb` — Added `include ActiveJob::TestHelper` to fix cumulative job queue matcher issue (pre-existing bug)
+
+### Test Results
+- **This milestone tests:** N/A (M4 has no dedicated Stage 4 tests — its acceptance is "all existing specs pass")
+- **Full suite:** 499 passing, 1 failing (TRX-001 spec gap from M2)
+- **Prior milestone tests:** All passing, no regressions
+
+### Acceptance Criteria
+- [x] All existing specs pass (`bundle exec rspec`) — 499/500 passing; 1 failure is the known TRX-001 spec gap (Stage 4 test references deleted `AutoProcessEpisodeJob` constant)
+- [x] No remaining `AutoProcessEpisodeJob` references in runtime code (grep confirmed: zero in `app/` and `lib/`)
+
+### Spec Gaps
+- **TRX-001 (inherited from M2):** `fetch_podcast_feed_job_no_auto_process_spec.rb:27` — NameError because test references deleted constant. This is a Stage 4 test file and cannot be modified by Stage 5.
+
+### Notes
+- The main M4 work was updating pre-existing spec files (not Stage 4 tests) that used subscription-based data setup. The library-scoped digest query (`Episode.library_ready_since`) joins `user_episodes`, so every test creating episodes for digest testing must also create UserEpisode records with `location: :library, processing_status: :ready`.
+- Fixed a pre-existing bug in `opml_import_service_spec.rb`: missing `include ActiveJob::TestHelper` caused the `have_been_enqueued` cumulative matcher to accumulate jobs across examples. Not related to library-scoped changes, but needed for full suite green.
+- Pipeline insight: When a project changes a query from one join path to another (e.g., subscriptions → user_episodes), ALL pre-existing tests that set up data for that query need updating. Stage 4 should note which pre-existing test files will be affected in the test-coverage-matrix.
