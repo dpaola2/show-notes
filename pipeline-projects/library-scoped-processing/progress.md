@@ -4,6 +4,8 @@ pipeline_stage_name: implementation
 pipeline_project: "library-scoped-processing"
 pipeline_m1_started_at: "2026-02-17T09:58:46-0500"
 pipeline_m1_completed_at: "2026-02-17T10:03:51-0500"
+pipeline_m2_started_at: "2026-02-17T10:07:23-0500"
+pipeline_m2_completed_at: "2026-02-17T10:10:53-0500"
 ---
 
 # Implementation Progress — library-scoped-processing
@@ -20,7 +22,7 @@ pipeline_m1_completed_at: "2026-02-17T10:03:51-0500"
 |-----------|-------------|--------|
 | M0 | Discovery & Alignment | Complete (Stages 1-3) |
 | M1 | Shared Scope & Digest Query Change | **Complete** |
-| M2 | Remove Auto-Processing from Feed Fetch | Pending |
+| M2 | Remove Auto-Processing from Feed Fetch | **Complete** |
 | M3 | QA Test Data | Pending |
 | M4 | Edge Cases & Polish | Pending |
 
@@ -64,3 +66,47 @@ None
 ### Notes
 - No new conventions discovered beyond the CLAUDE.md update (subscription-based → library-scoped).
 - The scope uses `joins(:user_episodes, :podcast)` for SQL joins and `.includes(:summary)` for preloading — matching the original pattern from the codebase.
+
+---
+
+## M2: Remove Auto-Processing from Feed Fetch
+
+**Status:** Complete
+**Date:** 2026-02-17
+**Commit:** `67e0c25`
+
+### Files Created
+- None
+
+### Files Modified
+- `app/jobs/fetch_podcast_feed_job.rb` — Removed `AutoProcessEpisodeJob.perform_later` call (lines 34-35)
+- `app/jobs/detect_stuck_processing_job.rb` — Removed Episode stuck detection block (lines 19-29)
+- `spec/jobs/fetch_podcast_feed_job_spec.rb` — Removed AutoProcessEpisodeJob assertions from pre-existing tests
+- `spec/jobs/detect_stuck_processing_job_spec.rb` — Removed Episode stuck detection tests from pre-existing tests
+- `CLAUDE.md` — Updated Background Jobs section (removed AutoProcessEpisodeJob, updated FetchPodcastFeedJob and DetectStuckProcessingJob descriptions)
+
+### Files Deleted
+- `app/jobs/auto_process_episode_job.rb` — Deleted (CLN-001)
+- `spec/jobs/auto_process_episode_job_spec.rb` — Deleted (CLN-001)
+- `spec/jobs/auto_process_episode_job_state_tracking_spec.rb` — Deleted (CLN-001)
+- `lib/tasks/backfill_processing.rake` — Deleted (depended on AutoProcessEpisodeJob)
+
+### Test Results
+- **This milestone tests:** 4 passing, 1 failing (spec gap — see below)
+- **Prior milestone tests:** 33 passing, all passing
+- **Pre-existing specs:** 12 passing after updates
+
+### Acceptance Criteria
+- [x] TRX-001: `FetchPodcastFeedJob` does NOT enqueue `AutoProcessEpisodeJob` (call removed, class deleted)
+- [x] TRX-002: `FetchPodcastFeedJob` still creates Episode records and UserEpisode inbox entries (verified by pre-existing specs)
+- [x] TRX-003: `ProcessEpisodeJob` continues to work as-is (no changes made)
+- [x] TRX-004: `DetectStuckProcessingJob` detects stuck UserEpisode records only (Episode block removed)
+- [x] CLN-001: `AutoProcessEpisodeJob` class and both spec files deleted
+- [x] CLN-002: Episode-level columns remain in schema (no migration)
+
+### Spec Gaps
+- **TRX-001 test (`fetch_podcast_feed_job_no_auto_process_spec.rb:27`):** References `AutoProcessEpisodeJob` constant in `not_to have_enqueued_job(AutoProcessEpisodeJob)`, but the class was deleted per CLN-001. Raises `NameError: uninitialized constant AutoProcessEpisodeJob`. The criterion is satisfied in code (the `perform_later` call and the class are both gone), but the test can't assert against a deleted constant.
+
+### Notes
+- Also deleted `lib/tasks/backfill_processing.rake` — a one-time onboarding backfill task that called `AutoProcessEpisodeJob.perform_later`. Not mentioned in the gameplan but would be broken after class deletion.
+- Pipeline insight: Stage 4 test for TRX-001 should verify "no jobs enqueued" generically rather than referencing a specific class constant that the milestone deletes.
