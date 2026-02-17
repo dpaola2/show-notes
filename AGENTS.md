@@ -99,3 +99,27 @@ rescue => e
   episode.update!(status: "transcription_failed", error_message: "Unexpected error: #{e.message}")
 end
 ```
+
+## Production Server Operations
+
+SSH into the server first:
+
+```bash
+ssh deploy@147.182.181.10
+```
+
+### Tailing Logs
+
+```bash
+# Rails server logs
+journalctl --user --unit=show-notes-server --follow
+
+# Solid Queue worker logs
+journalctl --user --unit=show-notes-solid_queue --follow
+```
+
+### Rails Console
+
+```bash
+cd ~/show-notes/current && bundle exec rails c
+```
