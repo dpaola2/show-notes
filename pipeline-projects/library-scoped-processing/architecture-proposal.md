@@ -4,7 +4,7 @@ pipeline_stage_name: architecture
 pipeline_project: "library-scoped-processing"
 pipeline_started_at: "2026-02-17T08:28:01-0500"
 pipeline_completed_at: "2026-02-17T08:28:32-0500"
-pipeline_approved_at:
+pipeline_approved_at: "2026-02-17"
 ---
 
 # Library-Scoped Processing — Architecture Proposal
@@ -326,21 +326,21 @@ None.
 
 > **This architecture proposal requires human review and approval before the gameplan is generated.**
 
-### Reviewer:
-### Date:
-### Status: Pending
+### Reviewer: Dave
+### Date: 2026-02-17
+### Status: Approved
 
 #### Must Verify
-- [ ] Shared scope `Episode.library_ready_since(user, since)` is correct (joins user_episodes + podcast, filters by location + processing_status + updated_at)
-- [ ] Using `user_episodes.updated_at` as a proxy for "became ready" is acceptable
-- [ ] 24-hour digest cap (`[digest_sent_at, 24.hours.ago].compact.max`) is correct behavior
-- [ ] Deleting `AutoProcessEpisodeJob` and both spec files is acceptable
-- [ ] Removing Episode stuck detection from `DetectStuckProcessingJob` is acceptable
-- [ ] The `since` race protection pattern is preserved correctly
+- [x] Shared scope `Episode.library_ready_since(user, since)` is correct (joins user_episodes + podcast, filters by location + processing_status + updated_at)
+- [x] Using `user_episodes.updated_at` as a proxy for "became ready" is acceptable
+- [x] 24-hour digest cap (`[digest_sent_at, 24.hours.ago].compact.max`) is correct behavior
+- [x] Deleting `AutoProcessEpisodeJob` and both spec files is acceptable
+- [x] Removing Episode stuck detection from `DetectStuckProcessingJob` is acceptable
+- [x] The `since` race protection pattern is preserved correctly
 
 #### Should Check
-- [ ] Subject line change ("Your library — N episodes ready") is the desired framing
-- [ ] No conflicts with in-progress work or upcoming changes
+- [x] Subject line change ("Your library — N episodes ready") is the desired framing
+- [x] No conflicts with in-progress work or upcoming changes
 
 #### Notes
 [Reviewer notes, modifications requested, or rejection reasons]
