@@ -1,8 +1,7 @@
 require "rails_helper"
 
-# Tests for the REDESIGNED digest mailer (newsletter format with all episodes + summaries + tracking).
-# The existing digest_mailer_spec.rb tests the OLD notification format.
-# These tests define the new contract that Stage 5 (M3) must implement.
+# Tests for the library-scoped digest mailer (newsletter format with summaries + tracking).
+# The digest includes only episodes in the user's library with processing_status: :ready.
 
 RSpec.describe DigestMailer, type: :mailer do
   describe "#daily_digest (newsletter format)" do
@@ -20,6 +19,7 @@ RSpec.describe DigestMailer, type: :mailer do
       create(:summary, episode: ep, sections: [
         { "title" => "Overview", "content" => "A deep dive into the economics of podcast advertising in 2026, with data showing CPM rates have dropped 30% while listenership grew." }
       ], quotes: [ { "text" => "The market shifted.", "start_time" => 100 } ])
+      create(:user_episode, :ready, user: user, episode: ep)
       ep
     end
 
@@ -28,6 +28,7 @@ RSpec.describe DigestMailer, type: :mailer do
       create(:summary, episode: ep, sections: [
         { "title" => "Overview", "content" => "How sharing your startup journey publicly attracts customers and advisors organically." }
       ], quotes: [])
+      create(:user_episode, :ready, user: user, episode: ep)
       ep
     end
 
@@ -36,6 +37,7 @@ RSpec.describe DigestMailer, type: :mailer do
       create(:summary, episode: ep, sections: [
         { "title" => "Overview", "content" => "A breakdown of why TypeScript adoption plateaued in 2026 and what Deno is doing differently." }
       ], quotes: [ { "text" => "Deno changed the game.", "start_time" => 500 } ])
+      create(:user_episode, :ready, user: user, episode: ep)
       ep
     end
 
@@ -54,6 +56,7 @@ RSpec.describe DigestMailer, type: :mailer do
         8.times do |i|
           ep = create(:episode, podcast: podcast_a, title: "Extra Episode #{i}", created_at: 1.hour.ago)
           create(:summary, episode: ep)
+          create(:user_episode, :ready, user: user, episode: ep)
         end
 
         mail = DigestMailer.daily_digest(user)
@@ -113,7 +116,7 @@ RSpec.describe DigestMailer, type: :mailer do
       it "has subject line with episode count" do
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.subject).to include("3 new episodes")
+        expect(mail.subject).to include("3 episodes ready")
       end
 
       it "includes date in the email body" do
@@ -136,15 +139,17 @@ RSpec.describe DigestMailer, type: :mailer do
 
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.subject).to include("1 new episode")
+        expect(mail.subject).to include("1 episode ready")
         expect(mail.subject).not_to include("episodes")
       end
     end
 
     context "DIG-008: episodes without summary show processing state" do
       let!(:processing_episode) do
-        create(:episode, podcast: podcast_a, title: "Still Processing Episode", created_at: 1.hour.ago)
-        # No summary created — still processing
+        ep = create(:episode, podcast: podcast_a, title: "Still Processing Episode", created_at: 1.hour.ago)
+        # Ready in library but no summary — edge case where summary creation failed
+        create(:user_episode, :ready, user: user, episode: ep)
+        ep
       end
 
       it "includes the episode with a processing note" do
@@ -262,8 +267,10 @@ RSpec.describe DigestMailer, type: :mailer do
 
     context "edge case: episode with failed processing" do
       let!(:failed_episode) do
-        create(:episode, podcast: podcast_a, title: "Failed Episode", created_at: 1.hour.ago)
-        # Has transcript but no summary — processing failed after transcription
+        ep = create(:episode, podcast: podcast_a, title: "Failed Episode", created_at: 1.hour.ago)
+        # Ready in library but no summary — processing failed after transcription
+        create(:user_episode, :ready, user: user, episode: ep)
+        ep
       end
 
       it "includes the episode with title only" do
@@ -289,10 +296,14 @@ RSpec.describe DigestMailer, type: :mailer do
 
     context "edge case: old episodes before last digest not included" do
       let!(:old_episode) do
-        create(:episode, podcast: podcast_a, title: "Old Episode Before Digest", created_at: 3.hours.ago)
+        ep = create(:episode, podcast: podcast_a, title: "Old Episode Before Digest", created_at: 3.hours.ago)
+        ue = create(:user_episode, :ready, user: user, episode: ep)
+        # UserEpisode updated BEFORE digest_sent_at — not "new"
+        ue.update_column(:updated_at, 3.hours.ago)
+        ep
       end
 
-      it "does not include episodes created before last digest_sent_at" do
+      it "does not include episodes with user_episode updated before last digest_sent_at" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 

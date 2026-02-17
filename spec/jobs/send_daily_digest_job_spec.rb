@@ -1,6 +1,6 @@
 require "rails_helper"
 
-# These tests cover the redesigned subscription-based digest job.
+# These tests cover the library-scoped digest job.
 # The comprehensive test suite is in onboarding_send_daily_digest_job_spec.rb;
 # this file provides basic sanity checks for the core job behavior.
 
@@ -8,12 +8,13 @@ RSpec.describe SendDailyDigestJob, type: :job do
   include ActiveJob::TestHelper
 
   describe "#perform" do
-    context "with users who have digest enabled and new episodes" do
+    context "with users who have digest enabled and ready library episodes" do
       let!(:user) do
         user = create(:user, digest_enabled: true, digest_sent_at: 2.hours.ago)
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
-        create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        create(:user_episode, :ready, user: user, episode: ep)
         user
       end
 
@@ -53,7 +54,8 @@ RSpec.describe SendDailyDigestJob, type: :job do
         user = create(:user, digest_enabled: false, digest_sent_at: 2.hours.ago)
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
-        create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        create(:user_episode, :ready, user: user, episode: ep)
         user
       end
 
