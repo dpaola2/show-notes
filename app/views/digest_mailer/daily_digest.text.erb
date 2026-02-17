@@ -1,5 +1,5 @@
-Your podcasts this morning — <%= @date %>
-<%= @episode_count %> new episode<%= 's' unless @episode_count == 1 %>
+Your library — <%= @date %>
+<%= @episode_count %> episode<%= 's' unless @episode_count == 1 %> ready
 ========================================
 
 <% @episodes_by_show.each do |podcast, episodes| %>

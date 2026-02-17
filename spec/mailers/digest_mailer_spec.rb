@@ -1,6 +1,6 @@
 require "rails_helper"
 
-# These tests cover the redesigned newsletter-format digest mailer.
+# These tests cover the library-scoped newsletter-format digest mailer.
 # The comprehensive test suite is in onboarding_digest_mailer_spec.rb;
 # this file provides basic sanity checks for the core mailer behavior.
 
@@ -15,6 +15,7 @@ RSpec.describe DigestMailer, type: :mailer do
         3.times.map do |i|
           ep = create(:episode, podcast: podcast, title: "Episode #{i}", created_at: 1.hour.ago)
           create(:summary, episode: ep)
+          create(:user_episode, :ready, user: user, episode: ep)
           ep
         end
       end
@@ -28,7 +29,7 @@ RSpec.describe DigestMailer, type: :mailer do
       it "has correct subject with episode count" do
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.subject).to include("3 new episodes")
+        expect(mail.subject).to include("3 episodes ready")
       end
 
       it "includes episode count in HTML body" do
@@ -66,6 +67,7 @@ RSpec.describe DigestMailer, type: :mailer do
         ], quotes: [
           { "text" => "This is a notable quote from the episode.", "start_time" => 300 }
         ])
+        create(:user_episode, :ready, user: user, episode: ep)
         ep
       end
 
@@ -98,6 +100,7 @@ RSpec.describe DigestMailer, type: :mailer do
       let!(:episode) do
         ep = create(:episode, podcast: podcast, title: "Fallback Episode", created_at: 1.hour.ago)
         create(:summary, episode: ep)
+        create(:user_episode, :ready, user: user, episode: ep)
         ep
       end
 
@@ -131,7 +134,8 @@ RSpec.describe DigestMailer, type: :mailer do
     it "includes unsubscribe information" do
       podcast = create(:podcast)
       create(:subscription, user: user, podcast: podcast)
-      create(:episode, podcast: podcast, created_at: 1.hour.ago)
+      ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+      create(:user_episode, :ready, user: user, episode: ep)
 
       mail = DigestMailer.daily_digest(user)
 

@@ -1,19 +1,19 @@
 require "rails_helper"
 
-# Tests for the REDESIGNED SendDailyDigestJob (subscription-based episode check).
-# The existing send_daily_digest_job_spec.rb tests the OLD UserEpisode-based logic.
-# These tests define the new contract that Stage 5 (M3) must implement.
+# Tests for the REDESIGNED SendDailyDigestJob (library-scoped episode check).
+# The digest includes only episodes in the user's library with processing_status: :ready.
 
 RSpec.describe SendDailyDigestJob, type: :job do
   include ActiveJob::TestHelper
 
-  describe "#perform (subscription-based)" do
-    context "DIG-013: sends digest when user has new episodes from subscribed podcasts" do
+  describe "#perform (library-scoped)" do
+    context "DIG-013: sends digest when user has ready episodes in library" do
       let!(:user) do
         user = create(:user, digest_enabled: true, digest_sent_at: 2.hours.ago)
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
-        create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        create(:user_episode, :ready, user: user, episode: ep)
         user
       end
 
@@ -32,13 +32,15 @@ RSpec.describe SendDailyDigestJob, type: :job do
       end
     end
 
-    context "DIG-013: skips digest when user has no new episodes" do
+    context "DIG-013: skips digest when user has no recent ready episodes" do
       let!(:user_no_new) do
         user = create(:user, digest_enabled: true, digest_sent_at: 1.hour.ago)
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
-        # Episode created BEFORE digest_sent_at — not "new"
-        create(:episode, podcast: podcast, created_at: 2.hours.ago)
+        ep = create(:episode, podcast: podcast, created_at: 2.hours.ago)
+        ue = create(:user_episode, :ready, user: user, episode: ep)
+        # UserEpisode updated BEFORE digest_sent_at — not "new"
+        ue.update_column(:updated_at, 2.hours.ago)
         user
       end
 
@@ -62,7 +64,8 @@ RSpec.describe SendDailyDigestJob, type: :job do
         user = create(:user, digest_enabled: false, digest_sent_at: 2.hours.ago)
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
-        create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        create(:user_episode, :ready, user: user, episode: ep)
         user
       end
 
@@ -88,11 +91,12 @@ RSpec.describe SendDailyDigestJob, type: :job do
         user = create(:user, digest_enabled: true, digest_sent_at: nil)
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
-        create(:episode, podcast: podcast, created_at: 12.hours.ago)
+        ep = create(:episode, podcast: podcast, created_at: 12.hours.ago)
+        create(:user_episode, :ready, user: user, episode: ep)
         user
       end
 
-      it "sends digest using 1.day.ago as the since threshold" do
+      it "sends digest using 24.hours.ago as the since threshold" do
         expect {
           described_class.perform_now
         }.to have_enqueued_mail(DigestMailer, :daily_digest).with(user_first_digest, anything)
@@ -104,7 +108,8 @@ RSpec.describe SendDailyDigestJob, type: :job do
         user = create(:user, digest_enabled: true, digest_sent_at: 2.hours.ago)
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
-        create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        create(:user_episode, :ready, user: user, episode: ep)
 
         expect(Rails.logger).to receive(:info).with(/SendDailyDigestJob.*Sent 1.*skipped 0/i)
 
