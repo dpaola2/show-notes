@@ -11,7 +11,7 @@ pipeline_completed_at: "2026-02-17T08:19:27-0500"
 |  |  |
 | -- | -- |
 | **Product** | Show Notes |
-| **Version** | 1 |
+| **Version** | 2 |
 | **Author** | Stage 0 (Pipeline) |
 | **Date** | 2026-02-17 |
 | **Status** | Draft — Review Required |
@@ -57,9 +57,9 @@ pipeline_completed_at: "2026-02-17T08:19:27-0500"
 | ID | Requirement | Platform | Priority |
 |----|------------|----------|----------|
 | DIG-001 | Digest email queries `user_episodes` in library location instead of all episodes from subscribed podcasts | Web | Must |
-| DIG-002 | Digest shows library episodes that are ready (have completed summaries) or recently became ready since the last digest | Web | Must |
+| DIG-002 | Digest shows library episodes with `processing_status=ready` whose status became ready after `digest_sent_at` (the user's last digest timestamp) | Web | Must |
 | DIG-003 | Digest subject line and copy reflect library-centric framing (e.g., "Your library updates" not "Your podcasts this morning") | Web | Should |
-| DIG-004 | Digest is not sent if no library episodes are ready or recently became ready | Web | Should |
+| DIG-004 | Digest is not sent if no library episodes became ready since `digest_sent_at` | Web | Must |
 
 ### Transcription Scope
 
@@ -68,14 +68,14 @@ pipeline_completed_at: "2026-02-17T08:19:27-0500"
 | TRX-001 | `FetchPodcastFeedJob` does NOT enqueue `AutoProcessEpisodeJob` when discovering new episodes | Web | Must |
 | TRX-002 | `FetchPodcastFeedJob` still creates `Episode` records and `UserEpisode` inbox entries for subscribers | Web | Must |
 | TRX-003 | `ProcessEpisodeJob` (triggered by `move_to_library!`) continues to work as-is | Web | Must |
-| TRX-004 | `DetectStuckProcessingJob` continues to detect and recover stuck processing | Web | Must |
+| TRX-004 | `DetectStuckProcessingJob` continues to detect stuck processing and mark it as error for manual retry | Web | Must |
 
 ### Cleanup
 
 | ID | Requirement | Platform | Priority |
 |----|------------|----------|----------|
 | CLN-001 | `AutoProcessEpisodeJob` class can be removed or left as dead code — either approach is acceptable | Web | Should |
-| CLN-002 | Episode-level `processing_status`, `processing_error`, `last_error_at` columns remain (still used by `ProcessEpisodeJob` for shared transcript caching) | Web | Must |
+| CLN-002 | Episode-level `processing_status`, `processing_error`, `last_error_at` columns remain — needed for backward compatibility with legacy auto-processed records and for `DetectStuckProcessingJob` coverage | Web | Must |
 
 ---
 
@@ -95,9 +95,9 @@ pipeline_completed_at: "2026-02-17T08:19:27-0500"
 **Entry Point:** Scheduled digest delivery
 
 1. Digest job runs on schedule
-2. Job queries for library episodes that are ready and were updated since the last digest (or became ready since last digest)
+2. Job queries for library episodes with `processing_status=ready` that became ready after `digest_sent_at`
 3. If matching episodes exist, digest email is sent showing those episodes grouped by podcast
-4. If no matching episodes, no email is sent
+4. If no matching episodes, no email is sent (DIG-004)
 5. **Success:** User sees only episodes they curated, with completed summaries
 6. **Error:** If mailer fails, standard retry logic applies (no change from current behavior)
 
@@ -145,9 +145,9 @@ N/A — no API or client-facing changes. Single-platform web app with no externa
 |----------|-------------------|----------|
 | Library has no ready episodes when digest runs | No digest email sent | Web |
 | Episode was already transcribed (shared cache) when moved to library | `ProcessEpisodeJob` detects existing transcript/summary, skips API calls, marks ready immediately | Web |
-| User moves episode to library, then archives before processing completes | Processing continues — job operates on `UserEpisode` ID, location change doesn't cancel it [NEEDS REVIEW] | Web |
+| User moves episode to library, then archives before processing completes | Processing continues to completion — job operates on `UserEpisode` ID and does not re-check location. This is intentional: once processing starts, let it finish rather than adding guard logic. The cost is minimal for a single-user app. | Web |
 | Inbox episodes that were auto-transcribed before this change | Existing transcripts/summaries remain on the `Episode` model — no data loss | Web |
-| `DetectStuckProcessingJob` finds stuck episode-level records from old auto-processing | Job should still handle these gracefully — they'll age out naturally [INFERRED] | Web |
+| `DetectStuckProcessingJob` finds stuck episode-level records from old auto-processing | Job handles these the same as any stuck record — marks as error after 30min timeout. Old records will age out as no new episode-level processing is enqueued. | Web |
 
 ---
 
@@ -164,6 +164,7 @@ N/A.
 - Changing the digest delivery schedule or frequency
 - Adding any new digest preferences or settings
 - Retroactively un-transcribing episodes that were auto-processed
+- Changing inbox processing status indicators — they'll mostly show "pending" now, but that's a separate UX decision
 
 ---
 
@@ -172,8 +173,7 @@ N/A.
 | # | Question | Status | Decision | Blocking? |
 |---|----------|--------|----------|-----------|
 | 1 | Should `AutoProcessEpisodeJob` be deleted entirely or left as dead code? | Open | — | No |
-| 2 | Should the digest "since" window be based on `user_episodes.updated_at` (when processing finished) or `digest_sent_at` (existing tracking field)? | Open | — | No |
-| 3 | Should inbox episodes still show processing status indicators given they'll almost always be "pending" now? | Open | — | No |
+| 2 | Should the digest "since" window be based on `user_episodes.updated_at` or `digest_sent_at`? | Resolved | Use `digest_sent_at` — it's the existing tracking field on `User` and represents the last time the user received a digest. Query for library episodes that became ready after this timestamp. | No |
 
 > **No blocking questions — this PRD is ready for pipeline intake (after human review).**
 
