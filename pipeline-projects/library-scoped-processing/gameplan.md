@@ -4,7 +4,7 @@ pipeline_stage_name: gameplan
 pipeline_project: "library-scoped-processing"
 pipeline_started_at: "2026-02-17T09:34:41-0500"
 pipeline_completed_at: "2026-02-17T09:35:16-0500"
-pipeline_approved_at:
+pipeline_approved_at: "2026-02-17"
 ---
 
 # Library-Scoped Processing — Engineering Gameplan
@@ -81,7 +81,7 @@ pipeline_approved_at:
 **Acceptance Criteria:**
 - [ ] DIG-001: Digest email queries `user_episodes` in library location (not all subscription episodes). An episode in the inbox or archive does not appear in the digest.
 - [ ] DIG-002: Digest only includes library episodes with `processing_status=ready` whose `updated_at` is after `[digest_sent_at, 24.hours.ago].compact.max`. If `digest_sent_at` is nil, the 24-hour cap applies. If `digest_sent_at` is 3 days old, the 24-hour cap applies (not a 3-day backlog).
-- [ ] DIG-003: Digest subject line reads "Your library — N episode(s) ready" instead of "Your podcasts this morning".
+- [ ] DIG-003: Digest subject line and email body copy reflect library-centric framing (e.g., "Your library — N episode(s) ready" instead of "Your podcasts this morning"). Both HTML and text templates updated if they contain subscription-centric wording.
 - [ ] DIG-004: If no library episodes match the eligibility window, `NullMail` is returned and no email is sent.
 - [ ] `Episode.library_ready_since(user, since)` scope exists on `Episode` model, joins `user_episodes` and `podcast`, filters by `location: :library`, `processing_status: :ready`, and `updated_at > since`.
 - [ ] `SendDailyDigestJob#has_new_episodes?` uses `Episode.library_ready_since(user, since).exists?` with the same 24-hour cap.
@@ -94,6 +94,7 @@ pipeline_approved_at:
 - [ ] Update `app/mailers/digest_mailer.rb` — replace subscription query in instance fallback (lines 80-86) with same
 - [ ] Update `app/mailers/digest_mailer.rb` — change `since` calculation to `[user.digest_sent_at, 24.hours.ago].compact.max` in both methods
 - [ ] Update `app/mailers/digest_mailer.rb` — change subject line (line 105) to library-centric framing
+- [ ] Update digest email templates (HTML + text) — replace any subscription-centric copy with library-centric wording
 - [ ] Update `app/jobs/send_daily_digest_job.rb` — replace `has_new_episodes?` query (lines 37-44) with `Episode.library_ready_since(user, since).exists?`
 - [ ] Update `spec/mailers/digest_mailer_spec.rb` — verify library-only filtering, 24-hour cap, subject line change
 - [ ] Update `spec/jobs/send_daily_digest_job_spec.rb` — verify library-only eligibility check, 24-hour cap
@@ -157,13 +158,13 @@ pipeline_approved_at:
 - [ ] Edge case: Episode already transcribed (shared cache) when moved to library — `ProcessEpisodeJob` skips API calls, marks ready immediately. (Existing behavior, verify not broken.)
 - [ ] Edge case: User moves episode to library, then archives before processing completes — processing continues to completion. (Existing behavior, verify not broken.)
 - [ ] Edge case: Inbox episodes auto-transcribed before this change — existing transcripts/summaries remain on `Episode` model, no data loss. (Existing data, verify not broken.)
-- [ ] Edge case: `DetectStuckProcessingJob` after Episode detection block removed — old episode-level stuck records age out naturally, no errors from the job.
-- [ ] Verification: No remaining references to `AutoProcessEpisodeJob` in the codebase (grep confirmation).
+- [ ] Edge case: `DetectStuckProcessingJob` after Episode detection block removed — legacy episode-level stuck rows may remain in the database but no new episode-level processing is enqueued; the job runs without errors and does not touch episode-level records.
+- [ ] Verification: No remaining references to `AutoProcessEpisodeJob` in runtime code or specs (`app/`, `config/`, `lib/`, `spec/`) — confirmed via grep. References in pipeline docs and git history are expected.
 - [ ] All existing specs pass (`bundle exec rspec`).
 
 **Web (Rails):**
 - [ ] Run full test suite and verify green
-- [ ] Grep codebase for `AutoProcessEpisodeJob` — confirm zero references
+- [ ] Grep `app/`, `config/`, `lib/`, `spec/` for `AutoProcessEpisodeJob` — confirm zero references in runtime code
 - [ ] Verify `ProcessEpisodeJob` specs still pass (no regressions)
 
 **Dependencies:** M1, M2
@@ -244,7 +245,7 @@ pipeline_approved_at:
 ### Done Criteria
 - [ ] All acceptance criteria met across M1-M4
 - [ ] All specs passing (`bundle exec rspec`)
-- [ ] No remaining references to `AutoProcessEpisodeJob` in codebase
+- [ ] No remaining references to `AutoProcessEpisodeJob` in runtime code (`app/`, `config/`, `lib/`, `spec/`)
 - [ ] Digest email verified with realistic test data (M3 seed task)
 
 ---
@@ -267,7 +268,7 @@ pipeline_approved_at:
 |-----------------|-----------|---------------------|
 | DIG-001 | M1 | Digest queries `user_episodes` in library location |
 | DIG-002 | M1 | Library episodes with `processing_status=ready` and `updated_at` after eligibility window |
-| DIG-003 | M1 | Subject line reads "Your library — N episode(s) ready" |
+| DIG-003 | M1 | Subject line and email body copy reflect library-centric framing |
 | DIG-004 | M1 | NullMail returned when no matching episodes |
 | TRX-001 | M2 | `FetchPodcastFeedJob` does not enqueue `AutoProcessEpisodeJob` |
 | TRX-002 | M2 | `FetchPodcastFeedJob` still creates Episode + UserEpisode records |
@@ -282,18 +283,18 @@ pipeline_approved_at:
 
 > **This gameplan requires human review and approval before test generation begins.**
 
-### Reviewer: ___________
-### Date: ___________
-### Status: Pending
+### Reviewer: Dave
+### Date: 2026-02-17
+### Status: Approved
 
 #### Must Verify
-- [ ] Milestone breakdown is logical and correctly sequenced
-- [ ] Acceptance criteria are specific and testable
-- [ ] Every PRD requirement ID is mapped to a milestone (traceability matrix complete)
-- [ ] Non-functional requirements checklist is fully addressed
-- [ ] Dependencies form a valid DAG (no circular dependencies)
-- [ ] Milestone sizes are appropriate (no XL milestones that should be split)
-- [ ] Release plan is appropriate
+- [x] Milestone breakdown is logical and correctly sequenced
+- [x] Acceptance criteria are specific and testable
+- [x] Every PRD requirement ID is mapped to a milestone (traceability matrix complete)
+- [x] Non-functional requirements checklist is fully addressed
+- [x] Dependencies form a valid DAG (no circular dependencies)
+- [x] Milestone sizes are appropriate (no XL milestones that should be split)
+- [x] Release plan is appropriate
 
 #### Optional Notes
 [Any modifications, corrections, or additional context for the implementation team]
@@ -305,3 +306,4 @@ pipeline_approved_at:
 | Date | Author | Changes |
 |------|--------|---------|
 | 2026-02-17 | Pipeline | Initial gameplan generated |
+| 2026-02-17 | Pipeline | Address feedback: DIG-003 expanded to cover email body copy (not just subject), AutoProcessEpisodeJob grep scoped to runtime code, stuck record edge case made concrete |
