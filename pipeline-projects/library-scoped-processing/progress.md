@@ -6,6 +6,8 @@ pipeline_m1_started_at: "2026-02-17T09:58:46-0500"
 pipeline_m1_completed_at: "2026-02-17T10:03:51-0500"
 pipeline_m2_started_at: "2026-02-17T10:07:23-0500"
 pipeline_m2_completed_at: "2026-02-17T10:10:53-0500"
+pipeline_m3_started_at: "2026-02-17T10:14:40-0500"
+pipeline_m3_completed_at: "2026-02-17T10:16:28-0500"
 ---
 
 # Implementation Progress — library-scoped-processing
@@ -23,7 +25,7 @@ pipeline_m2_completed_at: "2026-02-17T10:10:53-0500"
 | M0 | Discovery & Alignment | Complete (Stages 1-3) |
 | M1 | Shared Scope & Digest Query Change | **Complete** |
 | M2 | Remove Auto-Processing from Feed Fetch | **Complete** |
-| M3 | QA Test Data | Pending |
+| M3 | QA Test Data | **Complete** |
 | M4 | Edge Cases & Polish | Pending |
 
 ---
@@ -110,3 +112,37 @@ None
 ### Notes
 - Also deleted `lib/tasks/backfill_processing.rake` — a one-time onboarding backfill task that called `AutoProcessEpisodeJob.perform_later`. Not mentioned in the gameplan but would be broken after class deletion.
 - Pipeline insight: Stage 4 test for TRX-001 should verify "no jobs enqueued" generically rather than referencing a specific class constant that the milestone deletes.
+
+---
+
+## M3: QA Test Data
+
+**Status:** Complete
+**Date:** 2026-02-17
+**Commit:** `f282dcc`
+
+### Files Created
+- `lib/tasks/pipeline/library_scoped_processing_qa.rake` — Idempotent seed task creating test user, 2 podcasts, 9 episodes in 6 states
+
+### Files Modified
+- None
+
+### Test Results
+- **This milestone tests:** N/A (M3 is manual QA seed — no automated tests)
+- **Prior milestone tests:** 37 passing, no regressions
+
+### Acceptance Criteria
+- [x] Seed task exists at `lib/tasks/pipeline/library_scoped_processing_qa.rake`
+- [x] Task creates a test user with `digest_enabled: true` and `digest_sent_at: 25.hours.ago`
+- [x] Task seeds episodes in various states: inbox, library+ready, library+pending, library+error, archived
+- [x] Task seeds episode with `updated_at` older than 24 hours (tests 24-hour cap)
+- [x] Task seeds episode with `updated_at` within 24 hours and `processing_status: ready`
+- [x] Task is idempotent (uses `find_or_create_by` / `find_or_initialize_by` patterns)
+- [x] Task prints summary with user email, podcast names, episode counts by state
+
+### Spec Gaps
+None (M3 has no automated tests by design)
+
+### Notes
+- Dev database not migrated in this environment, so the task couldn't be executed end-to-end. Verified via `rake -T` (task loads) and `ruby -c` (syntax OK).
+- Task follows the same idempotency pattern as `qa_seed.rake` (`find_or_create_by` + `find_or_initialize_by`).
