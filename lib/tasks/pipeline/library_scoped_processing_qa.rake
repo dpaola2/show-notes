@@ -57,7 +57,7 @@ namespace :pipeline do
         unless episode.summary
           Summary.create!(
             episode: episode,
-            sections: [{ "title" => "Summary", "content" => "This is the summary for #{title}. It covers the main topics discussed." }],
+            sections: [ { "title" => "Summary", "content" => "This is the summary for #{title}. It covers the main topics discussed." } ],
             quotes: []
           )
         end

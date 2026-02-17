@@ -19,7 +19,7 @@ RSpec.describe FetchPodcastFeedJob, type: :job do
   end
 
   before do
-    allow(PodcastFeedParser).to receive(:parse).and_return([episode_data])
+    allow(PodcastFeedParser).to receive(:parse).and_return([ episode_data ])
   end
 
   describe "#perform — no auto-processing" do

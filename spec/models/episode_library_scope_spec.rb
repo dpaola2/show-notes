@@ -93,7 +93,7 @@ RSpec.describe Episode, type: :model do
         ue = create(:user_episode, :ready, user: user, episode: episode)
         ue.update_column(:updated_at, 12.hours.ago)
 
-        since = [3.days.ago, 24.hours.ago].compact.max
+        since = [ 3.days.ago, 24.hours.ago ].compact.max
         results = Episode.library_ready_since(user, since)
         expect(results).to include(episode)
       end
@@ -103,7 +103,7 @@ RSpec.describe Episode, type: :model do
         ue = create(:user_episode, :ready, user: user, episode: episode)
         ue.update_column(:updated_at, 25.hours.ago)
 
-        since = [nil, 24.hours.ago].compact.max
+        since = [ nil, 24.hours.ago ].compact.max
         results = Episode.library_ready_since(user, since)
         expect(results).not_to include(episode)
       end
@@ -130,13 +130,13 @@ RSpec.describe Episode, type: :model do
         ep_a_old = create(:episode, podcast: podcast_a, published_at: 2.days.ago)
         ep_a_new = create(:episode, podcast: podcast_a, published_at: 1.day.ago)
 
-        [ep_z, ep_a_old, ep_a_new].each do |ep|
+        [ ep_z, ep_a_old, ep_a_new ].each do |ep|
           ue = create(:user_episode, :ready, user: user, episode: ep)
           ue.update_column(:updated_at, 1.hour.ago)
         end
 
         results = Episode.library_ready_since(user, 2.hours.ago)
-        expect(results.to_a).to eq([ep_a_new, ep_a_old, ep_z])
+        expect(results.to_a).to eq([ ep_a_new, ep_a_old, ep_z ])
       end
     end
 

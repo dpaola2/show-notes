@@ -14,7 +14,7 @@ class DigestMailer < ApplicationMailer
   # already set, protecting against the race where `digest_sent_at` was
   # bumped between scheduling and delivery.
   def self.daily_digest(user, since = nil)
-    since ||= [user.digest_sent_at, 24.hours.ago].compact.max
+    since ||= [ user.digest_sent_at, 24.hours.ago ].compact.max
     digest_date = Date.current.to_s
 
     episodes_by_show = Episode
@@ -72,7 +72,7 @@ class DigestMailer < ApplicationMailer
       # Fallback for deliver_later (runs in a job, no thread-local).
       # Re-query episodes; events were already created eagerly.
       # Use the passed `since` to avoid reading the already-bumped digest_sent_at.
-      since ||= [user.digest_sent_at, 24.hours.ago].compact.max
+      since ||= [ user.digest_sent_at, 24.hours.ago ].compact.max
       @episodes_by_show = Episode
         .library_ready_since(user, since)
         .group_by(&:podcast)

@@ -15,6 +15,5 @@ class DetectStuckProcessingJob < ApplicationJob
           last_error_at: Time.current
         )
       end
-
   end
 end

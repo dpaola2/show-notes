@@ -144,7 +144,7 @@ RSpec.describe DigestMailer, type: :mailer do
         ue = create(:user_episode, :ready, user: user, episode: ep)
         ue.update_column(:updated_at, 1.hour.ago)
 
-        since = [user.digest_sent_at, 24.hours.ago].compact.max
+        since = [ user.digest_sent_at, 24.hours.ago ].compact.max
         mail = DigestMailer.daily_digest(user, since)
 
         user.update!(digest_sent_at: Time.current)
@@ -164,7 +164,7 @@ RSpec.describe DigestMailer, type: :mailer do
       end
 
       it "class method and instance fallback produce the same episodes" do
-        since = [user.digest_sent_at, 24.hours.ago].compact.max
+        since = [ user.digest_sent_at, 24.hours.ago ].compact.max
 
         mail1 = DigestMailer.daily_digest(user, since)
         body1 = mail1.html_part.body.to_s

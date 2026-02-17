@@ -35,7 +35,7 @@ class SendDailyDigestJob < ApplicationJob
   private
 
   def has_new_episodes?(user)
-    since = [user.digest_sent_at, 24.hours.ago].compact.max
+    since = [ user.digest_sent_at, 24.hours.ago ].compact.max
     Episode.library_ready_since(user, since).exists?
   end
 end
