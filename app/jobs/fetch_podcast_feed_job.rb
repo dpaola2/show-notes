@@ -31,8 +31,6 @@ class FetchPodcastFeedJob < ApplicationJob
           )
         end
 
-        # Auto-process: enqueue transcription + summarization
-        AutoProcessEpisodeJob.perform_later(episode.id)
       end
     end
 

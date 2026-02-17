@@ -23,13 +23,7 @@ RSpec.describe FetchPodcastFeedJob, type: :job do
   end
 
   describe "#perform" do
-    context "AUTO-001: auto-processing triggered on new episode creation" do
-      it "enqueues AutoProcessEpisodeJob for new episodes" do
-        expect {
-          described_class.perform_now(podcast.id)
-        }.to have_enqueued_job(AutoProcessEpisodeJob)
-      end
-
+    context "creates episodes from feed" do
       it "creates the new episode in the database" do
         described_class.perform_now(podcast.id)
 
@@ -39,15 +33,15 @@ RSpec.describe FetchPodcastFeedJob, type: :job do
       end
     end
 
-    context "AUTO-001: does not auto-process existing episodes" do
+    context "does not duplicate existing episodes" do
       before do
         create(:episode, podcast: podcast, guid: "new-episode-guid")
       end
 
-      it "does not enqueue AutoProcessEpisodeJob for existing episodes" do
+      it "does not create a duplicate episode" do
         expect {
           described_class.perform_now(podcast.id)
-        }.not_to have_enqueued_job(AutoProcessEpisodeJob)
+        }.not_to change(Episode, :count)
       end
     end
 
@@ -75,10 +69,10 @@ RSpec.describe FetchPodcastFeedJob, type: :job do
         expect(podcast.episodes.count).to eq(10)
       end
 
-      it "enqueues AutoProcessEpisodeJob for each of the 10 episodes" do
-        expect {
-          described_class.perform_now(podcast.id, initial_fetch: true)
-        }.to have_enqueued_job(AutoProcessEpisodeJob).exactly(10).times
+      it "creates inbox entries for each of the 10 episodes" do
+        described_class.perform_now(podcast.id, initial_fetch: true)
+
+        expect(user.user_episodes.count).to eq(10)
       end
     end
   end

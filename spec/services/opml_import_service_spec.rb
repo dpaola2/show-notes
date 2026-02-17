@@ -1,6 +1,8 @@
 require "rails_helper"
 
 RSpec.describe OpmlImportService do
+  include ActiveJob::TestHelper
+
   let!(:user) { create(:user) }
 
   describe ".subscribe_all" do

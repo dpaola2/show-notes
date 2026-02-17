@@ -14,15 +14,11 @@ class DigestMailer < ApplicationMailer
   # already set, protecting against the race where `digest_sent_at` was
   # bumped between scheduling and delivery.
   def self.daily_digest(user, since = nil)
-    since ||= user.digest_sent_at || 1.day.ago
+    since ||= [ user.digest_sent_at, 24.hours.ago ].compact.max
     digest_date = Date.current.to_s
 
     episodes_by_show = Episode
-      .joins(podcast: :subscriptions)
-      .where(subscriptions: { user_id: user.id })
-      .where("episodes.created_at > ?", since)
-      .includes(:podcast, :summary)
-      .order("podcasts.title ASC, episodes.published_at DESC")
+      .library_ready_since(user, since)
       .group_by(&:podcast)
 
     episode_count = episodes_by_show.values.flatten.size
@@ -76,13 +72,9 @@ class DigestMailer < ApplicationMailer
       # Fallback for deliver_later (runs in a job, no thread-local).
       # Re-query episodes; events were already created eagerly.
       # Use the passed `since` to avoid reading the already-bumped digest_sent_at.
-      since ||= user.digest_sent_at || 1.day.ago
+      since ||= [ user.digest_sent_at, 24.hours.ago ].compact.max
       @episodes_by_show = Episode
-        .joins(podcast: :subscriptions)
-        .where(subscriptions: { user_id: user.id })
-        .where("episodes.created_at > ?", since)
-        .includes(:podcast, :summary)
-        .order("podcasts.title ASC, episodes.published_at DESC")
+        .library_ready_since(user, since)
         .group_by(&:podcast)
 
       digest_date = Date.current.to_s
@@ -102,7 +94,7 @@ class DigestMailer < ApplicationMailer
 
     mail(
       to: user.email,
-      subject: "Your podcasts this morning — #{@episode_count} new episode#{'s' unless @episode_count == 1}"
+      subject: "Your library — #{@episode_count} episode#{'s' unless @episode_count == 1} ready"
     )
   end
 end
