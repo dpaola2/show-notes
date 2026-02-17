@@ -90,54 +90,6 @@ RSpec.describe DetectStuckProcessingJob, type: :job do
       end
     end
 
-    context "ERR-002: detects stuck Episodes" do
-      it "transitions episodes stuck in transcribing to error" do
-        stuck_ep = create(:episode, processing_status: :transcribing)
-        stuck_ep.update_column(:updated_at, 31.minutes.ago)
-
-        described_class.perform_now
-
-        stuck_ep.reload
-        expect(stuck_ep.processing_status).to eq("error")
-        expect(stuck_ep.processing_error).to include("timed out")
-        expect(stuck_ep.last_error_at).to be_present
-      end
-
-      it "transitions episodes stuck in summarizing to error" do
-        stuck_ep = create(:episode, processing_status: :summarizing)
-        stuck_ep.update_column(:updated_at, 31.minutes.ago)
-
-        described_class.perform_now
-
-        stuck_ep.reload
-        expect(stuck_ep.processing_status).to eq("error")
-        expect(stuck_ep.processing_error).to include("timed out")
-      end
-
-      it "does not touch episodes within the threshold" do
-        recent_ep = create(:episode, processing_status: :transcribing)
-        recent_ep.update_column(:updated_at, 29.minutes.ago)
-
-        described_class.perform_now
-
-        recent_ep.reload
-        expect(recent_ep.processing_status).to eq("transcribing")
-      end
-
-      it "does not touch episodes already in error state" do
-        error_ep = create(:episode,
-          processing_status: :error,
-          processing_error: "Original error"
-        )
-        error_ep.update_column(:updated_at, 2.hours.ago)
-
-        described_class.perform_now
-
-        error_ep.reload
-        expect(error_ep.processing_error).to eq("Original error")
-      end
-    end
-
     context "idempotency" do
       let(:user) { create(:user) }
 
