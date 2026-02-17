@@ -11,7 +11,7 @@ pipeline_completed_at: "2026-02-17T08:19:27-0500"
 |  |  |
 | -- | -- |
 | **Product** | Show Notes |
-| **Version** | 2 |
+| **Version** | 3 |
 | **Author** | Stage 0 (Pipeline) |
 | **Date** | 2026-02-17 |
 | **Status** | Draft — Review Required |
@@ -57,9 +57,9 @@ pipeline_completed_at: "2026-02-17T08:19:27-0500"
 | ID | Requirement | Platform | Priority |
 |----|------------|----------|----------|
 | DIG-001 | Digest email queries `user_episodes` in library location instead of all episodes from subscribed podcasts | Web | Must |
-| DIG-002 | Digest shows library episodes with `processing_status=ready` whose status became ready after `digest_sent_at` (the user's last digest timestamp) | Web | Must |
+| DIG-002 | Digest shows library episodes with `processing_status=ready` whose status became ready after `digest_sent_at`, capped to the last 24 hours (whichever is more recent). This prevents a backlog of old episodes appearing after a gap in digest delivery. | Web | Must |
 | DIG-003 | Digest subject line and copy reflect library-centric framing (e.g., "Your library updates" not "Your podcasts this morning") | Web | Should |
-| DIG-004 | Digest is not sent if no library episodes became ready since `digest_sent_at` | Web | Must |
+| DIG-004 | Digest is not sent if no library episodes became ready within the eligibility window | Web | Must |
 
 ### Transcription Scope
 
@@ -68,14 +68,14 @@ pipeline_completed_at: "2026-02-17T08:19:27-0500"
 | TRX-001 | `FetchPodcastFeedJob` does NOT enqueue `AutoProcessEpisodeJob` when discovering new episodes | Web | Must |
 | TRX-002 | `FetchPodcastFeedJob` still creates `Episode` records and `UserEpisode` inbox entries for subscribers | Web | Must |
 | TRX-003 | `ProcessEpisodeJob` (triggered by `move_to_library!`) continues to work as-is | Web | Must |
-| TRX-004 | `DetectStuckProcessingJob` continues to detect stuck processing and mark it as error for manual retry | Web | Must |
+| TRX-004 | `DetectStuckProcessingJob` detects stuck `UserEpisode` records only (Episode-level detection is removed since `AutoProcessEpisodeJob` is removed) and marks them as error for manual retry | Web | Must |
 
 ### Cleanup
 
 | ID | Requirement | Platform | Priority |
 |----|------------|----------|----------|
-| CLN-001 | `AutoProcessEpisodeJob` class can be removed or left as dead code — either approach is acceptable | Web | Should |
-| CLN-002 | Episode-level `processing_status`, `processing_error`, `last_error_at` columns remain — needed for backward compatibility with legacy auto-processed records and for `DetectStuckProcessingJob` coverage | Web | Must |
+| CLN-001 | `AutoProcessEpisodeJob` class and its specs are deleted (single call site is being removed; dead code is confusing) | Web | Must |
+| CLN-002 | Episode-level `processing_status`, `processing_error`, `last_error_at` columns remain — needed for backward compatibility with legacy auto-processed records (no migration to remove them) | Web | Must |
 
 ---
 
@@ -95,7 +95,7 @@ pipeline_completed_at: "2026-02-17T08:19:27-0500"
 **Entry Point:** Scheduled digest delivery
 
 1. Digest job runs on schedule
-2. Job queries for library episodes with `processing_status=ready` that became ready after `digest_sent_at`
+2. Job queries for library episodes with `processing_status=ready` that became ready within the eligibility window (`digest_sent_at` or 24 hours ago, whichever is more recent)
 3. If matching episodes exist, digest email is sent showing those episodes grouped by podcast
 4. If no matching episodes, no email is sent (DIG-004)
 5. **Success:** User sees only episodes they curated, with completed summaries
@@ -147,7 +147,7 @@ N/A — no API or client-facing changes. Single-platform web app with no externa
 | Episode was already transcribed (shared cache) when moved to library | `ProcessEpisodeJob` detects existing transcript/summary, skips API calls, marks ready immediately | Web |
 | User moves episode to library, then archives before processing completes | Processing continues to completion — job operates on `UserEpisode` ID and does not re-check location. This is intentional: once processing starts, let it finish rather than adding guard logic. The cost is minimal for a single-user app. | Web |
 | Inbox episodes that were auto-transcribed before this change | Existing transcripts/summaries remain on the `Episode` model — no data loss | Web |
-| `DetectStuckProcessingJob` finds stuck episode-level records from old auto-processing | Job handles these the same as any stuck record — marks as error after 30min timeout. Old records will age out as no new episode-level processing is enqueued. | Web |
+| `DetectStuckProcessingJob` after Episode detection block is removed | Old episode-level stuck records are not actively detected. They will age out naturally since no new episode-level processing is enqueued. This is acceptable — the columns remain but the detection is removed alongside `AutoProcessEpisodeJob`. | Web |
 
 ---
 
@@ -172,10 +172,10 @@ N/A.
 
 | # | Question | Status | Decision | Blocking? |
 |---|----------|--------|----------|-----------|
-| 1 | Should `AutoProcessEpisodeJob` be deleted entirely or left as dead code? | Open | — | No |
-| 2 | Should the digest "since" window be based on `user_episodes.updated_at` or `digest_sent_at`? | Resolved | Use `digest_sent_at` — it's the existing tracking field on `User` and represents the last time the user received a digest. Query for library episodes that became ready after this timestamp. | No |
+| 1 | Should `AutoProcessEpisodeJob` be deleted entirely or left as dead code? | Resolved | Delete it. Single call site is being removed; dead code is confusing. Git history preserves the code. | No |
+| 2 | Should the digest "since" window be based on `user_episodes.updated_at` or `digest_sent_at`? | Resolved | Use `digest_sent_at` with a 24-hour cap: `[digest_sent_at, 24.hours.ago].compact.max`. This prevents a backlog after gaps in delivery while still using the existing tracking field. | No |
 
-> **No blocking questions — this PRD is ready for pipeline intake (after human review).**
+> **All questions resolved — this PRD is ready for pipeline intake (after human review).**
 
 ---
 

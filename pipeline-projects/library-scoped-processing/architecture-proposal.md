@@ -97,35 +97,53 @@ N/A — no export impact.
 
 This section describes the exact changes needed, file by file.
 
-### 6.1 DigestMailer — Library-Scoped Query
+### 6.1 Shared Query Helper — `Episode.library_ready_since`
+
+The library-ready episodes query is used in three places (DigestMailer class method, DigestMailer instance fallback, SendDailyDigestJob eligibility check). Extract to a scope on `Episode` to eliminate drift risk.
+
+**Add to `app/models/episode.rb`:**
+
+```ruby
+scope :library_ready_since, ->(user, since) {
+  joins(:user_episodes, :podcast)
+    .where(user_episodes: { user_id: user.id, location: :library, processing_status: :ready })
+    .where("user_episodes.updated_at > ?", since)
+    .includes(:summary)
+    .order("podcasts.title ASC, episodes.published_at DESC")
+}
+```
+
+Key design choices:
+- **`.joins(:user_episodes, :podcast)`** — explicit join on both tables. The podcast join ensures `ORDER BY podcasts.title` has a SQL join to reference (not relying on `includes` which may use separate queries).
+- **`.includes(:summary)`** — eager-loads summaries for rendering. This is a separate `includes` from the podcast join because summaries don't need a SQL join, just preloading.
+- **`user_episodes.updated_at > since`** — proxy for "became ready". When `ProcessEpisodeJob` completes, it calls `user_episode.update!(processing_status: :ready, ...)` which sets `updated_at`. Acceptable for a single-user app.
+- **Returns an ActiveRecord relation** — callers can chain `.group_by(&:podcast)` for the mailer or `.exists?` for the eligibility check.
+
+### 6.2 DigestMailer — Use Shared Scope
 
 **Current behavior:** Queries all episodes from subscribed podcasts created after `digest_sent_at`.
 
-**New behavior:** Queries library episodes for this user with `processing_status = ready` and `updated_at > digest_sent_at`.
+**New behavior:** Queries library episodes for this user with `processing_status = ready` and `updated_at` within the eligibility window.
 
-The query appears in two places within `digest_mailer.rb` (class method for eager load, instance method for deliver_later fallback). Both must be updated identically.
+The query appears in two places within `digest_mailer.rb` (class method for eager load, instance method for deliver_later fallback). Both now call the shared scope.
+
+**New `since` calculation (24-hour cap):**
+
+```ruby
+since ||= [user.digest_sent_at, 24.hours.ago].compact.max
+```
+
+This ensures: if `digest_sent_at` is nil or older than 24 hours, cap at 24 hours. Prevents a backlog of old episodes appearing after a gap in digest delivery.
 
 **New query (replaces both occurrences):**
 
 ```ruby
-since ||= user.digest_sent_at || 1.day.ago
+since ||= [user.digest_sent_at, 24.hours.ago].compact.max
 
 episodes_by_show = Episode
-  .joins(:user_episodes)
-  .where(user_episodes: { user_id: user.id, location: :library, processing_status: :ready })
-  .where("user_episodes.updated_at > ?", since)
-  .includes(:podcast, :summary)
-  .order("podcasts.title ASC, episodes.published_at DESC")
+  .library_ready_since(user, since)
   .group_by(&:podcast)
 ```
-
-Key differences from current query:
-- Joins `user_episodes` instead of `subscriptions`
-- Filters by `location: :library` and `processing_status: :ready`
-- Time filter uses `user_episodes.updated_at` (proxy for "became ready") instead of `episodes.created_at`
-- Still groups by podcast for template compatibility
-
-**Why `user_episodes.updated_at` works as a readiness proxy:** When `ProcessEpisodeJob` completes, it calls `user_episode.update!(processing_status: :ready, ...)` — this sets `updated_at`. For a single-user app, this is precise enough. A dedicated `ready_at` column would be more explicit but adds a migration for no practical benefit.
 
 **Subject line change (DIG-003):**
 
@@ -139,7 +157,7 @@ subject: "Your library — #{@episode_count} episode#{'s' unless @episode_count 
 
 **NullMail guard (line 29):** No change needed — it already returns `NullMail` when `episode_count` is zero, which handles DIG-004.
 
-### 6.2 SendDailyDigestJob — Library-Scoped Eligibility Check
+### 6.3 SendDailyDigestJob — Use Shared Scope
 
 **Current `has_new_episodes?`:**
 
@@ -158,18 +176,14 @@ end
 
 ```ruby
 def has_new_episodes?(user)
-  since = user.digest_sent_at || 1.day.ago
-  Episode
-    .joins(:user_episodes)
-    .where(user_episodes: { user_id: user.id, location: :library, processing_status: :ready })
-    .where("user_episodes.updated_at > ?", since)
-    .exists?
+  since = [user.digest_sent_at, 24.hours.ago].compact.max
+  Episode.library_ready_since(user, since).exists?
 end
 ```
 
-This keeps the method name and interface identical — only the query body changes.
+Same scope, same 24-hour cap, just calls `.exists?` instead of materializing results.
 
-### 6.3 FetchPodcastFeedJob — Remove Auto-Processing
+### 6.4 FetchPodcastFeedJob — Remove Auto-Processing
 
 Remove line 35 from `app/jobs/fetch_podcast_feed_job.rb`:
 
@@ -183,15 +197,20 @@ AutoProcessEpisodeJob.perform_later(episode.id)
 
 The rest of the job stays intact. New episodes still create `Episode` records and `UserEpisode` inbox entries.
 
-### 6.4 AutoProcessEpisodeJob — Remove
+### 6.5 AutoProcessEpisodeJob — Delete
 
-Delete `app/jobs/auto_process_episode_job.rb` and `spec/jobs/auto_process_episode_job_spec.rb`.
+Delete these files:
+- `app/jobs/auto_process_episode_job.rb`
+- `spec/jobs/auto_process_episode_job_spec.rb`
+- `spec/jobs/auto_process_episode_job_state_tracking_spec.rb`
 
-Rationale: The job has exactly one call site (FetchPodcastFeedJob line 35), which is being removed. Leaving dead code is confusing — it suggests the job is still used somewhere. Removing it cleanly communicates intent.
+Rationale: The job has exactly one call site (FetchPodcastFeedJob line 35), which is being removed. Dead code is confusing — it suggests the job is still used somewhere. Deleting cleanly communicates intent. Git history preserves the code if needed.
 
-### 6.5 DetectStuckProcessingJob — Remove Episode Detection Block
+### 6.6 DetectStuckProcessingJob — Remove Episode Detection Block
 
 Remove lines 19-29 (the Episode stuck detection block) from `app/jobs/detect_stuck_processing_job.rb`. Keep the UserEpisode block (lines 7-17) which is still needed for `ProcessEpisodeJob`.
+
+Rationale: Episode-level processing is being deleted (`AutoProcessEpisodeJob` removal). The detection block should go with it. Old episode-level stuck records will age out naturally since no new episode-level processing is enqueued.
 
 **After change:**
 
@@ -216,7 +235,7 @@ class DetectStuckProcessingJob < ApplicationJob
 end
 ```
 
-### 6.6 Digest `since` Race Protection
+### 6.7 Digest `since` Race Protection
 
 The current DigestMailer has a race condition guard (CLAUDE.md documents this): the `since` parameter is captured eagerly and passed through to `deliver_later` serialization, so that if `digest_sent_at` is bumped between scheduling and delivery, the original cutoff is preserved.
 
@@ -226,23 +245,29 @@ This pattern must be preserved with the new query. It already works — the `sin
 
 ## 7. Open Questions for Human Review
 
-| # | Question | Options | Recommendation |
-|---|----------|---------|---------------|
-| 1 | Should we extract the library-ready query into a shared scope to avoid the 3-site duplication? | A: Extract to `Episode.library_ready_since(user, since)` scope / B: Keep inline in each location | **B: Keep inline.** The query appears in exactly 2 active locations after the change (DigestMailer class method + instance fallback). `has_new_episodes?` is nearly identical but uses `.exists?` instead of full load. Extracting adds indirection for minimal dedup. |
+No open questions remain. All decisions have been resolved:
+
+| # | Decision | Resolution |
+|---|----------|-----------|
+| 1 | Extract shared query helper vs keep inline | Extract to `Episode.library_ready_since(user, since)` — eliminates drift risk across 3 call sites |
+| 2 | 24-hour digest cap | Use `[digest_sent_at, 24.hours.ago].compact.max` — prevents stale backlogs |
+| 3 | DetectStuckProcessingJob Episode block | Remove — Episode-level processing is being deleted |
+| 4 | AutoProcessEpisodeJob disposal | Delete entirely (job + both spec files) |
+| 5 | Explicit podcast join in query | Yes — `.joins(:user_episodes, :podcast)` ensures robust ORDER BY |
 
 ---
 
 ## 8. Alternatives Considered
 
-### Extract Digest Query to a Scope
+### Keep Digest Query Inline (Not Extracted)
 
-**Description:** Move the library-ready episodes query to `Episode.library_ready_since(user, since)` or `UserEpisode.ready_in_library_since(user, since)` to DRY up the 3 query sites.
+**Description:** Keep the library-ready query inline in each of the 3 call sites rather than extracting to a shared scope.
 
-**Pros:** Single source of truth for the query. Easier to change if the query evolves.
+**Pros:** No indirection. Each call site is self-contained and readable.
 
-**Cons:** Adds a scope that's only used by the digest system. The `has_new_episodes?` call uses `.exists?` which is structurally different from the full query. Indirection makes the mailer harder to read.
+**Cons:** Three copy-paste query sites that must stay synchronized. Drift risk is real — the mailer's class method and instance fallback already demonstrate this duplication pattern.
 
-**Why rejected:** The duplication is between a class method and its deliver_later fallback (an inherent pattern in this mailer's race-condition architecture). Extracting would fight the architecture rather than simplify it.
+**Why rejected:** The reviewer flagged drift risk as a concrete concern. A shared scope eliminates it with minimal indirection. The `.exists?` call in `has_new_episodes?` chains naturally on the same scope.
 
 ### Keep AutoProcessEpisodeJob as Dead Code
 
@@ -272,8 +297,9 @@ None.
 
 | File | Changes |
 |------|---------|
-| `app/mailers/digest_mailer.rb` | Replace subscription-scoped query with library-scoped query in both class and instance methods (lines 20-26, 80-86). Update subject line (line 105). |
-| `app/jobs/send_daily_digest_job.rb` | Replace subscription-scoped `has_new_episodes?` query with library-scoped query (lines 37-44). |
+| `app/models/episode.rb` | Add `library_ready_since` scope. |
+| `app/mailers/digest_mailer.rb` | Replace subscription-scoped query with `Episode.library_ready_since` in both class and instance methods (lines 20-26, 80-86). Add 24-hour cap to `since` calculation. Update subject line (line 105). |
+| `app/jobs/send_daily_digest_job.rb` | Replace subscription-scoped `has_new_episodes?` query with `Episode.library_ready_since(...).exists?` (lines 37-44). Add 24-hour cap. |
 | `app/jobs/fetch_podcast_feed_job.rb` | Remove `AutoProcessEpisodeJob.perform_later(episode.id)` call and comment (lines 34-35). |
 | `app/jobs/detect_stuck_processing_job.rb` | Remove Episode stuck detection block (lines 19-29). |
 
@@ -281,15 +307,16 @@ None.
 
 | File | Reason |
 |------|--------|
-| `app/jobs/auto_process_episode_job.rb` | No longer called — dead code after FetchPodcastFeedJob change. |
-| `spec/jobs/auto_process_episode_job_spec.rb` | Tests for removed job. |
+| `app/jobs/auto_process_episode_job.rb` | No longer called — deleted alongside its single call site. |
+| `spec/jobs/auto_process_episode_job_spec.rb` | Tests for deleted job. |
+| `spec/jobs/auto_process_episode_job_state_tracking_spec.rb` | State tracking tests for deleted job. |
 
 ### Test Files to Update
 
 | File | Changes |
 |------|---------|
-| `spec/mailers/digest_mailer_spec.rb` | Update to verify library-only episode inclusion. |
-| `spec/jobs/send_daily_digest_job_spec.rb` | Update to verify library-only eligibility check. |
+| `spec/mailers/digest_mailer_spec.rb` | Update to verify library-only episode inclusion and 24-hour cap behavior. |
+| `spec/jobs/send_daily_digest_job_spec.rb` | Update to verify library-only eligibility check and 24-hour cap. |
 | `spec/jobs/fetch_podcast_feed_job_spec.rb` | Remove AutoProcessEpisodeJob enqueue assertions. |
 | `spec/jobs/detect_stuck_processing_job_spec.rb` | Remove Episode timeout detection tests. |
 
@@ -304,15 +331,15 @@ None.
 ### Status: Pending
 
 #### Must Verify
-- [ ] Query change from subscription-scoped to library-scoped is correct (joins user_episodes, filters by location + processing_status + updated_at)
+- [ ] Shared scope `Episode.library_ready_since(user, since)` is correct (joins user_episodes + podcast, filters by location + processing_status + updated_at)
 - [ ] Using `user_episodes.updated_at` as a proxy for "became ready" is acceptable
-- [ ] Removing `AutoProcessEpisodeJob` entirely (rather than keeping as dead code) is acceptable
+- [ ] 24-hour digest cap (`[digest_sent_at, 24.hours.ago].compact.max`) is correct behavior
+- [ ] Deleting `AutoProcessEpisodeJob` and both spec files is acceptable
 - [ ] Removing Episode stuck detection from `DetectStuckProcessingJob` is acceptable
 - [ ] The `since` race protection pattern is preserved correctly
 
 #### Should Check
 - [ ] Subject line change ("Your library — N episodes ready") is the desired framing
-- [ ] Keeping the digest query inline (not extracting to a scope) is acceptable
 - [ ] No conflicts with in-progress work or upcoming changes
 
 #### Notes

@@ -125,9 +125,9 @@ CREATE TABLE subscriptions (
 | DigestMailer | `app/mailers/digest_mailer.rb` | Builds and sends daily digest email | **Yes** — query must change from subscription-scoped to library-scoped |
 | SendDailyDigestJob | `app/jobs/send_daily_digest_job.rb` | Iterates digest-enabled users, checks for new episodes, triggers DigestMailer | **Yes** — `has_new_episodes?` query must change |
 | FetchPodcastFeedJob | `app/jobs/fetch_podcast_feed_job.rb` | Fetches RSS feeds, creates Episode + UserEpisode records | **Yes** — remove `AutoProcessEpisodeJob.perform_later` call (line 35) |
-| AutoProcessEpisodeJob | `app/jobs/auto_process_episode_job.rb` | Episode-level transcription + summarization | **Yes** — remove or deprecate (no longer enqueued) |
+| AutoProcessEpisodeJob | `app/jobs/auto_process_episode_job.rb` | Episode-level transcription + summarization | **Yes** — delete (single call site is being removed) |
 | ProcessEpisodeJob | `app/jobs/process_episode_job.rb` | UserEpisode-level transcription + summarization | No |
-| DetectStuckProcessingJob | `app/jobs/detect_stuck_processing_job.rb` | Marks stuck transcribing/summarizing records as error | **Partial** — Episode detection block (lines 19-29) becomes vestigial |
+| DetectStuckProcessingJob | `app/jobs/detect_stuck_processing_job.rb` | Marks stuck transcribing/summarizing records as error | **Yes** — remove Episode detection block (lines 19-29); keep UserEpisode block only |
 
 ### Current Digest Query (DigestMailer, lines 20-26)
 
@@ -182,7 +182,7 @@ This is the single call site for `AutoProcessEpisodeJob`. Removing this line is 
 
 Two independent blocks:
 - **Lines 7-17:** UserEpisode stuck detection — stays (used by ProcessEpisodeJob pathway)
-- **Lines 19-29:** Episode stuck detection — becomes vestigial (no new episode-level processing)
+- **Lines 19-29:** Episode stuck detection — remove (no episode-level processing after `AutoProcessEpisodeJob` deletion)
 
 ### Related Tests
 
@@ -191,9 +191,10 @@ Two independent blocks:
 | `spec/mailers/digest_mailer_spec.rb` | Email sending, subject line, HTML/text body, thread-local race handling, deliver_later fallback | **Yes** — must verify library-only filtering |
 | `spec/jobs/send_daily_digest_job_spec.rb` | Digest sent to users with new episodes, `digest_sent_at` update, skipping users with no episodes, disabled users | **Yes** — must verify library-only filtering |
 | `spec/jobs/fetch_podcast_feed_job_spec.rb` | Episode creation, UserEpisode inbox creation, AutoProcessEpisodeJob enqueuing, initial_fetch limit | **Yes** — remove AutoProcessEpisodeJob assertions |
-| `spec/jobs/auto_process_episode_job_spec.rb` | Transcription, summarization, error handling, retries, rate limit backoff | **Yes** — remove if job is removed |
+| `spec/jobs/auto_process_episode_job_spec.rb` | Transcription, summarization, error handling, retries, rate limit backoff | **Yes** — delete (job is being deleted) |
+| `spec/jobs/auto_process_episode_job_state_tracking_spec.rb` | Episode-level processing state transitions | **Yes** — delete (job is being deleted) |
 | `spec/jobs/process_episode_job_spec.rb` | Full pipeline, error catching, retry logic, concurrency, idempotency | No |
-| `spec/jobs/detect_stuck_processing_job_spec.rb` | UserEpisode timeout, Episode timeout, boundary conditions, idempotency | **Partial** — Episode timeout tests become vestigial |
+| `spec/jobs/detect_stuck_processing_job_spec.rb` | UserEpisode timeout, Episode timeout, boundary conditions, idempotency | **Yes** — remove Episode timeout detection tests; keep UserEpisode tests |
 
 ---
 
@@ -207,7 +208,7 @@ N/A — single-platform project.
 
 | Risk | Severity | Details | Mitigation |
 |------|----------|---------|------------|
-| Digest query has 3 copy-paste locations | Med | The subscription-scoped query is duplicated in the class method, instance method fallback, and `has_new_episodes?`. All three must be updated consistently or the digest will behave differently on `perform_now` vs `deliver_later`. | Update all three; consider extracting to a shared scope or method |
+| Digest query has 3 copy-paste locations | Med | The subscription-scoped query is duplicated in the class method, instance method fallback, and `has_new_episodes?`. All three must be updated consistently or the digest will behave differently on `perform_now` vs `deliver_later`. | Extract to a shared scope on `Episode` (e.g., `Episode.library_ready_since(user, since)`) to eliminate drift risk |
 | `since` semantics change | Med | Current query filters by `episodes.created_at > since`. PRD specifies filtering by `processing_status = ready` after `digest_sent_at`. These are different dimensions — `created_at` is when the episode was discovered, readiness is when processing completed. The new query needs a "became ready" timestamp, but neither `user_episodes.updated_at` nor a dedicated `ready_at` column tracks this precisely. | `updated_at` is the closest proxy — it's set when `processing_status` changes to `ready`. Acceptable for a single-user app. |
 | NullMail early return depends on query | Low | `DigestMailer.daily_digest` returns `NullMail` when the episode count is zero (line 29). The new query must still return an empty result when no library episodes are ready, or the mailer will attempt to send an empty email. | The `NullMail` guard doesn't need changing — it responds to query results regardless of query shape |
 
@@ -224,19 +225,20 @@ N/A — single-platform project.
 
 ## 5. Open Questions
 
-| # | Question | Source | Blocking? |
-|---|----------|--------|-----------|
-| 1 | The current digest query filters by `episodes.created_at > since`. The PRD says to filter by "became ready after `digest_sent_at`". There is no `ready_at` timestamp on `user_episodes` — should we use `user_episodes.updated_at` as a proxy for when processing completed, or add a dedicated column? | DIG-002 vs current code | No — `updated_at` is an acceptable proxy for a single-user app |
-| 2 | Should `DetectStuckProcessingJob`'s Episode block (lines 19-29) be removed now, or left to age out naturally? | TRX-004, CLN-001 | No |
-| 3 | The `since` parameter is passed through to `deliver_later` serialization to protect against the `digest_sent_at` race condition (DigestMailer lines 11-15). The new library-scoped query will need the same race protection pattern. | DigestMailer lines 11-15 | No — same pattern applies, just with the new query |
+| # | Question | Source | Status |
+|---|----------|--------|--------|
+| 1 | Use `user_episodes.updated_at` as proxy for "became ready", or add a dedicated column? | DIG-002 vs current code | Resolved — use `updated_at` as proxy. Acceptable for single-user app; no migration needed. |
+| 2 | Remove `DetectStuckProcessingJob`'s Episode block (lines 19-29) or leave to age out? | TRX-004, CLN-001 | Resolved — remove it. Episode-level processing is being deleted; the detection block should go with it. |
+| 3 | Does the `since` race protection pattern survive the query change? | DigestMailer lines 11-15 | Resolved — yes, same pattern applies. The `since` parameter flows through identically. |
 
 ---
 
 ## 6. Recommendations for Architecture Stage
 
-- **Three query sites to update:** The subscription-scoped query exists in three places (`DigestMailer.daily_digest` class method, `DigestMailer#daily_digest` instance fallback, `SendDailyDigestJob#has_new_episodes?`). Consider extracting the library-ready-episodes query to a scope on `UserEpisode` (e.g., `UserEpisode.ready_since(user, since)`) to avoid copy-paste divergence.
+- **Extract shared query helper:** The subscription-scoped query exists in three places. Extract to a scope on `Episode` (e.g., `Episode.library_ready_since(user, since)`) so all three call sites use the same query. The `has_new_episodes?` check calls `.exists?` on the same scope.
 - **FetchPodcastFeedJob change is a single line deletion** (line 35). The rest of the job stays intact.
-- **AutoProcessEpisodeJob removal** is clean — it has exactly one call site (FetchPodcastFeedJob line 35). Removing the job class and its spec is safe.
-- **DetectStuckProcessingJob** Episode block removal is optional but clean — no other code references episode-level stuck detection.
+- **Delete AutoProcessEpisodeJob** — it has exactly one call site (FetchPodcastFeedJob line 35). Delete the job class and both spec files (`auto_process_episode_job_spec.rb`, `auto_process_episode_job_state_tracking_spec.rb`).
+- **Remove DetectStuckProcessingJob Episode block** (lines 19-29). Episode-level processing is being deleted; the detection block goes with it.
 - **Digest subject line** (DigestMailer line 105) currently says "Your podcasts this morning" — PRD DIG-003 says to change to library-centric framing.
-- **`since` race protection** pattern in DigestMailer (Thread.current stashing, `since` parameter serialization) should be preserved with the new query — the same race condition exists regardless of query shape.
+- **`since` race protection** pattern in DigestMailer (Thread.current stashing, `since` parameter serialization) must be preserved — the same race condition exists regardless of query shape.
+- **24-hour digest cap:** Use `[digest_sent_at, 24.hours.ago].compact.max` to prevent stale backlogs after delivery gaps.
