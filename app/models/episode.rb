@@ -18,7 +18,7 @@ class Episode < ApplicationRecord
     joins(:user_episodes, :podcast)
       .where(user_episodes: { user_id: user.id, location: :library, processing_status: :ready })
       .where("user_episodes.updated_at > ?", since)
-      .includes(:summary)
+      .includes(:podcast, :summary)
       .order("podcasts.title ASC, episodes.published_at DESC")
   }
 
