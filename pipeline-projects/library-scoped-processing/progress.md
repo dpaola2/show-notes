@@ -10,6 +10,8 @@ pipeline_m3_started_at: "2026-02-17T10:14:40-0500"
 pipeline_m3_completed_at: "2026-02-17T10:16:28-0500"
 pipeline_m4_started_at: "2026-02-17T10:20:00-0500"
 pipeline_m4_completed_at: "2026-02-17T10:30:23-0500"
+pipeline_pr_created_at: "2026-02-17T11:10:41-0500"
+pipeline_pr_url: "https://github.com/dpaola2/show-notes/pull/15"
 ---
 
 # Implementation Progress — library-scoped-processing
