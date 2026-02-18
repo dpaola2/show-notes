@@ -116,6 +116,24 @@ end
 
 Three controllers skip authentication: `SessionsController` (login flow, uses `sessions` layout), `TrackingController` (email tracking, no layout), and `PublicEpisodesController` (public episode pages, uses `public` layout). All use `skip_before_action :require_authentication`. Public controllers should NOT reference `current_user` except optionally (e.g., associating share events with logged-in users).
 
+## Vips Lazy Evaluation & Corrupt Images
+
+ruby-vips uses demand-driven (lazy) evaluation — `new_from_buffer`, `resize`, `composite` all build a pipeline without touching pixel data. Errors in the source image (e.g., corrupt IDAT) only surface when the pipeline executes at `write_to_buffer`. This means `rescue` blocks around `composite` won't catch bad input data.
+
+**Workaround:** Wrap `write_to_buffer` in a retry that regenerates without the suspect input:
+
+```ruby
+begin
+  canvas.write_to_buffer(".png")
+rescue Vips::Error
+  canvas = create_canvas
+  canvas = render_text(canvas)
+  canvas.write_to_buffer(".png")
+end
+```
+
+**Warning:** `copy_memory` to force evaluation will segfault (C-level crash) on corrupt images — don't use it for validation.
+
 ## Production Server Operations
 
 SSH into the server first:
