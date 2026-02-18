@@ -3,7 +3,7 @@ class SessionsController < ApplicationController
   skip_before_action :require_authentication, only: [ :new, :create, :sent, :verify ]
 
   def new
-    # Show login form
+    session[:utm_source] = params[:utm_source].to_s.truncate(255) if params[:utm_source].present?
   end
 
   def create
@@ -19,7 +19,10 @@ class SessionsController < ApplicationController
     new_signup = user.previously_new_record?
     token = user.generate_magic_token!
 
-    SignupNotificationMailer.new_signup(user).deliver_later if new_signup
+    if new_signup
+      session[:new_signup] = true
+      SignupNotificationMailer.new_signup(user).deliver_later
+    end
     UserMailer.magic_link(user, token).deliver_later
 
     redirect_to magic_link_sent_path, notice: "Check your email for a login link"
@@ -44,6 +47,7 @@ class SessionsController < ApplicationController
 
     if user&.magic_token_valid?(token)
       user.clear_magic_token!
+      persist_referral_source(user)
       session[:user_id] = user.id
       redirect_to session.delete(:return_to) || root_path, notice: "Welcome back!"
     else
@@ -54,5 +58,16 @@ class SessionsController < ApplicationController
   def destroy
     session.delete(:user_id)
     redirect_to login_path, notice: "You have been logged out"
+  end
+
+  private
+
+  def persist_referral_source(user)
+    utm_source = session.delete(:utm_source)
+    new_signup = session.delete(:new_signup)
+
+    return unless new_signup && utm_source.present?
+
+    user.update!(referral_source: utm_source)
   end
 end

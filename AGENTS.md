@@ -134,6 +134,18 @@ end
 
 **Warning:** `copy_memory` to force evaluation will segfault (C-level crash) on corrupt images — don't use it for validation.
 
+## Test Environment: Framework Logging Suppressed
+
+`config/environments/test.rb` removes `Rails::Rack::Logger` middleware and redirects `ActiveSupport::LogSubscriber.logger` to a null logger. This prevents framework-level `.info` calls (e.g., "Processing by...", "Completed...") from conflicting with RSpec message expectations on `Rails.logger`. Application-level `Rails.logger.info(...)` calls still work because they call `Rails.logger` directly.
+
+## UTM Attribution Flow
+
+UTM params flow through the magic link signup: `GET /login?utm_source=share` → session stores `utm_source` → `POST /login` marks `session[:new_signup]` → `GET /auth/verify` persists `referral_source` on user. Only `utm_source` is stored (sanitized, truncated to 255 chars). Returning users' `referral_source` is never overwritten.
+
+## Shared View Partials
+
+`app/views/shared/_share_button.html.erb` is the reusable share button component. It takes an `episode` local and wires up the `share` Stimulus controller with data attributes for URL, title, episode ID, and share endpoint. Render with `<%= render "shared/share_button", episode: @episode %>`.
+
 ## Production Server Operations
 
 SSH into the server first:
