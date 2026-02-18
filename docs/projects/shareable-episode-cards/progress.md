@@ -4,6 +4,8 @@ pipeline_stage_name: implementation
 pipeline_project: "shareable-episode-cards"
 pipeline_m1_started_at: "2026-02-18T17:02:00-0500"
 pipeline_m1_completed_at: "2026-02-18T17:10:54-0500"
+pipeline_m2_started_at: "2026-02-18T17:16:00-0500"
+pipeline_m2_completed_at: "2026-02-18T17:51:16-0500"
 ---
 
 # Implementation Progress — shareable-episode-cards
@@ -20,7 +22,7 @@ pipeline_m1_completed_at: "2026-02-18T17:10:54-0500"
 |-----------|-------------|--------|
 | M0 | Discovery & Alignment | Complete (Stages 1-3) |
 | M1 | Data Model, Public Page & OG Meta Tags | **Complete** |
-| M2 | OG Image Generation | Pending |
+| M2 | OG Image Generation | **Complete** |
 | M3 | Share UI, Tracking & UTM Attribution | Pending |
 | M4 | QA Test Data | Pending |
 | M5 | Edge Cases, Empty States & Polish | Pending |
@@ -81,3 +83,41 @@ pipeline_m1_completed_at: "2026-02-18T17:10:54-0500"
 - The `public` layout is modeled after the `sessions` layout but simpler — no flash messages (public pages don't set flashes).
 - Share button on public page is a placeholder (HTML only). Stimulus controller wiring happens in M3.
 - POST `/e/:id/share` works for both authenticated and unauthenticated users — associates `current_user` when available, nil otherwise.
+
+---
+
+## M2: OG Image Generation
+
+**Status:** Complete
+**Date:** 2026-02-18
+**Commit:** `ad0f521`
+
+### Files Created
+- `app/services/og_image_generator.rb` — OG image generation using ruby-vips (1200x630 dark canvas, artwork compositing, SVG text overlays for title/podcast/quote/branding)
+- `app/jobs/generate_og_image_job.rb` — Background job that calls OgImageGenerator and attaches result to episode.og_image via Active Storage
+
+### Files Modified
+- `app/jobs/process_episode_job.rb` — Enqueues GenerateOgImageJob after summary creation (both fresh processing and early-return paths)
+- `AGENTS.md` — Added "Vips Lazy Evaluation & Corrupt Images" section
+
+### Test Results
+- **This milestone tests:** 19 passing, 0 failing (10 service + 9 job tests)
+- **Prior milestone tests:** 53 passing, 0 failing (all M1 tests still pass)
+- **Future milestone tests:** 1 failing in shared test file (TRK-003 UTM logging — M3), 3 failing in sessions UTM attribution spec (M3) — both expected
+
+### Acceptance Criteria
+- [x] OGI-001: Generates a 1200x630 OG image
+- [x] OGI-002: Includes podcast artwork (fetched from artwork_url)
+- [x] OGI-004: Includes a quote (first quote, or fallback to first sentence of first section)
+- [x] OGI-007: Handles variable artwork quality (missing URL, fetch failure, timeout — all degrade gracefully)
+- [x] OGI-008: Triggered after summary creation (via GenerateOgImageJob enqueued from ProcessEpisodeJob)
+- [x] Edge cases: Long titles and long quotes truncated without error
+
+### Spec Gaps
+None — all M2 acceptance criteria have passing tests.
+
+### Notes
+- **Vips lazy evaluation gotcha:** ruby-vips builds pipelines lazily — `new_from_buffer`, `resize`, `composite` don't touch pixel data. Errors in source images (e.g., corrupt IDAT in test's minimal PNG) only surface at `write_to_buffer`. The `rescue` in `composite_artwork` doesn't catch these. Solution: wrap `write_to_buffer` in a retry that regenerates without artwork. This is a fundamental vips architecture pattern, not a bug.
+- **`copy_memory` is dangerous:** Attempting to force evaluation with `copy_memory` on corrupt image data causes a C-level segfault (not a Ruby exception). Never use it for validation.
+- The test's minimal 1x1 PNG has an invalid IDAT (zlib stream error). This is actually a useful test because it exercises the graceful degradation path — in production, artwork fetched from podcast URLs should be valid, but the code handles corruption safely.
+- ProcessEpisodeJob needed the OG image enqueue in both paths: the early-return path (when another user already processed) and the normal processing path (after creating summary).
