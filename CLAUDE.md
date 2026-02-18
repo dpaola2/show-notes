@@ -142,8 +142,8 @@ When running autonomously:
 
 | Setting | Path |
 |---------|------|
-| **Projects** | `../pipeline-projects/` |
-| **Inbox** | `../pipeline-projects/inbox/` |
+| **Projects** | `docs/projects/` |
+| **Inbox** | `docs/projects/inbox/` |
 
 ### Project Tracker
 
