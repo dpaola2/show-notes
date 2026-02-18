@@ -10,7 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_10_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_18_220326) do
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "record_id", null: false
+    t.string "record_type", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.string "content_type"
+    t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
   create_table "email_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "digest_date", null: false
@@ -58,6 +86,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_120000) do
     t.datetime "updated_at", null: false
     t.index ["feed_url"], name: "index_podcasts_on_feed_url", unique: true
     t.index ["guid"], name: "index_podcasts_on_guid", unique: true
+  end
+
+  create_table "share_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "episode_id", null: false
+    t.string "referrer"
+    t.string "share_target", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.integer "user_id"
+    t.index ["episode_id", "share_target"], name: "index_share_events_on_episode_id_and_share_target"
+    t.index ["episode_id"], name: "index_share_events_on_episode_id"
+    t.index ["user_id"], name: "index_share_events_on_user_id"
   end
 
   create_table "solid_cable_messages", force: :cascade do |t|
@@ -254,13 +295,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_120000) do
     t.string "email"
     t.string "magic_token"
     t.datetime "magic_token_expires_at"
+    t.string "referral_source"
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "email_events", "episodes"
   add_foreign_key "email_events", "users"
   add_foreign_key "episodes", "podcasts"
+  add_foreign_key "share_events", "episodes"
+  add_foreign_key "share_events", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

@@ -3,6 +3,7 @@ class User < ApplicationRecord
   has_many :podcasts, through: :subscriptions
   has_many :user_episodes, dependent: :destroy
   has_many :email_events, dependent: :destroy
+  has_many :share_events, dependent: :nullify
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
 

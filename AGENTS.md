@@ -100,6 +100,22 @@ rescue => e
 end
 ```
 
+## Active Storage URL Generation in Models
+
+`rails_blob_url` requires a host. When calling from a model (no request context), provide a fallback:
+
+```ruby
+def og_image_url
+  return nil unless og_image.attached?
+  host = Rails.application.routes.default_url_options[:host] || ENV.fetch("APP_HOST", "localhost:3000")
+  Rails.application.routes.url_helpers.rails_blob_url(og_image, host: host)
+end
+```
+
+## Public (Unauthenticated) Controllers
+
+Three controllers skip authentication: `SessionsController` (login flow, uses `sessions` layout), `TrackingController` (email tracking, no layout), and `PublicEpisodesController` (public episode pages, uses `public` layout). All use `skip_before_action :require_authentication`. Public controllers should NOT reference `current_user` except optionally (e.g., associating share events with logged-in users).
+
 ## Production Server Operations
 
 SSH into the server first:
