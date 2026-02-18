@@ -267,15 +267,15 @@ N/A — this feature does not involve reports, exports, or data output.
 
 | # | Question | Status | Decision | Blocking? |
 |---|----------|--------|----------|-----------|
-| 1 | Are episode pages currently behind authentication? What's the simplest way to create a public read-only view? | Open | [NEEDS INPUT — review current EpisodesController auth setup] | Yes |
+| 1 | Are episode pages currently behind authentication? What's the simplest way to create a public read-only view? | Resolved | Yes, episodes are behind auth. Discovery/architecture must design a public read-only route that bypasses auth for the synopsis view. | Yes |
 | 2 | Which OG image generation approach? (a) HTML/CSS → image via rendering service (Puppeteer, screenshot API), (b) Ruby image generation (MiniMagick/ImageMagick), (c) Third-party OG service (Vercel OG, Cloudinary) | Open | [Architecture decision — to be resolved in Stage 2] | No |
 | 3 | Where to store generated OG images? Active Storage + S3? Local disk? Generated on-the-fly with caching? | Open | [Architecture decision — to be resolved in Stage 2] | No |
 | 4 | What quote/excerpt to feature on the auto-generated card? (a) First quote from the quotes array, (b) First sentence of the first section, (c) A new "highlight" field in the summary prompt asking Claude to pick the most shareable excerpt | Open | [NEEDS INPUT — option (c) is recommended in framing doc but requires summary model/prompt changes] | No |
 | 5 | How to handle podcast artwork quality variation? (100x100 to 3000x3000, variable aspect ratios from RSS feeds) | Open | [Architecture decision — to be resolved in Stage 2] | No |
 | 6 | Should public pages be indexable by search engines (SEO)? If yes, do we need a sitemap? | Open | [NEEDS INPUT — SEO could drive organic traffic but may not be a v1 priority] | No |
-| 7 | What does the signup flow look like when a visitor clicks the CTA? Is there an existing signup page, or does one need to be created/enhanced for this context? | Open | [NEEDS INPUT — review current signup flow] | Yes |
+| 7 | What does the signup flow look like when a visitor clicks the CTA? Is there an existing signup page, or does one need to be created/enhanced for this context? | Resolved | Existing magic link signup flow is sufficient for v1. CTA links to existing signup with UTM params. Track which episodes drove which signups via UTM attribution for aggregate analysis later. | Yes |
 
-> **Blocking questions remain — resolve before pipeline intake.**
+> **No blocking questions remain.** Questions 1 and 7 resolved. Remaining open questions are non-blocking (architecture decisions for Stage 2).
 
 ---
 
@@ -300,7 +300,7 @@ N/A — this feature does not involve reports, exports, or data output.
 
 - Episode summaries (sections + quotes) already exist in the data model and are populated for most episodes
 - Podcast artwork URLs from RSS feeds are stored and accessible for image generation
-- The existing app has a signup flow that can accept UTM parameters for attribution
+- The existing magic link signup flow can be extended to capture and persist UTM parameters for attribution
 - Active Storage or an equivalent file storage mechanism is available for persisting generated images
 - Background job infrastructure (Solid Queue) is operational and can handle image generation workload
 - The app's current hosting (Kamal/Docker) can support an image generation dependency (e.g., ImageMagick, Puppeteer, or external API calls)
