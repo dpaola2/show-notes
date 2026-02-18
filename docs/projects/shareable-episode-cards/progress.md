@@ -8,6 +8,8 @@ pipeline_m2_started_at: "2026-02-18T17:16:00-0500"
 pipeline_m2_completed_at: "2026-02-18T17:51:16-0500"
 pipeline_m3_started_at: "2026-02-18T18:04:22-0500"
 pipeline_m3_completed_at: "2026-02-18T18:31:38-0500"
+pipeline_m4_started_at: "2026-02-18T18:48:20-0500"
+pipeline_m4_completed_at: "2026-02-18T18:50:36-0500"
 ---
 
 # Implementation Progress — shareable-episode-cards
@@ -26,7 +28,7 @@ pipeline_m3_completed_at: "2026-02-18T18:31:38-0500"
 | M1 | Data Model, Public Page & OG Meta Tags | **Complete** |
 | M2 | OG Image Generation | **Complete** |
 | M3 | Share UI, Tracking & UTM Attribution | **Complete** |
-| M4 | QA Test Data | Pending |
+| M4 | QA Test Data | **Complete** |
 | M5 | Edge Cases, Empty States & Polish | Pending |
 
 ---
@@ -169,3 +171,44 @@ None — all M3 acceptance criteria with automated tests are passing. Client-sid
 - **BroadcastLogger mock conflict (resolved):** `expect(Rails.logger).to receive(:info).with(/utm_source/)` replaces the `info` method entirely on BroadcastLogger. Any `.info` call with non-matching args raises "unexpected arguments." Framework LogSubscribers (ActionController, ActionView) call `.info("Processing by...")` during request processing, triggering the error. Fix: suppress framework logging in test env by removing `Rails::Rack::Logger` middleware and redirecting `ActiveSupport::LogSubscriber.logger` to a null logger via `config.after_initialize` (must run after Rails' `initialize_logger` initializer, which sets `LogSubscriber.logger = Rails.logger`).
 - **ActionController::LogSubscriber overrides `logger`:** Unlike the base `ActiveSupport::LogSubscriber` which uses `LogSubscriber.logger`, `ActionController::LogSubscriber` has its own `logger` method returning `ActionController::Base.logger`. Setting `ActiveSupport::LogSubscriber.logger = nil` alone wasn't sufficient — also needed `config.action_controller.logger`, `config.action_view.logger`, and `config.active_record.logger` redirected to null loggers.
 - **UTM flow uses session for state:** utm_source stored in session during `GET /login`, new_signup flag set during `POST /login`, both consumed during `GET /auth/verify`. This survives the redirect chain without passing UTM params through URLs.
+
+---
+
+## M4: QA Test Data
+
+**Status:** Complete
+**Date:** 2026-02-18
+**Commit:** `fd8b82b`
+
+### Files Created
+- `lib/tasks/seed_shareable_episode_cards.rake` — Idempotent rake task (`shareable:seed`) that creates QA test data: test user with subscription, podcast with artwork, 5 episodes covering all scenarios (happy path, no OG image, no summary, long title, no quotes), share events across all targets, referred user with UTM attribution
+
+### Files Modified
+None
+
+### Test Results
+- **This milestone tests:** No automated tests (M4 is a rake task for manual QA)
+- **Prior milestone tests:** 578 passing, 0 failing (full suite green)
+- **Future milestone tests:** N/A
+
+### Acceptance Criteria
+- [x] QA-001: Rake task creates test data for all shareable episode card scenarios
+- [x] QA-002: Task is idempotent (safe to run multiple times)
+- [x] QA-003: Task is restricted to development/test environments
+- [x] QA-004: Episode 1 — happy path with summary + OG image
+- [x] QA-005: Episode 2 — summary but no OG image (fallback OG tags)
+- [x] QA-006: Episode 3 — no summary ("not yet available" message)
+- [x] QA-007: Episode 4 — very long title (100+ chars) for truncation testing
+- [x] QA-008: Episode 5 — summary with no quotes (OG image uses section content fallback)
+- [x] QA-009: Share events created across all targets (clipboard, twitter, linkedin, native)
+- [x] QA-010: Unauthenticated share event created (user: nil)
+- [x] QA-011: Referred user created with referral_source set
+- [x] QA-012: Task prints summary with episode URLs and manual QA checklist
+
+### Spec Gaps
+None — M4 has no automated tests by design (manual QA seed data).
+
+### Notes
+- OG images for episodes 1, 4, and 5 are generated via `OgImageGenerator.call(episode)` — the real service, not a placeholder. This means the rake task requires `libvips` to be installed.
+- The task uses `find_or_create_by!` throughout for idempotency — running it twice produces no duplicates.
+- Magic link token is printed in the summary output for easy QA login without needing to check email.
