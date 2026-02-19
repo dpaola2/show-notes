@@ -4,7 +4,7 @@ pipeline_stage_name: gameplan
 pipeline_project: "latest-at-top-digest"
 pipeline_started_at: "2026-02-19T07:54:44-0500"
 pipeline_completed_at: "2026-02-19T07:54:57-0500"
-pipeline_approved_at:
+pipeline_approved_at: "2026-02-19T00:00:00-0500"
 ---
 
 # Latest-at-Top Digest Layout - Engineering Gameplan
