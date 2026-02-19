@@ -13,10 +13,10 @@ RSpec.describe GenerateOgImageJob, type: :job do
 
   # Minimal valid PNG for stubbing
   let(:minimal_png) do
-    [137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82,
+    [ 137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82,
      0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0,
      0, 0, 10, 73, 68, 65, 84, 120, 156, 98, 0, 0, 0, 2, 0, 1, 226,
-     33, 188, 51, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130].pack("C*")
+     33, 188, 51, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130 ].pack("C*")
   end
 
   before do
@@ -113,8 +113,8 @@ RSpec.describe GenerateOgImageJob, type: :job do
       # Stub external services used by ProcessEpisodeJob
       allow(AssemblyAiClient).to receive(:transcribe).and_return({ "segments" => [] })
       allow(ClaudeClient).to receive(:summarize_chunked).and_return({
-        "sections" => [{ "title" => "Summary", "content" => "Content." }],
-        "quotes" => [{ "text" => "A quote.", "start_time" => 0, "end_time" => 5 }]
+        "sections" => [ { "title" => "Summary", "content" => "Content." } ],
+        "quotes" => [ { "text" => "A quote.", "start_time" => 0, "end_time" => 5 } ]
       })
       create(:transcript, episode: episode)
     end

@@ -15,6 +15,7 @@ class ProcessEpisodeJob < ApplicationJob
     # Check if another user already processed this episode
     if episode.transcript.present? && episode.summary.present?
       user_episode.update!(processing_status: :ready, retry_count: 0, next_retry_at: nil)
+      GenerateOgImageJob.perform_later(episode.id) unless episode.og_image.attached?
       return
     end
 
@@ -34,6 +35,9 @@ class ProcessEpisodeJob < ApplicationJob
         sections: summary["sections"],
         quotes: summary["quotes"]
       )
+
+      # Step 3: Enqueue OG image generation
+      GenerateOgImageJob.perform_later(episode.id)
     end
 
     user_episode.update!(processing_status: :ready, retry_count: 0, next_retry_at: nil)

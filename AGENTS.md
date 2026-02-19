@@ -100,6 +100,52 @@ rescue => e
 end
 ```
 
+## Active Storage URL Generation in Models
+
+`rails_blob_url` requires a host. When calling from a model (no request context), provide a fallback:
+
+```ruby
+def og_image_url
+  return nil unless og_image.attached?
+  host = Rails.application.routes.default_url_options[:host] || ENV.fetch("APP_HOST", "localhost:3000")
+  Rails.application.routes.url_helpers.rails_blob_url(og_image, host: host)
+end
+```
+
+## Public (Unauthenticated) Controllers
+
+Three controllers skip authentication: `SessionsController` (login flow, uses `sessions` layout), `TrackingController` (email tracking, no layout), and `PublicEpisodesController` (public episode pages, uses `public` layout). All use `skip_before_action :require_authentication`. Public controllers should NOT reference `current_user` except optionally (e.g., associating share events with logged-in users).
+
+## Vips Lazy Evaluation & Corrupt Images
+
+ruby-vips uses demand-driven (lazy) evaluation — `new_from_buffer`, `resize`, `composite` all build a pipeline without touching pixel data. Errors in the source image (e.g., corrupt IDAT) only surface when the pipeline executes at `write_to_buffer`. This means `rescue` blocks around `composite` won't catch bad input data.
+
+**Workaround:** Wrap `write_to_buffer` in a retry that regenerates without the suspect input:
+
+```ruby
+begin
+  canvas.write_to_buffer(".png")
+rescue Vips::Error
+  canvas = create_canvas
+  canvas = render_text(canvas)
+  canvas.write_to_buffer(".png")
+end
+```
+
+**Warning:** `copy_memory` to force evaluation will segfault (C-level crash) on corrupt images — don't use it for validation.
+
+## Test Environment: Framework Logging Suppressed
+
+`config/environments/test.rb` removes `Rails::Rack::Logger` middleware and redirects `ActiveSupport::LogSubscriber.logger` to a null logger. This prevents framework-level `.info` calls (e.g., "Processing by...", "Completed...") from conflicting with RSpec message expectations on `Rails.logger`. Application-level `Rails.logger.info(...)` calls still work because they call `Rails.logger` directly.
+
+## UTM Attribution Flow
+
+UTM params flow through the magic link signup: `GET /login?utm_source=share` → session stores `utm_source` → `POST /login` marks `session[:new_signup]` → `GET /auth/verify` persists `referral_source` on user. Only `utm_source` is stored (sanitized, truncated to 255 chars). Returning users' `referral_source` is never overwritten.
+
+## Shared View Partials
+
+`app/views/shared/_share_button.html.erb` is the reusable share button component. It takes an `episode` local and wires up the `share` Stimulus controller with data attributes for URL, title, episode ID, and share endpoint. Render with `<%= render "shared/share_button", episode: @episode %>`.
+
 ## Production Server Operations
 
 SSH into the server first:

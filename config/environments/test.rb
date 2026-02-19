@@ -50,4 +50,16 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Suppress framework-level request logging in tests. Rails::Rack::Logger and
+  # LogSubscribers call Rails.logger.info during requests, which conflicts with
+  # RSpec message expectations on Rails.logger (e.g., UTM visit logging tests).
+  config.middleware.delete(Rails::Rack::Logger)
+  null_logger = Logger.new(File::NULL)
+  config.action_controller.logger = null_logger
+  config.action_view.logger = null_logger
+  config.active_record.logger = null_logger
+  config.after_initialize do
+    ActiveSupport::LogSubscriber.logger = null_logger
+  end
 end

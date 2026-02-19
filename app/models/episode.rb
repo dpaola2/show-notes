@@ -4,6 +4,8 @@ class Episode < ApplicationRecord
   has_one :transcript, dependent: :destroy
   has_one :summary, dependent: :destroy
   has_many :email_events, dependent: :destroy
+  has_many :share_events, dependent: :destroy
+  has_one_attached :og_image
 
   enum :processing_status, {
     pending: 0,
@@ -25,6 +27,16 @@ class Episode < ApplicationRecord
   validates :guid, presence: true, uniqueness: { scope: :podcast_id }
   validates :title, presence: true
   validates :audio_url, presence: true
+
+  def og_image_url
+    return nil unless og_image.attached?
+    host = Rails.application.routes.default_url_options[:host] || ENV.fetch("APP_HOST", "localhost:3000")
+    Rails.application.routes.url_helpers.rails_blob_url(og_image, host: host)
+  end
+
+  def shareable?
+    summary.present?
+  end
 
   def estimated_cost_cents
     return 0 unless duration_seconds

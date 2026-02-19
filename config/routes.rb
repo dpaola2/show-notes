@@ -54,6 +54,10 @@ Rails.application.routes.draw do
   # Episodes: subscription-scoped episode detail (for digest links)
   resources :episodes, only: [ :show ]
 
+  # Public episode pages (no auth required)
+  resources :public_episodes, only: [ :show ], path: "e"
+  post "e/:id/share", to: "public_episodes#share", as: :share_episode
+
   # Tracking: email open/click tracking (no auth required)
   get "t/:token", to: "tracking#click", as: :tracking_click
   get "t/:token/pixel.gif", to: "tracking#pixel", as: :tracking_pixel

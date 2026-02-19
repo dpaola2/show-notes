@@ -3,7 +3,10 @@
     <%= link_to "&larr; Back to Library".html_safe, library_index_path, class: "text-blue-600 hover:underline inline-block py-1" %>
   </div>
 
-  <h1 class="text-xl sm:text-2xl font-bold mb-2"><%= @episode.title %></h1>
+  <div class="flex items-start justify-between mb-2">
+    <h1 class="text-xl sm:text-2xl font-bold"><%= @episode.title %></h1>
+    <%= render "shared/share_button", episode: @episode %>
+  </div>
   <p class="text-gray-600 mb-4 sm:mb-6"><%= @episode.podcast.title %></p>
 
   <% if @user_episode.ready? && @episode.summary.present? %>
