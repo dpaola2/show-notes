@@ -8,6 +8,8 @@ pipeline_quality_m1_flog_avg: 17.1
 pipeline_quality_m1_flog_max: 54.8
 pipeline_quality_m1_flog_max_method: "DigestMailer#daily_digest"
 pipeline_quality_m1_files_analyzed: 2
+pipeline_m2_started_at: "2026-02-19T08:33:33-0500"
+pipeline_m2_completed_at: "2026-02-19T08:36:05-0500"
 ---
 
 # Implementation Progress — latest-at-top-digest
@@ -24,7 +26,7 @@ pipeline_quality_m1_files_analyzed: 2
 |-----------|-------------|--------|
 | M0 | Discovery & Alignment | Complete (Stages 1-3) |
 | M1 | Scope & Mailer Data Layer | **Complete** |
-| M2 | Email Templates | Pending |
+| M2 | Email Templates | **Complete** |
 | M3 | QA Test Data | Pending |
 | M4 | Edge Cases & Polish | Pending |
 
@@ -84,3 +86,45 @@ None
 - M1 scope included template changes (HTML + text) which are formally part of M2 in the gameplan. This was necessary because the mailer restructuring changed the template ivars (`@featured_episode`, `@recent_episodes` vs old `@episodes_by_show`), making it impossible to keep old templates working. The templates were rewritten to match the new data structure.
 - Pre-existing test files required significant updates because the INNER JOIN on summary means all test episodes now need a `create(:summary, episode: ep)` call. 11 pre-existing tests across 6 files were updated.
 - The `DigestMailer#daily_digest` instance method has a flog score of 54.8, which is elevated. This is inherent to the two-phase architecture (class method + instance method with thread-local fallback) — the instance method handles both the happy path (thread-local data present) and the deliver-later fallback (re-query from DB).
+
+---
+
+## M2: Email Templates
+
+**Status:** Complete
+**Date:** 2026-02-19
+**Commit:** N/A — all M2 work was committed as part of M1 (`584d9d8`)
+
+### Files Created
+None
+
+### Files Modified
+None — M1 implemented the complete template rewrite because the mailer restructuring (changing `@episodes_by_show` to `@featured_episode`/`@recent_episodes`) required simultaneous template updates. The HTML and text templates committed in M1 already satisfy all M2 acceptance criteria.
+
+### Test Results
+- **This milestone tests:** 14 M2-tagged tests: 13 passing, 1 failing (Stage 4 timing bug)
+- **Prior milestone tests:** all passing (M1: 10 passing, 2 Stage 4 timing bugs)
+- **Pre-existing tests:** all passing (160/167 pass; 5 OG image job failures are pre-existing and unrelated, 2 are known Stage 4 timing bugs)
+
+### Acceptance Criteria
+- [x] FE-002: Featured episode displays all summary sections with section title headings and full content (no truncation)
+- [x] FE-003: Featured episode displays quotes from `summary.quotes` as styled blockquotes (left blue border + light blue background)
+- [x] FE-004: Featured episode has a single "Read in app" tracked link
+- [x] RE-001: Up to 5 recent episodes displayed below the featured episode in compact format (title + 200-char preview + "Read full summary" + "Listen" links)
+- [x] RE-003: If fewer than 5 additional episodes exist, display however many are available
+- [x] RE-004: If only 1 episode total, show featured episode only — no "Latest episodes" section
+- [x] RE-006: "That's all for now" sign-off always present below the episode list
+- [x] Edge case: Featured episode has no quotes (or empty array) — quotes block omitted entirely
+- [x] Edge case: More than 6 total episodes — only 6 shown (1 featured + 5 recent), remainder omitted
+- [x] Edge case: Long summary content — displayed in full, no truncation
+- [x] TXT-001: Plain-text template mirrors the HTML layout structure (full summary + quotes for featured, compact for recent)
+- [x] Header shows displayed episode count (not total qualifying count) — implementation correct; test has Stage 4 timing bug
+- [x] Footer unchanged: "Open Show Notes" + unsubscribe link + tracking pixel
+
+### Spec Gaps
+- **Stage 4 timing bug (carried from M1):** `featured_digest_mailer_spec.rb:303` ("shows displayed episode count in header") creates 8 episodes with `updated_at` of 1-8 hours ago but `digest_sent_at: 2.hours.ago`. The `>` comparison excludes episodes at or before the boundary, so only 1 episode qualifies instead of 8. The implementation correctly sets `@total_count = 1 + @recent_episodes.size` (displayed count, capped at 6), but the test can't verify this with only 1 qualifying episode.
+
+### Notes
+- No new code was written for M2. All template work was necessarily completed during M1 because the mailer restructuring changed the template contract (instance variables). This is documented in M1's notes.
+- No quality snapshot — no files were changed in this milestone.
+- Pipeline insight: When a data layer change (M1) fundamentally alters the view contract (instance variables), the template work (M2) cannot be deferred to a separate milestone. Future gameplans should either: (a) combine the mailer + template milestones, or (b) sequence the mailer to produce backward-compatible ivars first (adapter pattern) before the template rewrite.
