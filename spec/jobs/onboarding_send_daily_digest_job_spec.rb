@@ -13,6 +13,7 @@ RSpec.describe SendDailyDigestJob, type: :job do
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
         ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        create(:summary, episode: ep)
         create(:user_episode, :ready, user: user, episode: ep)
         user
       end
@@ -65,6 +66,7 @@ RSpec.describe SendDailyDigestJob, type: :job do
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
         ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        create(:summary, episode: ep)
         create(:user_episode, :ready, user: user, episode: ep)
         user
       end
@@ -92,6 +94,7 @@ RSpec.describe SendDailyDigestJob, type: :job do
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
         ep = create(:episode, podcast: podcast, created_at: 12.hours.ago)
+        create(:summary, episode: ep)
         create(:user_episode, :ready, user: user, episode: ep)
         user
       end
@@ -109,6 +112,7 @@ RSpec.describe SendDailyDigestJob, type: :job do
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
         ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+        create(:summary, episode: ep)
         create(:user_episode, :ready, user: user, episode: ep)
 
         expect(Rails.logger).to receive(:info).with(/SendDailyDigestJob.*Sent 1.*skipped 0/i)

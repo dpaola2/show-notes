@@ -17,11 +17,11 @@ class Episode < ApplicationRecord
   }
 
   scope :library_ready_since, ->(user, since) {
-    joins(:user_episodes, :podcast)
+    joins(:user_episodes, :podcast, :summary)
       .where(user_episodes: { user_id: user.id, location: :library, processing_status: :ready })
       .where("user_episodes.updated_at > ?", since)
       .includes(:podcast, :summary)
-      .order("podcasts.title ASC, episodes.published_at DESC")
+      .order("user_episodes.updated_at DESC")
   }
 
   validates :guid, presence: true, uniqueness: { scope: :podcast_id }

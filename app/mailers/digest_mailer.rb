@@ -17,32 +17,41 @@ class DigestMailer < ApplicationMailer
     since ||= [ user.digest_sent_at, 24.hours.ago ].compact.max
     digest_date = Date.current.to_s
 
-    episodes_by_show = Episode
-      .library_ready_since(user, since)
-      .group_by(&:podcast)
+    all_episodes = Episode.library_ready_since(user, since).to_a
+    featured_episode = all_episodes.first
+    recent_episodes = all_episodes[1..5] || []
 
-    episode_count = episodes_by_show.values.flatten.size
-    return ActionMailer::Base::NullMail.new if episode_count.zero?
+    return ActionMailer::Base::NullMail.new if featured_episode.nil?
 
     open_event = find_or_create_event!(
       user: user, event_type: "open", digest_date: digest_date
     )
+
     click_events = {}
-    episodes_by_show.each_value do |episodes|
-      episodes.each do |episode|
-        click_events[episode.id] = {
-          summary: find_or_create_event!(
-            user: user, event_type: "click", link_type: "summary", episode: episode, digest_date: digest_date
-          ),
-          listen: find_or_create_event!(
-            user: user, event_type: "click", link_type: "listen", episode: episode, digest_date: digest_date
-          )
-        }
-      end
+    # Featured episode: only summary click event (single "Read in app" link)
+    click_events[featured_episode.id] = {
+      summary: find_or_create_event!(
+        user: user, event_type: "click", link_type: "summary",
+        episode: featured_episode, digest_date: digest_date
+      )
+    }
+    # Recent episodes: summary + listen click events
+    recent_episodes.each do |episode|
+      click_events[episode.id] = {
+        summary: find_or_create_event!(
+          user: user, event_type: "click", link_type: "summary",
+          episode: episode, digest_date: digest_date
+        ),
+        listen: find_or_create_event!(
+          user: user, event_type: "click", link_type: "listen",
+          episode: episode, digest_date: digest_date
+        )
+      }
     end
 
     Thread.current[:digest_mailer_data] = {
-      episodes_by_show: episodes_by_show,
+      featured_episode: featured_episode,
+      recent_episodes: recent_episodes,
       open_event: open_event,
       click_events: click_events
     }
@@ -65,7 +74,8 @@ class DigestMailer < ApplicationMailer
     Thread.current[:digest_mailer_data] = nil
 
     if data
-      @episodes_by_show = data[:episodes_by_show]
+      @featured_episode = data[:featured_episode]
+      @recent_episodes = data[:recent_episodes]
       @open_event = data[:open_event]
       @click_events = data[:click_events]
     else
@@ -73,28 +83,27 @@ class DigestMailer < ApplicationMailer
       # Re-query episodes; events were already created eagerly.
       # Use the passed `since` to avoid reading the already-bumped digest_sent_at.
       since ||= [ user.digest_sent_at, 24.hours.ago ].compact.max
-      @episodes_by_show = Episode
-        .library_ready_since(user, since)
-        .group_by(&:podcast)
+      all_episodes = Episode.library_ready_since(user, since).to_a
+      @featured_episode = all_episodes.first
+      @recent_episodes = all_episodes[1..5] || []
 
       digest_date = Date.current.to_s
       @open_event = EmailEvent.find_by(user: user, event_type: "open", digest_date: digest_date)
       @click_events = {}
-      @episodes_by_show.each_value do |episodes|
-        episodes.each do |episode|
-          @click_events[episode.id] = {
-            summary: EmailEvent.find_by(user: user, event_type: "click", link_type: "summary", episode: episode, digest_date: digest_date),
-            listen: EmailEvent.find_by(user: user, event_type: "click", link_type: "listen", episode: episode, digest_date: digest_date)
-          }
-        end
+      ([@featured_episode] + @recent_episodes).compact.each do |episode|
+        summary_event = EmailEvent.find_by(user: user, event_type: "click",
+          link_type: "summary", episode: episode, digest_date: digest_date)
+        listen_event = EmailEvent.find_by(user: user, event_type: "click",
+          link_type: "listen", episode: episode, digest_date: digest_date)
+        @click_events[episode.id] = { summary: summary_event, listen: listen_event }.compact
       end
     end
 
-    @episode_count = @episodes_by_show.values.flatten.size
+    @total_count = 1 + @recent_episodes.size
 
-    mail(
-      to: user.email,
-      subject: "Your library — #{@episode_count} episode#{'s' unless @episode_count == 1} ready"
-    )
+    subject = "#{@featured_episode.podcast.title}: #{@featured_episode.title}"
+    subject += " (+#{@recent_episodes.size} more)" if @recent_episodes.any?
+
+    mail(to: user.email, subject: subject)
   end
 end

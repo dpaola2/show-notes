@@ -134,6 +134,17 @@ end
 
 **Warning:** `copy_memory` to force evaluation will segfault (C-level crash) on corrupt images — don't use it for validation.
 
+## DigestMailer: Featured Episode Layout
+
+The digest uses a flat list of episodes ordered by `user_episodes.updated_at DESC` (most recently ready first), split into:
+- **Featured** (1st episode): full summary sections + quotes + single "Read in app" tracking link
+- **Recent** (next 5): compact cards with truncated summary + "Read full summary" + "Listen" tracking links
+- Maximum 6 episodes per digest (1 featured + 5 recent)
+
+Subject format: `"Podcast: Title"` for single episode, `"Podcast: Title (+N more)"` for multiple.
+
+The `library_ready_since` scope INNER JOINs on `:summary`, so episodes without a completed summary are excluded from digests entirely. Pre-existing tests that create episodes for digest testing must also create a summary.
+
 ## Test Environment: Framework Logging Suppressed
 
 `config/environments/test.rb` removes `Rails::Rack::Logger` middleware and redirects `ActiveSupport::LogSubscriber.logger` to a null logger. This prevents framework-level `.info` calls (e.g., "Processing by...", "Completed...") from conflicting with RSpec message expectations on `Rails.logger`. Application-level `Rails.logger.info(...)` calls still work because they call `Rails.logger` directly.

@@ -26,10 +26,11 @@ RSpec.describe DigestMailer, type: :mailer do
         expect(mail.to).to eq([ "test@example.com" ])
       end
 
-      it "has correct subject with episode count" do
+      it "has correct subject with featured episode format" do
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.subject).to include("3 episodes ready")
+        expect(mail.subject).to include("Test Podcast:")
+        expect(mail.subject).to include("(+2 more)")
       end
 
       it "includes episode count in HTML body" do
@@ -42,7 +43,7 @@ RSpec.describe DigestMailer, type: :mailer do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        expect(body).to include("Episode 0")
+        expect(body).to include("Episode 0").or include("Episode 1").or include("Episode 2")
         expect(body).to include("Test Podcast")
       end
 
@@ -50,7 +51,7 @@ RSpec.describe DigestMailer, type: :mailer do
         mail = DigestMailer.daily_digest(user)
         body = mail.text_part.body.to_s
 
-        expect(body).to include("Episode 0")
+        expect(body).to include("Episode 0").or include("Episode 1").or include("Episode 2")
         expect(body).to include("Test Podcast")
       end
     end
@@ -78,11 +79,11 @@ RSpec.describe DigestMailer, type: :mailer do
         expect(body).to include("intro section")
       end
 
-      it "includes Read full summary link" do
+      it "includes Read in app link for featured episode" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        expect(body).to include("Read full summary")
+        expect(body).to include("Read in app")
       end
     end
 
@@ -135,6 +136,7 @@ RSpec.describe DigestMailer, type: :mailer do
       podcast = create(:podcast)
       create(:subscription, user: user, podcast: podcast)
       ep = create(:episode, podcast: podcast, created_at: 1.hour.ago)
+      create(:summary, episode: ep)
       create(:user_episode, :ready, user: user, episode: ep)
 
       mail = DigestMailer.daily_digest(user)

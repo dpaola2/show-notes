@@ -9,14 +9,20 @@
       .header h1 { margin: 0; font-size: 20px; }
       .header p { margin: 8px 0 0; opacity: 0.9; font-size: 14px; }
       .content { padding: 24px; }
-      .show-group { margin-bottom: 28px; }
+      .featured { padding: 0 0 20px; }
+      .featured .podcast-name { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 8px; }
+      .featured .episode-title { font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 20px; line-height: 1.3; }
+      .section-title { font-size: 15px; font-weight: 600; color: #111827; margin: 20px 0 8px; }
+      .section-content { font-size: 16px; color: #374151; line-height: 1.6; margin: 0 0 4px; }
+      .quote-block { border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 12px 0; background: #eff6ff; border-radius: 0 6px 6px 0; }
+      .quote-text { font-style: italic; color: #374151; font-size: 15px; line-height: 1.5; margin: 0; }
       .show-name { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #e5e7eb; }
       .episode { background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
-      .episode-title { font-weight: 600; color: #111827; margin: 0 0 8px; font-size: 15px; }
+      .episode-name { font-weight: 600; color: #111827; margin: 0 0 8px; font-size: 15px; }
       .episode-summary { font-size: 16px; color: #374151; line-height: 1.5; margin: 0 0 12px; }
-      .episode-processing { font-size: 14px; color: #92400e; background: #fef3c7; padding: 8px 12px; border-radius: 4px; margin: 0 0 12px; }
       .episode-links { font-size: 14px; }
       .episode-links a { color: #2563eb; text-decoration: none; margin-right: 16px; }
+      .signoff { text-align: center; color: #6b7280; font-size: 14px; padding: 16px 24px; font-style: italic; }
       .footer { padding: 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; font-size: 13px; color: #6b7280; text-align: center; }
       .footer a { color: #2563eb; text-decoration: none; }
     </style>
@@ -25,32 +31,57 @@
     <div class="container">
       <div class="header">
         <h1>Your library</h1>
-        <p><%= @date %> &mdash; <%= @episode_count %> episode<%= 's' unless @episode_count == 1 %> ready</p>
+        <p><%= @date %> &mdash; <%= @total_count %> episode<%= 's' unless @total_count == 1 %> ready</p>
       </div>
 
       <div class="content">
-        <% @episodes_by_show.each do |podcast, episodes| %>
-          <div class="show-group">
-            <div class="show-name"><%= podcast.title %></div>
+        <%# Featured episode: full summary sections + quotes + single "Read in app" link %>
+        <div class="featured">
+          <div class="podcast-name"><%= @featured_episode.podcast.title %></div>
+          <p class="episode-title"><%= @featured_episode.title %></p>
 
-            <% episodes.each do |episode| %>
-              <div class="episode">
-                <p class="episode-title"><%= episode.title %></p>
+          <% @featured_episode.summary.sections.each do |section| %>
+            <p class="section-title"><%= section["title"] %></p>
+            <p class="section-content"><%= section["content"] %></p>
+          <% end %>
 
-                <% if episode.summary.present? %>
-                  <p class="episode-summary"><%= truncate(episode.summary.sections.first["content"], length: 200) %></p>
-                <% else %>
-                  <p class="episode-processing">Summary processing...</p>
-                <% end %>
-
-                <div class="episode-links">
-                  <a href="<%= tracking_click_url(@click_events[episode.id][:summary].token) %>">Read full summary</a>
-                  <a href="<%= tracking_click_url(@click_events[episode.id][:listen].token) %>">Listen</a>
-                </div>
+          <% if @featured_episode.summary.quotes.any? %>
+            <% @featured_episode.summary.quotes.each do |quote| %>
+              <div class="quote-block">
+                <p class="quote-text"><%= quote["text"] %></p>
               </div>
             <% end %>
+          <% end %>
+
+          <div class="episode-links">
+            <a href="<%= tracking_click_url(@click_events[@featured_episode.id][:summary].token) %>">Read in app</a>
           </div>
+        </div>
+
+        <%# Recent episodes: compact format with summary preview + listen link %>
+        <% if @recent_episodes.any? %>
+          <div class="show-name">Latest episodes</div>
+
+          <% @recent_episodes.each do |episode| %>
+            <div class="episode">
+              <p class="podcast-name" style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 4px;"><%= episode.podcast.title %></p>
+              <p class="episode-name"><%= episode.title %></p>
+
+              <% if episode.summary.present? %>
+                <p class="episode-summary"><%= truncate(episode.summary.sections.first["content"], length: 200) %></p>
+              <% end %>
+
+              <div class="episode-links">
+                <a href="<%= tracking_click_url(@click_events[episode.id][:summary].token) %>">Read full summary</a>
+                <a href="<%= tracking_click_url(@click_events[episode.id][:listen].token) %>">Listen</a>
+              </div>
+            </div>
+          <% end %>
         <% end %>
+      </div>
+
+      <div class="signoff">
+        That's all for now.
       </div>
 
       <div class="footer">

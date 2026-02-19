@@ -10,6 +10,7 @@ RSpec.describe SendDailyDigestJob, type: :job do
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
         ep = create(:episode, podcast: podcast, created_at: 3.hours.ago)
+        create(:summary, episode: ep)
         ue = create(:user_episode, :ready, user: user, episode: ep)
         ue.update_column(:updated_at, 1.hour.ago)
         user
@@ -45,6 +46,7 @@ RSpec.describe SendDailyDigestJob, type: :job do
         podcast = create(:podcast)
         create(:subscription, user: user, podcast: podcast)
         ep = create(:episode, podcast: podcast, created_at: 4.days.ago)
+        create(:summary, episode: ep)
         ue = create(:user_episode, :ready, user: user, episode: ep)
         ue.update_column(:updated_at, 12.hours.ago)
         user
