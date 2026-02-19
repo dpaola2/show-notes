@@ -98,9 +98,9 @@ RSpec.describe DigestMailer, type: :mailer do
         ep
       end
 
-      it "uses library-centric subject line" do
+      it "uses featured episode subject line format" do
         mail = DigestMailer.daily_digest(user)
-        expect(mail.subject).to include("library")
+        expect(mail.subject).to include("My Podcast: Subject Test")
       end
 
       it "does not use subscription-centric subject wording" do
