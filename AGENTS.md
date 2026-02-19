@@ -145,6 +145,10 @@ Subject format: `"Podcast: Title"` for single episode, `"Podcast: Title (+N more
 
 The `library_ready_since` scope INNER JOINs on `:summary`, so episodes without a completed summary are excluded from digests entirely. Pre-existing tests that create episodes for digest testing must also create a summary.
 
+## Email Templates: Dual-Layer CSS
+
+Email templates use both a `<style>` block and inline `style` attributes on every significant element (dual-layer CSS). The `<style>` block is the primary source of truth; inline styles duplicate it as a fallback for email clients that strip `<style>` blocks (Gmail mobile). No CSS inliner gem is used — maintain both layers manually when modifying templates. Use `overflow-wrap: break-word; word-wrap: break-word` on any element that may contain long user-generated content.
+
 ## Test Environment: Framework Logging Suppressed
 
 `config/environments/test.rb` removes `Rails::Rack::Logger` middleware and redirects `ActiveSupport::LogSubscriber.logger` to a null logger. This prevents framework-level `.info` calls (e.g., "Processing by...", "Completed...") from conflicting with RSpec message expectations on `Rails.logger`. Application-level `Rails.logger.info(...)` calls still work because they call `Rails.logger` directly.
