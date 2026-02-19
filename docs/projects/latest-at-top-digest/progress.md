@@ -14,6 +14,8 @@ pipeline_m3_started_at: "2026-02-19T08:38:37-0500"
 pipeline_m3_completed_at: "2026-02-19T08:40:57-0500"
 pipeline_m4_started_at: "2026-02-19T08:49:47-0500"
 pipeline_m4_completed_at: "2026-02-19T08:55:31-0500"
+pipeline_pr_created_at: "2026-02-19T09:17:17-0500"
+pipeline_pr_url: "https://github.com/dpaola2/show-notes/pull/17"
 ---
 
 # Implementation Progress — latest-at-top-digest
