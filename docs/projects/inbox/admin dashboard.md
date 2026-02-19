@@ -1,3 +1,0 @@
-I need a way to see all of the users that have signed up. either in this app or somewhere else. i'd also like the stats about them. it should be private to my user account.
-
-also need a transcription monitoring panel — I want to see which transcriptions are currently in progress vs. stuck vs. errored across all users. this came up when an OPML import with 100+ podcasts overwhelmed AssemblyAI's rate limit and everything got stuck with no visibility into what was happening. should be able to see queue depth, in-flight jobs, error states, and maybe manually retry or cancel from the admin view.
