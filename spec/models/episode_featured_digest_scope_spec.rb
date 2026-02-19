@@ -48,7 +48,7 @@ RSpec.describe Episode, type: :model do
         ue_mid.update_column(:updated_at, 1.hour.ago)
 
         results = Episode.library_ready_since(user, 4.hours.ago)
-        expect(results.to_a).to eq([ep_newest, ep_mid, ep_old])
+        expect(results.to_a).to eq([ ep_newest, ep_mid, ep_old ])
       end
     end
   end

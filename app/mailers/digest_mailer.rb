@@ -90,7 +90,7 @@ class DigestMailer < ApplicationMailer
       digest_date = Date.current.to_s
       @open_event = EmailEvent.find_by(user: user, event_type: "open", digest_date: digest_date)
       @click_events = {}
-      ([@featured_episode] + @recent_episodes).compact.each do |episode|
+      ([ @featured_episode ] + @recent_episodes).compact.each do |episode|
         summary_event = EmailEvent.find_by(user: user, event_type: "click",
           link_type: "summary", episode: episode, digest_date: digest_date)
         listen_event = EmailEvent.find_by(user: user, event_type: "click",

@@ -22,6 +22,7 @@ class Episode < ApplicationRecord
       .where("user_episodes.updated_at > ?", since)
       .includes(:podcast, :summary)
       .order("user_episodes.updated_at DESC")
+      .distinct
   }
 
   validates :guid, presence: true, uniqueness: { scope: :podcast_id }
