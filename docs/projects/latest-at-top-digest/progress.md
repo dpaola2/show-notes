@@ -10,6 +10,8 @@ pipeline_quality_m1_flog_max_method: "DigestMailer#daily_digest"
 pipeline_quality_m1_files_analyzed: 2
 pipeline_m2_started_at: "2026-02-19T08:33:33-0500"
 pipeline_m2_completed_at: "2026-02-19T08:36:05-0500"
+pipeline_m3_started_at: "2026-02-19T08:38:37-0500"
+pipeline_m3_completed_at: "2026-02-19T08:40:57-0500"
 ---
 
 # Implementation Progress — latest-at-top-digest
@@ -27,7 +29,7 @@ pipeline_m2_completed_at: "2026-02-19T08:36:05-0500"
 | M0 | Discovery & Alignment | Complete (Stages 1-3) |
 | M1 | Scope & Mailer Data Layer | **Complete** |
 | M2 | Email Templates | **Complete** |
-| M3 | QA Test Data | Pending |
+| M3 | QA Test Data | **Complete** |
 | M4 | Edge Cases & Polish | Pending |
 
 ---
@@ -128,3 +130,41 @@ None — M1 implemented the complete template rewrite because the mailer restruc
 - No new code was written for M2. All template work was necessarily completed during M1 because the mailer restructuring changed the template contract (instance variables). This is documented in M1's notes.
 - No quality snapshot — no files were changed in this milestone.
 - Pipeline insight: When a data layer change (M1) fundamentally alters the view contract (instance variables), the template work (M2) cannot be deferred to a separate milestone. Future gameplans should either: (a) combine the mailer + template milestones, or (b) sequence the mailer to produce backward-compatible ivars first (adapter pattern) before the template rewrite.
+
+---
+
+## M3: QA Test Data
+
+**Status:** Complete
+**Date:** 2026-02-19
+**Commit:** `d9bee9d`
+
+### Files Created
+- `lib/tasks/seed_digest_qa.rake` — Idempotent rake task (`digest:seed_qa`) that creates test data for all digest layout scenarios
+
+### Files Modified
+None
+
+### Test Results
+- **This milestone tests:** N/A — M3 is a QA support task with no automated tests
+- **Prior milestone tests:** 85 passing, 2 known Stage 4 timing bugs (unchanged)
+- **Regression check:** No regressions
+
+### Acceptance Criteria
+- [x] Seed task exists at `lib/tasks/seed_digest_qa.rake`
+- [x] Task creates a test user with `digest_enabled: true` and `digest_sent_at: 25.hours.ago`
+- [x] Scenario A: 8 episodes with summaries across 2 podcasts (tests featured + full recent list + overflow)
+- [x] Scenario B: Single-episode user (tests single-episode digest case)
+- [x] Scenario C: 2 episodes without summaries (tests exclusion from digest)
+- [x] Scenario D: Episode with `quotes: []` (tests no-quotes edge case)
+- [x] Task is idempotent (`find_or_create_by!` pattern throughout)
+- [x] Task prints summary with user email, episode counts, and Letter Opener preview instructions
+- [x] All scenarios from the manual QA checklist have supporting test data
+
+### Spec Gaps
+None — M3 has no automated tests by design (QA support task).
+
+### Notes
+- Follows the pattern established by `onboarding:seed` in `lib/tasks/qa_seed.rake`: environment guard, `find_or_create_by!` idempotency, structured output summary.
+- Creates a second user (`digest-qa-single@example.com`) for the single-episode scenario, keeping the primary user's digest focused on the overflow case.
+- No new conventions discovered.
