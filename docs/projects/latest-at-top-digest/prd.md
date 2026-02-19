@@ -14,7 +14,7 @@ pipeline_completed_at: "2026-02-19T07:25:37-0500"
 | **Version** | 1 |
 | **Author** | Stage 0 (Pipeline) |
 | **Date** | 2026-02-19 |
-| **Status** | Draft — Review Required |
+| **Status** | Approved |
 | **Platforms** | Web only |
 | **Level** | 1 |
 
@@ -60,9 +60,9 @@ pipeline_completed_at: "2026-02-19T07:25:37-0500"
 | FE-001 | The most recently updated episode in the digest batch is displayed as the "featured" episode at the top of the email | Web | Must |
 | FE-002 | The featured episode displays all summary sections (title + content for each section), not just the first 200 characters | Web | Must |
 | FE-003 | The featured episode displays choice quotes from `summary.quotes`, visually styled as a blockquote or pull-quote | Web | Must |
-| FE-004 | The featured episode includes a "Read in app" link (tracked via existing EmailEvent system) | Web | Must |
-| FE-005 | The featured episode includes a "Listen" link (tracked, same as today) | Web | Must |
-| FE-006 | If the featured episode's summary is not yet ready, fall back to the current 200-char preview with "Summary processing..." indicator | Web | Should |
+| FE-004 | The featured episode includes a single "Read in app" link (tracked via existing EmailEvent system) | Web | Must |
+| FE-005 | ~~The featured episode includes a "Listen" link~~ **Removed** — single "Read in app" link only (see ADR-001) | Web | ~~ |
+| FE-006 | If the featured episode's summary is not yet ready, **skip it entirely** and feature the next most recent episode that has a summary. Episodes without summaries are excluded from the digest. (see ADR-001) | Web | Must |
 
 ### Recent Episodes (Bottom Section)
 
@@ -72,6 +72,15 @@ pipeline_completed_at: "2026-02-19T07:25:37-0500"
 | RE-002 | Recent episodes are ordered by recency (most recent first), excluding the featured episode | Web | Must |
 | RE-003 | If fewer than 5 additional episodes exist, display however many are available | Web | Must |
 | RE-004 | If only 1 episode total exists in the digest batch, show it as the featured episode with no "recent episodes" section | Web | Must |
+| RE-005 | Only episodes with completed summaries are included in the bottom list. Episodes still processing are excluded entirely. (see ADR-001) | Web | Must |
+| RE-006 | Always display a friendly "That's all for now" sign-off below the episode list (or below the featured episode if no bottom list) | Web | Must |
+
+### Subject Line
+
+| ID | Requirement | Platform | Priority |
+|----|------------|----------|----------|
+| SL-001 | Subject line format: `[Podcast Name]: Episode Title` for the featured episode | Web | Must |
+| SL-002 | When additional episodes exist below, append `(+N more)` — e.g., `The Daily: Why the Economy Is Shifting (+4 more)` | Web | Must |
 
 ### Text Template
 
@@ -101,17 +110,17 @@ pipeline_completed_at: "2026-02-19T07:25:37-0500"
 1. User receives daily digest email
 2. Email opens with featured episode: full summary sections displayed inline, followed by choice quotes
 3. User reads the summary directly in the email
-4. User optionally clicks "Read in app" to view the episode page, or "Listen" to jump to audio
+4. User optionally clicks "Read in app" to view the episode page
 5. User scrolls down to see up to 5 more recent episodes in compact format
 6. User clicks any episode link to open in the app
 7. **Success:** User engages with content without needing to leave their email client for the featured episode
-8. **Error:** If summary not ready, featured episode falls back to 200-char preview with processing indicator
+8. **Edge case:** Episodes without completed summaries are excluded entirely from the digest
 
 ### Flow 2: Digest with Single Episode
 **Persona:** Subscribed user with one new episode
 **Entry Point:** Email inbox
 
-1. User receives digest with subject "Your library — 1 episode ready"
+1. User receives digest with subject "[Podcast Name]: Episode Title"
 2. Email shows the single episode as the featured episode with full summary and quotes
 3. No "recent episodes" section appears
 4. **Success:** User gets full value from the single episode
@@ -184,11 +193,11 @@ N/A — no API or client-facing changes. This modifies email templates only.
 | Scenario | Expected Behavior | Platform |
 |----------|-------------------|----------|
 | Only 1 episode in digest batch | Show as featured episode, no "recent episodes" section | Web |
-| Featured episode has no summary (still processing) | Fall back to 200-char preview with "Summary processing..." indicator | Web |
+| Featured episode has no summary (still processing) | Skip it — feature the next most recent episode with a completed summary. If no episodes have summaries, do not send the digest. | Web |
 | Featured episode has summary but no quotes | Show full summary sections, omit quotes block entirely | Web |
 | Featured episode has empty quotes array `[]` | Same as no quotes — omit quotes block | Web |
 | More than 6 total episodes in batch | Feature the most recent; show next 5 in compact list; remaining episodes are omitted from the digest | Web |
-| All episodes lack summaries | Feature the most recent with processing indicator; show rest in compact format with processing indicators | Web |
+| All episodes lack summaries | Do not send the digest (return NullMail) — no value to deliver without summaries | Web |
 | `[INFERRED]` Summary section has very long content (>2000 words) | Display in full — no truncation for the featured episode | Web |
 | `[INFERRED]` Quotes contain special characters or markdown | Render as plain text in email (strip markdown if any) | Web |
 
@@ -220,7 +229,7 @@ N/A — no export functionality involved.
 | 3 | How should quotes be visually styled — left border, italics, background color, or quotation marks? | Open | — | No |
 | 4 | Should summary section headings (e.g., "Key Takeaways") be displayed, or just the content? | Open | — | No |
 
-> **No blocking questions — this PRD is ready for pipeline intake (after human review).**
+> **No blocking questions. Decisions from interview session captured in ADR-001.**
 
 ---
 
