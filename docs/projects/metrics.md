@@ -5,19 +5,24 @@ pipeline_product: "show-notes"
 
 # Aggregate Pipeline Metrics — Show Notes
 
+> Generated: 2026-02-18
+> Projects: 7 completed, 7 merged
+
+---
+
 ## Completed Projects
 
-| Project | Milestones | PR | Implementation Window |
-|---------|:---:|---|----|
-| email-notifications | 2 | [#6](https://github.com/dpaola2/show-notes/pull/6) | 4m (git) |
-| opml-import | 5 | [#7](https://github.com/dpaola2/show-notes/pull/7) | 47m (git) |
-| onboarding | 6 | [#8](https://github.com/dpaola2/show-notes/pull/8) | 11h 30m (git, includes overnight) |
-| long-lived-authentication | 2 | [#9](https://github.com/dpaola2/show-notes/pull/9) | 7m (git) |
-| tweak-transcribe-ux | 6 | [#13](https://github.com/dpaola2/show-notes/pull/13) | 42m 30s (live) |
-| library-scoped-processing | 4 | [#15](https://github.com/dpaola2/show-notes/pull/15) | 31m 37s (live) |
-| shareable-episode-cards | 5 | [#16](https://github.com/dpaola2/show-notes/pull/16) | 2h 4m 11s (live) |
+| Project | Date | Milestones | PR | Impl Window | Impl Active | PR Lifetime |
+|---------|------|:---:|---|-------------|-------------|-------------|
+| email-notifications | 2026-02-07 | 2 | [#6](https://github.com/dpaola2/show-notes/pull/6) | 4m (git) | — | 19m |
+| opml-import | 2026-02-07 | 5 | [#7](https://github.com/dpaola2/show-notes/pull/7) | 47m (git) | — | 1h 18m |
+| onboarding | 2026-02-08 | 6 | [#8](https://github.com/dpaola2/show-notes/pull/8) | 11h 30m (git\*) | — | 16m |
+| long-lived-authentication | 2026-02-08 | 2 | [#9](https://github.com/dpaola2/show-notes/pull/9) | 7m (git) | — | 10m |
+| tweak-transcribe-ux | 2026-02-10 | 6 | [#13](https://github.com/dpaola2/show-notes/pull/13) | 43m (live) | 28m | 4m |
+| library-scoped-processing | 2026-02-17 | 4 | [#15](https://github.com/dpaola2/show-notes/pull/15) | 32m (live) | 21m | 12m |
+| shareable-episode-cards | 2026-02-18 | 5 | [#16](https://github.com/dpaola2/show-notes/pull/16) | 2h 4m (live) | 1h 16m | 24m |
 
-Implementation window = wall clock from first milestone start to last milestone end (excludes M0 discovery and PR creation). "(git)" = derived from git commit timestamps; "(live)" = from YAML frontmatter start/end timestamps.
+Implementation window = wall clock from M1 start → last milestone end. Implementation active = sum of milestone durations. "(git)" = derived from git commit timestamps; "(live)" = from YAML frontmatter. \*onboarding includes an overnight gap.
 
 ---
 
@@ -27,9 +32,44 @@ Implementation window = wall clock from first milestone start to last milestone 
 |--------|------:|
 | Total completed projects | 7 |
 | Total implementation milestones | 30 |
-| Projects with PR | 7 |
+| All PRs merged | Yes |
 | Projects with live timing | 3 |
 | Avg milestones per project | 4.3 |
+| Median PR lifetime (create → merge) | 16m |
+
+---
+
+## Full Pipeline Metrics (3 projects with live timing)
+
+| Metric | shareable-episode-cards | tweak-transcribe-ux | library-scoped-processing |
+|--------|----------------------:|--------------------:|-------------------------:|
+| **Total Lead Time** | 11h 31m | 13h 16m | 3h 5m |
+| **Active Agent Time** | 1h 37m | 34m | 42m |
+| **Human Review Time** | 38m | 2h 27m | 1h 14m |
+| **Idle/Queue Time** | 9h 17m | 10h 15m | 56m |
+| **Agent Efficiency** | 14.8% | 5.2% | 42.9% |
+| **Impl Window** | 2h 4m | 43m | 32m |
+| **Impl Active** | 1h 16m | 28m | 21m |
+| **Impl Efficiency** | 61.5% | 65.1% | 65.6% |
+| **Milestones** | 5 | 6 | 4 |
+| **PR Lifetime** | 24m | 4m | 12m |
+
+- **Total Lead Time** = PRD start → PR merge
+- **Agent Efficiency** = Active Agent Time / (Active Agent Time + Idle/Queue Time)
+- **Impl Efficiency** = Implementation active time / Implementation window
+
+### What drives low agent efficiency?
+
+The dominant factor is **scheduling gaps** — time between pipeline stages where the human hasn't started the next step. The largest gaps:
+
+| Project | Gap | Duration | Context |
+|---------|-----|----------|---------|
+| tweak-transcribe-ux | Discovery → Architecture | 2h 28m | Evening break |
+| tweak-transcribe-ux | Architecture approved → Gameplan | 9h 7m | Overnight |
+| shareable-episode-cards | Test Gen → Implementation | 7h 21m | Afternoon break |
+| library-scoped-processing | Architecture review | 1h 6m | Human review wait |
+
+Implementation efficiency (61-66%) is much higher, showing that once the agent is running milestones, most time is productive.
 
 ---
 
@@ -101,9 +141,27 @@ All 15 milestone durations sorted:
 | 14 | 27m 16s | shareable-episode-cards | M3 |
 | 15 | 35m 16s | shareable-episode-cards | M2 |
 
-**Overall median (of 15):** 4m 30s (rank 8)
+**Overall median (of 15):** 4m 30s
+**Mean:** 8m 24s
 **Fastest:** 1m 27s (tweak-transcribe-ux M4)
 **Slowest:** 35m 16s (shareable-episode-cards M2)
+
+---
+
+## PR Lifecycle
+
+| PR | Project | Created → Merged | State |
+|----|---------|-----------------|-------|
+| [#6](https://github.com/dpaola2/show-notes/pull/6) | email-notifications | 19m | Merged |
+| [#7](https://github.com/dpaola2/show-notes/pull/7) | opml-import | 1h 18m | Merged |
+| [#8](https://github.com/dpaola2/show-notes/pull/8) | onboarding | 16m | Merged |
+| [#9](https://github.com/dpaola2/show-notes/pull/9) | long-lived-authentication | 10m | Merged |
+| [#13](https://github.com/dpaola2/show-notes/pull/13) | tweak-transcribe-ux | 4m | Merged |
+| [#15](https://github.com/dpaola2/show-notes/pull/15) | library-scoped-processing | 12m | Merged |
+| [#16](https://github.com/dpaola2/show-notes/pull/16) | shareable-episode-cards | 24m | Merged |
+
+**Median PR lifetime:** 16m
+**Mean PR lifetime:** 23m
 
 ---
 
@@ -111,12 +169,12 @@ All 15 milestone durations sorted:
 
 | Project | Timing Source | Notes |
 |---------|-------------|-------|
-| shareable-episode-cards | **Live** | YAML frontmatter with per-milestone `pipeline_m*_started_at` / `pipeline_m*_completed_at` |
-| tweak-transcribe-ux | **Live** | YAML frontmatter with per-milestone start/end timestamps |
-| library-scoped-processing | **Live** | YAML frontmatter with per-milestone start/end timestamps |
-| email-notifications | **Git** | No YAML frontmatter; implementation window derived from git commit author dates |
-| opml-import | **Git** | No YAML frontmatter; implementation window derived from git commit author dates |
-| onboarding | **Git** | No YAML frontmatter; implementation window derived from git commit author dates; includes overnight gap |
-| long-lived-authentication | **Git** | No YAML frontmatter; implementation window derived from git commit author dates |
+| shareable-episode-cards | **Live** | Full pipeline timestamps in YAML frontmatter |
+| tweak-transcribe-ux | **Live** | Full pipeline timestamps in YAML frontmatter |
+| library-scoped-processing | **Live** | Full pipeline timestamps; architecture/gameplan `approved_at` is date-only precision |
+| email-notifications | **Git** | Implementation window derived from git commit author dates |
+| opml-import | **Git** | Implementation window derived from git commit author dates |
+| onboarding | **Git** | Implementation window derived from git commit author dates; includes overnight gap |
+| long-lived-authentication | **Git** | Implementation window derived from git commit author dates |
 
-No projects have the `pipeline_backfilled` field. The four git-only projects predate the pipeline's timing instrumentation -- their progress files record completion dates per milestone but not machine-readable start/end timestamps. Git-derived windows undercount time spent on milestones that required multiple attempts before committing.
+The four git-only projects predate the pipeline's timing instrumentation — their progress files record completion dates per milestone but not machine-readable start/end timestamps. Git-derived windows may undercount time spent on milestones that required multiple attempts before committing. Full pipeline metrics (lead time, agent efficiency, human review time) are only available for the three live-timed projects.
