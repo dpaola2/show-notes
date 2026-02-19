@@ -12,6 +12,8 @@ pipeline_m4_started_at: "2026-02-18T18:48:20-0500"
 pipeline_m4_completed_at: "2026-02-18T18:50:36-0500"
 pipeline_m5_started_at: "2026-02-18T19:02:52-0500"
 pipeline_m5_completed_at: "2026-02-18T19:06:11-0500"
+pipeline_pr_created_at: "2026-02-18T19:27:16-0500"
+pipeline_pr_url: "https://github.com/dpaola2/show-notes/pull/16"
 ---
 
 # Implementation Progress — shareable-episode-cards
