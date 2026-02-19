@@ -25,7 +25,7 @@ class PublicEpisodesController < ApplicationController
       return
     end
 
-    ShareEvent.create!(
+    share_event = ShareEvent.new(
       episode: episode,
       user: current_user,
       share_target: params[:share_target],
@@ -33,7 +33,11 @@ class PublicEpisodesController < ApplicationController
       referrer: request.referer
     )
 
-    head :created
+    if share_event.save
+      head :created
+    else
+      head :unprocessable_entity
+    end
   end
 
   private

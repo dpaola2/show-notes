@@ -160,7 +160,7 @@ def attach_placeholder_og_image(episode)
 
   # Generate a minimal placeholder OG image via vips
   begin
-    image_data = OgImageGenerator.call(episode)
+    image_data = OgImageGenerator.generate(episode)
     episode.og_image.attach(
       io: StringIO.new(image_data),
       filename: "og_#{episode.id}.png",

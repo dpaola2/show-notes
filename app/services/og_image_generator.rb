@@ -36,7 +36,7 @@ class OgImageGenerator
 
   def create_canvas
     # Dark background — 3-band sRGB + alpha for compositing
-    bg = Vips::Image.black(WIDTH, HEIGHT, bands: 3).add([40, 45, 65]).cast(:uchar)
+    bg = Vips::Image.black(WIDTH, HEIGHT, bands: 3).add([ 40, 45, 65 ]).cast(:uchar)
     bg = bg.copy(interpretation: :srgb)
     alpha = Vips::Image.black(WIDTH, HEIGHT).add(255).cast(:uchar)
     bg.bandjoin(alpha)
@@ -47,7 +47,7 @@ class OgImageGenerator
     return canvas unless artwork
 
     # Scale artwork to fit ARTWORK_SIZE x ARTWORK_SIZE
-    scale = ARTWORK_SIZE.to_f / [artwork.width, artwork.height].max
+    scale = ARTWORK_SIZE.to_f / [ artwork.width, artwork.height ].max
     artwork = artwork.resize(scale)
 
     # Ensure artwork has alpha channel for compositing
@@ -55,7 +55,7 @@ class OgImageGenerator
 
     x = PADDING
     y = (HEIGHT - artwork.height) / 2
-    canvas.composite(artwork, :over, x: [x], y: [y])
+    canvas.composite(artwork, :over, x: [ x ], y: [ y ])
   rescue => e
     Rails.logger.warn("OG image artwork compositing failed: #{e.message}")
     canvas
@@ -68,11 +68,11 @@ class OgImageGenerator
     # Episode title
     title = truncate_text(@episode.title, MAX_TITLE_LENGTH)
     title_overlay = render_text_image(title, text_width, size: 36, color: "white")
-    canvas = canvas.composite(title_overlay, :over, x: [text_x], y: [PADDING + 20]) if title_overlay
+    canvas = canvas.composite(title_overlay, :over, x: [ text_x ], y: [ PADDING + 20 ]) if title_overlay
 
     # Podcast name
     podcast_overlay = render_text_image(@podcast.title, text_width, size: 22, color: "#94a3b8")
-    canvas = canvas.composite(podcast_overlay, :over, x: [text_x], y: [PADDING + 80]) if podcast_overlay
+    canvas = canvas.composite(podcast_overlay, :over, x: [ text_x ], y: [ PADDING + 80 ]) if podcast_overlay
 
     # Quote or excerpt
     excerpt = extract_excerpt
@@ -80,12 +80,12 @@ class OgImageGenerator
       excerpt = truncate_text(excerpt, MAX_QUOTE_LENGTH)
       quote_text = %("#{excerpt}")
       quote_overlay = render_text_image(quote_text, text_width, size: 20, color: "#cbd5e1")
-      canvas = canvas.composite(quote_overlay, :over, x: [text_x], y: [HEIGHT / 2 - 20]) if quote_overlay
+      canvas = canvas.composite(quote_overlay, :over, x: [ text_x ], y: [ HEIGHT / 2 - 20 ]) if quote_overlay
     end
 
     # Branding
     branding_overlay = render_text_image("Show Notes", text_width, size: 18, color: "#64748b")
-    canvas = canvas.composite(branding_overlay, :over, x: [text_x], y: [HEIGHT - PADDING - 20]) if branding_overlay
+    canvas = canvas.composite(branding_overlay, :over, x: [ text_x ], y: [ HEIGHT - PADDING - 20 ]) if branding_overlay
 
     canvas
   end

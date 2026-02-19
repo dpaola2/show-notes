@@ -22,6 +22,8 @@ class SessionsController < ApplicationController
     if new_signup
       session[:new_signup] = true
       SignupNotificationMailer.new_signup(user).deliver_later
+    else
+      session.delete(:new_signup)
     end
     UserMailer.magic_link(user, token).deliver_later
 

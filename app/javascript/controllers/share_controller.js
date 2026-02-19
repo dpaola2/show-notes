@@ -12,6 +12,10 @@ export default class extends Controller {
 
   connect() {
     this._debouncing = false
+    if (navigator.share) {
+      const nativeBtn = this.element.querySelector("[data-share-native-btn]")
+      if (nativeBtn) nativeBtn.style.display = ""
+    }
   }
 
   async copy() {
