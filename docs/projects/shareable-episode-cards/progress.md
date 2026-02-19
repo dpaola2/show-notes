@@ -10,6 +10,8 @@ pipeline_m3_started_at: "2026-02-18T18:04:22-0500"
 pipeline_m3_completed_at: "2026-02-18T18:31:38-0500"
 pipeline_m4_started_at: "2026-02-18T18:48:20-0500"
 pipeline_m4_completed_at: "2026-02-18T18:50:36-0500"
+pipeline_m5_started_at: "2026-02-18T19:02:52-0500"
+pipeline_m5_completed_at: "2026-02-18T19:06:11-0500"
 ---
 
 # Implementation Progress — shareable-episode-cards
@@ -29,7 +31,7 @@ pipeline_m4_completed_at: "2026-02-18T18:50:36-0500"
 | M2 | OG Image Generation | **Complete** |
 | M3 | Share UI, Tracking & UTM Attribution | **Complete** |
 | M4 | QA Test Data | **Complete** |
-| M5 | Edge Cases, Empty States & Polish | Pending |
+| M5 | Edge Cases, Empty States & Polish | **Complete** |
 
 ---
 
@@ -212,3 +214,43 @@ None — M4 has no automated tests by design (manual QA seed data).
 - OG images for episodes 1, 4, and 5 are generated via `OgImageGenerator.call(episode)` — the real service, not a placeholder. This means the rake task requires `libvips` to be installed.
 - The task uses `find_or_create_by!` throughout for idempotency — running it twice produces no duplicates.
 - Magic link token is printed in the summary output for easy QA login without needing to check email.
+
+---
+
+## M5: Edge Cases, Empty States & Polish
+
+**Status:** Complete
+**Date:** 2026-02-18
+**Commit:** `87d1d1f`
+
+### Files Created
+None
+
+### Files Modified
+- `app/views/public_episodes/show.html.erb` — Added generic podcast icon placeholder when artwork URL is missing; truncated og:title meta tag for long titles (80 char limit)
+
+### Test Results
+- **This milestone tests:** 53 passing, 0 failing (all M5 edge case tests pass)
+- **Prior milestone tests:** 578 passing, 0 failing (full suite green)
+- **Future milestone tests:** N/A (M5 is the last milestone)
+
+### Acceptance Criteria
+- [x] Edge case: Episode with no summary shows "Summary not yet available" with basic metadata on public page (handled in M1, verified)
+- [x] Edge case: OG image generation failure — public page falls back to text-only OG tags (no og:image tag if no image attached)
+- [x] Edge case: Podcast has no artwork — OG image uses a default placeholder; public page shows generic podcast icon
+- [x] Edge case: Very long episode title (100+ chars) — truncated with ellipsis on OG image and in og:title meta tag
+- [x] Edge case: Very long quote — truncated with ellipsis on OG image
+- [x] Edge case: Episode deleted after being shared — shared links return friendly 404
+- [x] Edge case: Summary regenerated — OG image is regenerated with latest content (old image replaced)
+- [x] Edge case: Concurrent share clicks — debounced client-side (verified from M3)
+- [x] Edge case: Social platform caches old OG image — documented as known limitation (no in-app fix)
+- [x] Edge case: User's account is deactivated — public pages still accessible (public pages serve episode data, not user data)
+- [x] Public page responsive design (mobile-friendly)
+- [x] Share popover/menu styled consistently with app design system
+
+### Spec Gaps
+None — all M5 acceptance criteria are satisfied. Most edge cases were covered by M1-M3 implementations; M5 added the two remaining view-level polish items (artwork fallback icon, og:title truncation).
+
+### Notes
+- M5 was a lightweight polish milestone. The bulk of edge case handling was built into M1 (empty states, 404s), M2 (artwork fallback, text truncation in OG images), and M3 (debounce, error handling). M5 only needed two view tweaks: a generic podcast icon for missing artwork and og:title truncation for long titles.
+- No new conventions discovered — existing AGENTS.md patterns covered all relevant patterns.
