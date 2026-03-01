@@ -1,3 +1,0 @@
-currently when there is an episode that has been sent for transcription, or the background job has started but somehow failed, the episode is still marked as "transcribing" in the UI in the library tab. there's no button to "retry". but it's also unclear what failed.
-
-we hit our limit on assembly ai today and it just kept everything stuck in that state with no way to use the app to get it unstuck. we need to solve this problem.

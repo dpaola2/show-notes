@@ -9,61 +9,92 @@
       .header h1 { margin: 0; font-size: 20px; }
       .header p { margin: 8px 0 0; opacity: 0.9; font-size: 14px; }
       .content { padding: 24px; }
-      .show-group { margin-bottom: 28px; }
+      .featured { padding: 0 0 20px; }
+      .featured .podcast-name { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 8px; }
+      .featured .episode-title { font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 20px; line-height: 1.3; }
+      .section-title { font-size: 15px; font-weight: 600; color: #111827; margin: 20px 0 8px; }
+      .section-content { font-size: 16px; color: #374151; line-height: 1.6; margin: 0 0 4px; overflow-wrap: break-word; word-wrap: break-word; }
+      .quote-block { border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 12px 0; background: #eff6ff; border-radius: 0 6px 6px 0; }
+      .quote-text { font-style: italic; color: #374151; font-size: 15px; line-height: 1.5; margin: 0; overflow-wrap: break-word; word-wrap: break-word; }
       .show-name { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #e5e7eb; }
       .episode { background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
-      .episode-title { font-weight: 600; color: #111827; margin: 0 0 8px; font-size: 15px; }
+      .episode-name { font-weight: 600; color: #111827; margin: 0 0 8px; font-size: 15px; }
       .episode-summary { font-size: 16px; color: #374151; line-height: 1.5; margin: 0 0 12px; }
-      .episode-processing { font-size: 14px; color: #92400e; background: #fef3c7; padding: 8px 12px; border-radius: 4px; margin: 0 0 12px; }
       .episode-links { font-size: 14px; }
       .episode-links a { color: #2563eb; text-decoration: none; margin-right: 16px; }
+      .signoff { text-align: center; color: #6b7280; font-size: 14px; padding: 16px 24px; font-style: italic; }
       .footer { padding: 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; font-size: 13px; color: #6b7280; text-align: center; }
       .footer a { color: #2563eb; text-decoration: none; }
     </style>
   </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>Your library</h1>
-        <p><%= @date %> &mdash; <%= @episode_count %> episode<%= 's' unless @episode_count == 1 %> ready</p>
+  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background: #f9fafb; margin: 0; padding: 20px;">
+    <div class="container" style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden;">
+      <div class="header" style="background: #1e40af; color: white; padding: 24px;">
+        <h1 style="margin: 0; font-size: 20px; color: white;">Your library</h1>
+        <p style="margin: 8px 0 0; opacity: 0.9; font-size: 14px; color: white;"><%= @date %> &mdash; <%= @total_count %> episode<%= 's' unless @total_count == 1 %> ready</p>
       </div>
 
-      <div class="content">
-        <% @episodes_by_show.each do |podcast, episodes| %>
-          <div class="show-group">
-            <div class="show-name"><%= podcast.title %></div>
+      <div class="content" style="padding: 24px;">
+        <%# Featured episode: full summary sections + quotes + single "Read in app" link %>
+        <div class="featured" style="padding: 0 0 20px;">
+          <div class="podcast-name" style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 8px;"><%= @featured_episode.podcast.title %></div>
+          <p class="episode-title" style="font-size: 20px; font-weight: 700; color: #111827; margin: 0 0 20px; line-height: 1.3;"><%= @featured_episode.title %></p>
 
-            <% episodes.each do |episode| %>
-              <div class="episode">
-                <p class="episode-title"><%= episode.title %></p>
+          <% @featured_episode.summary.sections.each do |section| %>
+            <p class="section-title" style="font-size: 15px; font-weight: 600; color: #111827; margin: 20px 0 8px;"><%= section["title"] %></p>
+            <p class="section-content" style="font-size: 16px; color: #374151; line-height: 1.6; margin: 0 0 4px; overflow-wrap: break-word; word-wrap: break-word;"><%= section["content"] %></p>
+          <% end %>
 
-                <% if episode.summary.present? %>
-                  <p class="episode-summary"><%= truncate(episode.summary.sections.first["content"], length: 200) %></p>
-                <% else %>
-                  <p class="episode-processing">Summary processing...</p>
-                <% end %>
-
-                <div class="episode-links">
-                  <a href="<%= tracking_click_url(@click_events[episode.id][:summary].token) %>">Read full summary</a>
-                  <a href="<%= tracking_click_url(@click_events[episode.id][:listen].token) %>">Listen</a>
-                </div>
+          <% if @featured_episode.summary.quotes.any? %>
+            <% @featured_episode.summary.quotes.each do |quote| %>
+              <div class="quote-block" style="border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 12px 0; background: #eff6ff; border-radius: 0 6px 6px 0;">
+                <p class="quote-text" style="font-style: italic; color: #374151; font-size: 15px; line-height: 1.5; margin: 0; overflow-wrap: break-word; word-wrap: break-word;"><%= quote["text"] %></p>
               </div>
             <% end %>
+          <% end %>
+
+          <div class="episode-links" style="font-size: 14px;">
+            <a href="<%= tracking_click_url(@click_events[@featured_episode.id][:summary].token) %>" style="color: #2563eb; text-decoration: none;">Read in app</a>
           </div>
+        </div>
+
+        <%# Recent episodes: compact format with summary preview + listen link %>
+        <% if @recent_episodes.any? %>
+          <div class="show-name" style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #e5e7eb;">Latest episodes</div>
+
+          <% @recent_episodes.each do |episode| %>
+            <div class="episode" style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+              <p class="podcast-name" style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 4px;"><%= episode.podcast.title %></p>
+              <p class="episode-name" style="font-weight: 600; color: #111827; margin: 0 0 8px; font-size: 15px;"><%= episode.title %></p>
+
+              <% if episode.summary.present? %>
+                <p class="episode-summary" style="font-size: 16px; color: #374151; line-height: 1.5; margin: 0 0 12px;"><%= truncate(episode.summary.sections.first["content"], length: 200) %></p>
+              <% end %>
+
+              <div class="episode-links" style="font-size: 14px;">
+                <a href="<%= tracking_click_url(@click_events[episode.id][:summary].token) %>" style="color: #2563eb; text-decoration: none; margin-right: 16px;">Read full summary</a>
+                <a href="<%= tracking_click_url(@click_events[episode.id][:listen].token) %>" style="color: #2563eb; text-decoration: none;">Listen</a>
+              </div>
+            </div>
+          <% end %>
         <% end %>
       </div>
 
-      <div class="footer">
+      <div class="signoff" style="text-align: center; color: #6b7280; font-size: 14px; padding: 16px 24px; font-style: italic;">
+        That's all for now.
+      </div>
+
+      <div class="footer" style="padding: 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; font-size: 13px; color: #6b7280; text-align: center;">
         <p>
-          <a href="<%= root_url %>">Open Show Notes</a>
+          <a href="<%= root_url %>" style="color: #2563eb; text-decoration: none;">Open Show Notes</a>
         </p>
         <p style="margin-top: 12px;">
           You're receiving this because you have daily digest enabled.<br>
-          <a href="<%= settings_url %>">Manage your settings</a> to unsubscribe.
+          <a href="<%= settings_url %>" style="color: #2563eb; text-decoration: none;">Manage your settings</a> to unsubscribe.
         </p>
       </div>
     </div>
 
-    <img src="<%= tracking_pixel_url(@open_event.token) %>" width="1" height="1" alt="">
+    <img src="<%= tracking_pixel_url(@open_event.token) %>" width="1" height="1" alt="" style="border: 0;">
   </body>
 </html>

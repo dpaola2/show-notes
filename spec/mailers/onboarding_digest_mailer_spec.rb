@@ -1,7 +1,8 @@
 require "rails_helper"
 
 # Tests for the library-scoped digest mailer (newsletter format with summaries + tracking).
-# The digest includes only episodes in the user's library with processing_status: :ready.
+# The digest includes only episodes in the user's library with processing_status: :ready
+# and a completed summary (INNER JOIN on summary).
 
 RSpec.describe DigestMailer, type: :mailer do
   describe "#daily_digest (newsletter format)" do
@@ -51,7 +52,7 @@ RSpec.describe DigestMailer, type: :mailer do
         expect(body).to include("TypeScript in 2026")
       end
 
-      it "does not truncate or limit episode count" do
+      it "shows up to 6 episodes (1 featured + 5 recent)" do
         # Create many more episodes
         8.times do |i|
           ep = create(:episode, podcast: podcast_a, title: "Extra Episode #{i}", created_at: 1.hour.ago)
@@ -62,9 +63,8 @@ RSpec.describe DigestMailer, type: :mailer do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        8.times do |i|
-          expect(body).to include("Extra Episode #{i}")
-        end
+        # Should have 6 episodes total (1 featured + 5 recent), not all 11
+        expect(body).to include("6 episodes")
       end
     end
 
@@ -85,7 +85,7 @@ RSpec.describe DigestMailer, type: :mailer do
         expect(body).to include("TypeScript in 2026")
       end
 
-      it "includes 2-3 sentence summaries from first section content" do
+      it "includes summary content" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
@@ -94,8 +94,8 @@ RSpec.describe DigestMailer, type: :mailer do
       end
     end
 
-    context "DIG-003: Read full summary links" do
-      it "includes Read full summary links for each episode" do
+    context "DIG-003: Read full summary links for recent episodes" do
+      it "includes Read full summary links for recent episodes" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
@@ -103,8 +103,8 @@ RSpec.describe DigestMailer, type: :mailer do
       end
     end
 
-    context "DIG-004: Listen links" do
-      it "includes Listen links for each episode" do
+    context "DIG-004: Listen links for recent episodes" do
+      it "includes Listen links for recent episodes" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
@@ -113,10 +113,11 @@ RSpec.describe DigestMailer, type: :mailer do
     end
 
     context "DIG-007: email header with date and count" do
-      it "has subject line with episode count" do
+      it "has subject line with featured episode format" do
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.subject).to include("3 episodes ready")
+        # New format: "Podcast: Title (+N more)"
+        expect(mail.subject).to include("(+2 more)")
       end
 
       it "includes date in the email body" do
@@ -133,41 +134,38 @@ RSpec.describe DigestMailer, type: :mailer do
         expect(body).to include("3")
       end
 
-      it "uses correct singular form for 1 episode" do
+      it "uses correct format for single episode" do
         # Remove all but one episode's subscriptions
         Episode.where.not(id: episode_b1.id).where(podcast_id: [ podcast_a.id, podcast_b.id ]).destroy_all
 
         mail = DigestMailer.daily_digest(user)
 
-        expect(mail.subject).to include("1 episode ready")
-        expect(mail.subject).not_to include("episodes")
+        expect(mail.subject).to include("Mostly Technical: TypeScript in 2026")
+        expect(mail.subject).not_to include("more")
       end
     end
 
-    context "DIG-008: episodes without summary show processing state" do
+    context "DIG-008: episodes without summary excluded from digest" do
       let!(:processing_episode) do
         ep = create(:episode, podcast: podcast_a, title: "Still Processing Episode", created_at: 1.hour.ago)
-        # Ready in library but no summary — edge case where summary creation failed
+        # Ready in library but no summary — excluded by INNER JOIN on summary
         create(:user_episode, :ready, user: user, episode: ep)
         ep
       end
 
-      it "includes the episode with a processing note" do
+      it "excludes the episode without a summary" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        expect(body).to include("Still Processing Episode")
-        expect(body).to include("processing")
+        expect(body).not_to include("Still Processing Episode")
       end
     end
 
-    context "DIG-009: episodes grouped by show" do
-      it "groups episodes under their podcast name" do
+    context "DIG-009: episodes shown with podcast names" do
+      it "shows podcast names for episodes" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        # Both Build Your SaaS episodes should appear near each other
-        # We can verify grouping by checking that the podcast header appears
         expect(body).to include("Build Your SaaS")
         expect(body).to include("Mostly Technical")
       end
@@ -179,9 +177,6 @@ RSpec.describe DigestMailer, type: :mailer do
       it "returns nil or empty mail when no new episodes exist" do
         mail = DigestMailer.daily_digest(user_no_episodes)
 
-        # The mailer should either not deliver or return a message object that
-        # won't be delivered (mail.perform_deliveries = false or message.body is empty)
-        # The implementation might use `return` early or `mail()` won't be called
         expect(mail.to).to be_nil.or(eq([]))
       end
     end
@@ -196,11 +191,10 @@ RSpec.describe DigestMailer, type: :mailer do
     end
 
     context "TRK-002: summary links use tracking redirect URLs" do
-      it "uses /t/ tracking redirect URLs for Read full summary links" do
+      it "uses /t/ tracking redirect URLs for Read in app and Read full summary links" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        # Links should go through tracking redirect, not directly to episode page
         expect(body).to match(%r{/t/[A-Za-z0-9_-]+})
       end
     end
@@ -210,10 +204,9 @@ RSpec.describe DigestMailer, type: :mailer do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        # Multiple tracking links should exist (summary + listen for each episode)
+        # 1 featured (summary only) + 2 recent (summary + listen each) + 1 pixel = 6
         tracking_links = body.scan(%r{/t/[A-Za-z0-9_-]+})
-        # At least 2 per episode (summary + listen) × 3 episodes + 1 open pixel = 7+
-        expect(tracking_links.length).to be >= 7
+        expect(tracking_links.length).to be >= 6
       end
     end
 
@@ -231,12 +224,12 @@ RSpec.describe DigestMailer, type: :mailer do
         expect(open_events.count).to eq(1)
       end
 
-      it "creates click events for each episode (summary + listen)" do
+      it "creates click events (1 for featured, 2 for each recent)" do
         DigestMailer.daily_digest(user)
 
         click_events = EmailEvent.where(user: user, event_type: "click")
-        # 3 episodes × 2 link types (summary + listen) = 6
-        expect(click_events.count).to eq(6)
+        # 1 featured (summary only) + 2 recent × 2 (summary + listen) = 5
+        expect(click_events.count).to eq(5)
       end
     end
 
@@ -265,19 +258,19 @@ RSpec.describe DigestMailer, type: :mailer do
       end
     end
 
-    context "edge case: episode with failed processing" do
+    context "edge case: episode without summary excluded" do
       let!(:failed_episode) do
         ep = create(:episode, podcast: podcast_a, title: "Failed Episode", created_at: 1.hour.ago)
-        # Ready in library but no summary — processing failed after transcription
+        # Ready in library but no summary — excluded by INNER JOIN
         create(:user_episode, :ready, user: user, episode: ep)
         ep
       end
 
-      it "includes the episode with title only" do
+      it "does not include the episode without a summary" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        expect(body).to include("Failed Episode")
+        expect(body).not_to include("Failed Episode")
       end
     end
 
@@ -297,6 +290,7 @@ RSpec.describe DigestMailer, type: :mailer do
     context "edge case: old episodes before last digest not included" do
       let!(:old_episode) do
         ep = create(:episode, podcast: podcast_a, title: "Old Episode Before Digest", created_at: 3.hours.ago)
+        create(:summary, episode: ep)
         ue = create(:user_episode, :ready, user: user, episode: ep)
         # UserEpisode updated BEFORE digest_sent_at — not "new"
         ue.update_column(:updated_at, 3.hours.ago)

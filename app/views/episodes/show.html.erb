@@ -3,7 +3,12 @@
     <h1 class="text-xl sm:text-2xl font-bold"><%= @episode.title %></h1>
     <%= render "shared/share_button", episode: @episode %>
   </div>
-  <p class="text-gray-600 mb-4 sm:mb-6"><%= @podcast.title %></p>
+  <p class="text-gray-600"><%= @podcast.title %></p>
+  <% if @episode.published_at.present? %>
+    <p class="text-gray-500 text-sm mb-4 sm:mb-6"><%= @episode.published_at.strftime("%b %d, %Y") %></p>
+  <% else %>
+    <div class="mb-4 sm:mb-6"></div>
+  <% end %>
 
   <% if @summary.present? %>
     <section class="mb-6 sm:mb-8">
