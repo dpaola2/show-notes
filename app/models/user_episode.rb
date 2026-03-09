@@ -43,6 +43,10 @@ class UserEpisode < ApplicationRecord
     update!(location: :archive, trashed_at: nil)
   end
 
+  def restore_from_archive!
+    update!(location: :library)
+  end
+
   def move_to_trash!
     update!(location: :trash, trashed_at: Time.current)
   end

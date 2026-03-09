@@ -76,6 +76,12 @@ Rails.application.routes.draw do
         post :archive
       end
     end
+
+    resources :archive, only: [ :index ] do
+      member do
+        post :restore
+      end
+    end
   end
 
   # Health check
