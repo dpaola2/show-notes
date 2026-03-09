@@ -70,6 +70,12 @@ Rails.application.routes.draw do
     resource :session, only: [ :create, :destroy ] do
       post :verify, on: :member
     end
+
+    resources :library, only: [ :index, :show ] do
+      member do
+        post :archive
+      end
+    end
   end
 
   # Health check
