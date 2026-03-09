@@ -65,6 +65,13 @@ Rails.application.routes.draw do
   # User settings
   resource :settings, only: [ :show, :update ]
 
+  # API
+  namespace :api do
+    resource :session, only: [ :create, :destroy ] do
+      post :verify, on: :member
+    end
+  end
+
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
