@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appID": "MHJW9PMHE4.com.davepaola.Show-Notes",
+        "paths": [
+          "/auth/verify*"
+        ]
+      }
+    ]
+  }
+}
