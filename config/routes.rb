@@ -84,6 +84,9 @@ Rails.application.routes.draw do
     end
   end
 
+  # Apple App Site Association (Universal Links)
+  get ".well-known/apple-app-site-association", to: "well_known#apple_app_site_association"
+
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 

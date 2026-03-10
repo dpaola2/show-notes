@@ -1,10 +1,18 @@
 {
   "applinks": {
+    "apps": [],
     "details": [
       {
-        "appID": "MHJW9PMHE4.com.davepaola.Show-Notes",
-        "paths": [
-          "/auth/verify*"
+        "appIDs": [
+          "MHJW9PMHE4.com.davepaola.Show-Notes"
+        ],
+        "components": [
+          {
+            "/": "/auth/verify",
+            "?": {
+              "token": "*"
+            }
+          }
         ]
       }
     ]
