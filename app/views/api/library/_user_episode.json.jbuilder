@@ -1,12 +1,14 @@
 json.id user_episode.id
 json.processing_status user_episode.processing_status
 json.location user_episode.location
+json.processing_error user_episode.processing_error
 json.created_at user_episode.created_at.iso8601
 
 json.episode do
   json.id user_episode.episode.id
   json.title user_episode.episode.title
   json.published_at user_episode.episode.published_at&.iso8601
+  json.duration_seconds user_episode.episode.duration_seconds
 
   json.podcast do
     json.id user_episode.episode.podcast.id
