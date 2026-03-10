@@ -3,7 +3,7 @@ class Api::InboxController < Api::BaseController
     @pagy, @user_episodes = pagy(
       current_user.user_episodes
         .in_inbox
-        .includes(episode: [:podcast, :summary])
+        .includes(episode: [ :podcast, :summary ])
         .order("episodes.published_at DESC")
     )
   rescue Pagy::OverflowError

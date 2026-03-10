@@ -83,7 +83,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :inbox, only: [:index] do
+    resources :inbox, only: [ :index ] do
       member do
         post :add_to_library
         post :skip
