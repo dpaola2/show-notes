@@ -16,7 +16,7 @@ Rails.application.config.middleware.insert_before(
         headers["content-type"] = "application/json"
       end
 
-      [status, headers, response]
+      [ status, headers, response ]
     end
   }
 )

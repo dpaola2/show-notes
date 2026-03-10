@@ -53,7 +53,7 @@ RSpec.describe "Api::Archive", type: :request do
 
         parsed = JSON.parse(response.body)
         ids = parsed["episodes"].map { |e| e["episode"]["id"] }
-        expect(ids).to eq([new_episode.id, old_episode.id])
+        expect(ids).to eq([ new_episode.id, old_episode.id ])
       end
 
       it "returns pagination meta in the response" do

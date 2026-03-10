@@ -53,7 +53,7 @@ RSpec.describe "Api::Library", type: :request do
 
         parsed = JSON.parse(response.body)
         ids = parsed["episodes"].map { |e| e["episode"]["id"] }
-        expect(ids).to eq([new_episode.id, old_episode.id])
+        expect(ids).to eq([ new_episode.id, old_episode.id ])
       end
     end
 

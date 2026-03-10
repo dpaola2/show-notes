@@ -8,7 +8,7 @@ class ApiToken < ApplicationRecord
   def self.generate_for(user)
     plaintext = SecureRandom.urlsafe_base64(32)
     token = user.api_tokens.create!(token_digest: Digest::SHA256.hexdigest(plaintext))
-    [token, plaintext]
+    [ token, plaintext ]
   end
 
   # Look up a token by its plaintext value (hashes and queries).
