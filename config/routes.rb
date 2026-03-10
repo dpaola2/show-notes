@@ -82,6 +82,17 @@ Rails.application.routes.draw do
         post :restore
       end
     end
+
+    resources :inbox, only: [:index] do
+      member do
+        post :add_to_library
+        post :skip
+        post :retry_processing
+      end
+      collection do
+        delete :clear
+      end
+    end
   end
 
   # Apple App Site Association (Universal Links)
