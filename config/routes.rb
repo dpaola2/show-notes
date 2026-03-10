@@ -66,7 +66,7 @@ Rails.application.routes.draw do
   resource :settings, only: [ :show, :update ]
 
   # API
-  namespace :api do
+  namespace :api, defaults: { format: :json } do
     resource :session, only: [ :create, :destroy ] do
       post :verify, on: :member
     end

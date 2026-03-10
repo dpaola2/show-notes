@@ -3,6 +3,11 @@ class Api::SessionsController < Api::BaseController
 
   def create
     email = params[:email]&.downcase&.strip
+
+    if email.blank? || !email.match?(URI::MailTo::EMAIL_REGEXP)
+      render json: { error: "Invalid email address" }, status: :unprocessable_entity and return
+    end
+
     user = User.find_or_create_by!(email: email)
     token = user.generate_magic_token!
     source = params[:source]&.to_sym || :web
