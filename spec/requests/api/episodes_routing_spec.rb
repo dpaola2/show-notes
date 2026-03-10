@@ -1,9 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Api::Episodes routing", type: :request do
-  let(:user) { create(:user) }
-  let(:token) { api_sign_in_as(user) }
-
+RSpec.describe "Api::Episodes routing", type: :routing do
   describe "ROUTE-001: GET /api/episodes/:episode_id/library_entry" do
     it "routes to Api::EpisodesController#library_entry" do
       expect(get: "/api/episodes/42/library_entry").to route_to(
