@@ -93,6 +93,10 @@ Rails.application.routes.draw do
         delete :clear
       end
     end
+
+    # Deep linking: episode library entry lookup and tracking click
+    get "episodes/:episode_id/library_entry", to: "episodes#library_entry"
+    post "tracking/click", to: "tracking#click"
   end
 
   # Apple App Site Association (Universal Links)
