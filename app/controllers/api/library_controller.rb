@@ -1,10 +1,11 @@
 class Api::LibraryController < Api::BaseController
   def index
+    sort_direction = params[:sort] == "oldest" ? "ASC" : "DESC"
     @pagy, @user_episodes = pagy(
       current_user.user_episodes
         .in_library
         .includes(episode: [ :podcast, :summary ])
-        .order("episodes.published_at DESC")
+        .order("episodes.published_at #{sort_direction}")
     )
   rescue Pagy::OverflowError
     @pagy = Pagy.new(count: 0, page: 1)
