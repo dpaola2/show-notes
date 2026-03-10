@@ -161,6 +161,22 @@ UTM params flow through the magic link signup: `GET /login?utm_source=share` →
 
 `app/views/shared/_share_button.html.erb` is the reusable share button component. It takes an `episode` local and wires up the `share` Stimulus controller with data attributes for URL, title, episode ID, and share endpoint. Render with `<%= render "shared/share_button", episode: @episode %>`.
 
+## API Namespace (`Api::`)
+
+`Api::BaseController` inherits from `ActionController::Base` (NOT `ApplicationController`) to avoid session-based auth, Turbo Drive, browser version checks, and CSRF protection. It includes `Pagy::Method` directly and implements bearer token authentication via `before_action :require_api_authentication`.
+
+- **Auth pattern:** Bearer tokens in `Authorization: Bearer <token>` header. Tokens are SHA-256 hashed and stored in `api_tokens` table. Lookup via `ApiToken.find_by_plaintext(token)`.
+- **Error format:** All API errors use `{ "error": "<message>" }` JSON format.
+- **Protected endpoints:** Use `require_api_authentication` (default). Skip with `skip_before_action :require_api_authentication, only: [...]`.
+- **Token revocation:** Logout invalidates the token by prefixing the digest with `revoked:`. The record is kept (not destroyed) so `last_used_at` tracking survives.
+- **Jbuilder templates:** API views live in `app/views/api/<controller>/`. Follow the patterns established in `app/views/api/library/` — partials prefixed with `_`, `local_assigns` for optional flags (e.g., `include_summary`).
+- **RecordNotFound handling:** API controllers rescue `ActiveRecord::RecordNotFound` and call `render_not_found` (defined in `Api::BaseController`). Do NOT rely on Rails' default exception handling — `show_exceptions = :none` in test env causes raw exceptions to propagate.
+- **Pagy empty collection:** Pagy returns `pages: 1` for zero records. Use `@pagy.count.zero? ? 0 : @pagy.pages` in views to return `pages: 0` for empty collections. Overflow pages are handled by rescuing `Pagy::OverflowError`.
+
+### Test Helper
+
+`api_sign_in_as(user)` creates an `ApiToken` and returns the plaintext token. `api_headers(token)` returns the `Authorization: Bearer` header hash. Both are in `spec/support/api_authentication_helpers.rb`.
+
 ## Production Server Operations
 
 SSH into the server first:

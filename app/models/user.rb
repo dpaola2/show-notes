@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_many :user_episodes, dependent: :destroy
   has_many :email_events, dependent: :destroy
   has_many :share_events, dependent: :nullify
+  has_many :api_tokens, dependent: :destroy
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
 

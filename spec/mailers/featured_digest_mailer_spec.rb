@@ -24,6 +24,8 @@ RSpec.describe DigestMailer, type: :mailer do
     end
 
     context "SL-002: subject appends (+N more) when additional episodes exist" do
+      before { user.update_column(:digest_sent_at, 12.hours.ago) }
+
       let!(:episodes) do
         3.times.map do |i|
           ep = create(:episode, podcast: podcast, title: "Episode #{i}")
@@ -281,6 +283,8 @@ RSpec.describe DigestMailer, type: :mailer do
     # ── M2/M4: Overflow and Header Count ─────────────────────────────────
 
     context "more than 6 qualifying episodes" do
+      before { user.update_column(:digest_sent_at, 12.hours.ago) }
+
       let!(:episodes) do
         8.times.map do |i|
           ep = create(:episode, podcast: podcast, title: "Overflow Episode #{i}")
