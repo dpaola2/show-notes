@@ -43,7 +43,7 @@ RSpec.describe "Api::Library", type: :request do
         expect(parsed["episodes"].first["episode"]["summary"]).to be_nil
       end
 
-      it "orders episodes by published_at DESC" do
+      it "orders episodes by published_at DESC by default" do
         old_episode = create(:episode, podcast: podcast, published_at: 3.days.ago)
         new_episode = create(:episode, podcast: podcast, published_at: 1.day.ago)
         create(:user_episode, :ready, user: user, episode: old_episode)
@@ -54,6 +54,19 @@ RSpec.describe "Api::Library", type: :request do
         parsed = JSON.parse(response.body)
         ids = parsed["episodes"].map { |e| e["episode"]["id"] }
         expect(ids).to eq([ new_episode.id, old_episode.id ])
+      end
+
+      it "orders episodes by published_at ASC when sort=oldest" do
+        old_episode = create(:episode, podcast: podcast, published_at: 3.days.ago)
+        new_episode = create(:episode, podcast: podcast, published_at: 1.day.ago)
+        create(:user_episode, :ready, user: user, episode: old_episode)
+        create(:user_episode, :ready, user: user, episode: new_episode)
+
+        get "/api/library", params: { sort: "oldest" }, headers: api_headers(token), as: :json
+
+        parsed = JSON.parse(response.body)
+        ids = parsed["episodes"].map { |e| e["episode"]["id"] }
+        expect(ids).to eq([ old_episode.id, new_episode.id ])
       end
     end
 
