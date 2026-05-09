@@ -56,6 +56,67 @@ After completing each task:
 6. Mark task as `completed`
 7. Move to next unblocked task
 
+## Engineering Methodology
+
+These conventions apply to every change in this codebase — features, bug fixes, refactors. Future agents and human engineers should follow them by default. Mirrored from the canonical template at `~/projects/assistant/03-living-docs/Engineering-Methodology.md` — update there first, then sync.
+
+### 1. Always work from a plan, not vibes
+
+Before writing code, produce (or read) two artifacts:
+
+- **Requirements** — what behavior is expected, in plain language. Inputs, outputs, edge cases.
+- **Technical gameplan** — how you'll achieve those requirements. Files to touch, data model changes, test strategy, rollback.
+
+For trivial fixes the plan can be three bullets. For anything else, write it down. The plan is what we align on; the code is the consequence.
+
+### 2. TDD by default — Red → Green → Refactor
+
+Write a failing test first. Watch it fail. Write the minimum code to make it pass. Then refactor with the test as your safety net. Applies to:
+
+- **New features** — the test specifies what "done" means before you start.
+- **Bug fixes** — the test reproduces the bug and stays in the suite as a regression guard. **A bug fix without a regression test is not done.** Even a one-character fix gets a test that would have caught it.
+- **Refactors** — existing tests must continue to pass; add new ones if you discover untested behavior in the area you're touching.
+
+### 3. Test behavior, not implementation
+
+Tests should describe **what** the system does, not **how** it does it.
+
+- **Test the public interface.** Assert on return values and observable side effects of public methods. Don't test private methods directly — they're tested through the public interface.
+- **Don't test what you don't own.** Don't assert that Rails, the database, or third-party gems work. Test that *your code* sends the right messages to them.
+- **Incoming messages → assert result.** Public methods return values or cause side effects; assert those.
+- **Outgoing command messages → assert sent.** When your object tells a collaborator to *do* something (create a record, send an email), assert the message was sent — not what happens inside the collaborator.
+- **Outgoing query messages → don't test.** If your object asks a collaborator a question, don't assert that the question was asked. That's an implementation detail.
+- **Mocks belong at boundaries** (HTTP, jobs, external APIs), not inside your own object graph.
+- **Structural assertions are an anti-pattern.** Don't test file layout, line counts, or directory structure. If the public contract works, the structure is irrelevant.
+- **A test that breaks when you refactor without changing behavior is testing the wrong thing.** Delete it or rewrite it.
+
+### 4. Sandi Metz rules — guardrails, not laws
+
+- **Classes ≤ 100 lines.** If a class exceeds 100 LOC, it's doing too much — extract a new object.
+- **Methods ≤ 5 lines** (aspirational — use judgment). Long methods hide multiple responsibilities.
+- **≤ 4 parameters per method.** More than 4 means you need a parameter object or the method is doing too much. Use keyword args.
+- **Controllers instantiate one object.** The controller action creates/finds one primary object; logic lives in that object or its collaborators, not in the controller.
+
+Break a rule when you have a good reason; document the reason. The point is to push you toward extraction when something is growing — not to mechanically count lines.
+
+### 5. SOLID, briefly
+
+- **Single Responsibility** — each class has one reason to change. Can't name it without "and"? Extract.
+- **Open/Closed** — extend by adding new classes (services, executors, strategies), not by editing existing ones.
+- **Liskov Substitution** — subclasses should be drop-in replaceable for their parents; the caller shouldn't need to know.
+- **Interface Segregation** — clients depend only on what they use; don't fatten interfaces to satisfy unrelated callers.
+- **Dependency Inversion** — depend on abstractions (duck-typed collaborators), not concretions. Inject collaborators so tests can substitute fakes without mocking frameworks.
+
+### 6. In practice
+
+- **Small objects > large objects.** When in doubt, extract a new class. A 30-line class with a clear name is better than a private method buried in a 300-line file.
+- **Composition over inheritance.** Use modules for shared behavior; prefer injecting collaborators over deep inheritance hierarchies.
+- **Tell, don't ask.** Send messages to objects rather than querying their state and making decisions for them.
+- **Trust the message.** If you find yourself checking an object's type or state to decide what to do, push that decision into the object itself.
+- **Objects play roles, not identities.** Design around *what messages an object responds to* (its role), not *what class it is* (its identity). Duck typing makes code open to extension: new objects can play existing roles without modifying callers.
+
+---
+
 ## Testing Strategy
 
 ### What to test:
