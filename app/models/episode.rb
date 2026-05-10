@@ -20,6 +20,12 @@ class Episode < ApplicationRecord
   # Replaces library_ready_since(user, since) entirely. Ordering is newest-published
   # first, with id DESC tiebreaker (PRD edge case for identical published_at).
   # NULLS LAST handles episodes with missing published_at — they sort to the end.
+  #
+  # Uses `.preload` (separate queries) rather than `.includes` to avoid triggering
+  # `eager_loading?`. Eager-loading mode causes ActiveRecord::Relation#exists? to
+  # internally re-spawn the relation and recurse — fine in production, but
+  # incompatible with `allow(relation).to receive(:exists?).and_call_original`
+  # specs because spawned relations clone singleton stubs.
   scope :eligible_for_drip, ->(user) {
     joins(:user_episodes, :podcast, :summary)
       .where(user_episodes: {
@@ -28,7 +34,7 @@ class Episode < ApplicationRecord
         processing_status: UserEpisode.processing_statuses[:ready],
         digest_featured_at: nil
       })
-      .includes(:podcast, :summary)
+      .preload(:podcast, :summary)
       .order(Arel.sql("episodes.published_at DESC NULLS LAST"), Arel.sql("episodes.id DESC"))
       .distinct
   }

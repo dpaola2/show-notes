@@ -163,9 +163,10 @@ See also [AGENTS.md](AGENTS.md) for agent-discovered patterns and gotchas.
 - `UserMailer` — user-facing auth emails (magic links)
 - `DigestMailer` — user-facing daily digest (newsletter format), includes `ApplicationHelper`
   - Uses class method + instance method architecture to work around ActionMailer's lazy `MessageDelivery` in Rails 8.1
-  - `self.daily_digest(user)` eagerly queries episodes and creates EmailEvent tracking records, stores in `Thread.current[:digest_mailer_data]`
-  - Instance method reads from thread-local (same-thread) or falls back to DB re-query (deliver_later in different thread)
-  - Returns `ActionMailer::Base::NullMail.new` when no new episodes exist (skips sending)
+  - Library-drip signature: `self.daily_digest(user, since: nil, featured_episode_id: nil, recent_episode_ids: nil)`. `since:` is a no-op kwarg retained for backwards compat with older serialised Solid Queue jobs (per SN-17 GP-1); will be removed in a follow-up release.
+  - `self.daily_digest(user, ...)` eagerly picks featured + 5 compact episodes (by passed IDs OR via `Episode.eligible_for_drip(user).limit(6)`), creates EmailEvent tracking records, AND stamps `digest_featured_at` / `digest_last_appeared_at` — all wrapped in a single `ActiveRecord::Base.transaction` so a failure inside event creation rolls back the digest-stamping (TRK-004 atomicity).
+  - Instance method reads from `Thread.current[:digest_mailer_data]` (same-thread) or falls back to loading episodes by `featured_episode_id` / `recent_episode_ids` kwargs (deliver_later in different thread); fallback to fresh `eligible_for_drip` re-query only when both kwarg IDs are nil (legacy queue draining).
+  - Returns `ActionMailer::Base::NullMail.new` when no eligible episodes exist (skips sending; no EmailEvents created).
 - `SignupNotificationMailer` — internal admin notifications (separate class for different audience)
 - All mailers use multipart templates (HTML + text) in `app/views/<mailer_name>/`
 - Production: Resend (`config.action_mailer.delivery_method = :resend`)
@@ -177,9 +178,16 @@ See also [AGENTS.md](AGENTS.md) for agent-discovered patterns and gotchas.
 - Tracking endpoints (`TrackingController`) skip authentication — opaque tokens, internal destinations only
 - `onboarding:engagement_report` rake task prints opens by user/date, clicks by episode, summary stats
 
+### ActiveRecord Scopes
+- Prefer `.preload` over `.includes` for scopes that need eager-loaded associations without filter/order on the joined tables. `.includes` + `.joins` of the same association makes `eager_loading?` true, which causes `Relation#exists?` to internally re-spawn the relation via `apply_join_dependency`. Combined with `clone`-based spawning, RSpec's `allow(rel).to receive(:exists?).and_call_original` recurses infinitely on the cloned singleton stub. `.preload` issues separate queries and avoids the eager-loading branch entirely.
+- `Episode.eligible_for_drip(user)` (library-drip selector) is the canonical example — joins on `:user_episodes, :podcast, :summary` for filtering + preloads `:podcast, :summary` for view-time access.
+- Use `Arel.sql("...")` inside `.order(...)` for raw SQL clauses like `published_at DESC NULLS LAST` — Rails 8.1 enforces this for non-attribute order fragments to prevent SQL injection.
+
 ### Background Jobs
-- `SendDailyDigestJob` — library-scoped digest delivery, runs at 7 AM Eastern via Solid Queue
+- `SendDailyDigestJob` — library-drip digest delivery, runs at 7 AM Eastern via Solid Queue
   - Overrides `perform_now` to suppress `ActiveJob::Base.logger` during execution (avoids LogSubscriber interference with test mocks)
+  - Per-user loop: calls `Episode.eligible_for_drip(user)` once, uses `.exists?` for the predicate, then materializes `.limit(6).to_a` to pass featured + recent episode IDs as kwargs to `DigestMailer.daily_digest(user, ...)`. This keeps `eligible_for_drip` to a single call per user iteration (the mailer trusts the IDs and does not re-query), which makes the deliver_later worker fully deterministic.
+  - `digest_sent_at` is bumped on every successful enqueue (retained for `settings#show`); NOT bumped when a user has zero eligible episodes (no enqueue).
 - `FetchPodcastFeedJob` — fetches podcast RSS feeds, creates Episode + UserEpisode inbox entries for subscribers (no auto-transcription)
 - `DetectStuckProcessingJob` — recurring (every 10 min), transitions UserEpisodes stuck in transcribing/summarizing >30 min to error
 - `ProcessEpisodeJob` uses `limits_concurrency key: "transcription", to: 3` — Solid Queue semaphore limits global concurrent transcription jobs
