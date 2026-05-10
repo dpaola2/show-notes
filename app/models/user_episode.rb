@@ -19,6 +19,7 @@ class UserEpisode < ApplicationRecord
   scope :in_archive, -> { where(location: :archive) }
   scope :in_trash, -> { where(location: :trash) }
   scope :expired_trash, -> { in_trash.where("trashed_at < ?", 90.days.ago) }
+  scope :unfeatured, -> { where(digest_featured_at: nil) }
 
   # Delegate common episode attributes for convenience
   delegate :title, :description, :audio_url, :duration_seconds, :published_at,
@@ -58,5 +59,17 @@ class UserEpisode < ApplicationRecord
       next_retry_at: nil,
       processing_error: nil
     )
+  end
+
+  # Mark this UserEpisode as featured in today's digest. Idempotent — only
+  # writes if currently nil (prevents accidental re-stamping).
+  def mark_digest_featured!(at: Time.current)
+    update!(digest_featured_at: at) if digest_featured_at.nil?
+  end
+
+  # Mark this UserEpisode as having appeared in today's compact list.
+  # Always overwrites (we only care about the most recent appearance).
+  def mark_digest_compact_appearance!(at: Time.current)
+    update!(digest_last_appeared_at: at)
   end
 end
