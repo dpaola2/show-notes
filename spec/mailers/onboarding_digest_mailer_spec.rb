@@ -287,22 +287,12 @@ RSpec.describe DigestMailer, type: :mailer do
       end
     end
 
-    context "edge case: old episodes before last digest not included" do
-      let!(:old_episode) do
-        ep = create(:episode, podcast: podcast_a, title: "Old Episode Before Digest", created_at: 3.hours.ago)
-        create(:summary, episode: ep)
-        ue = create(:user_episode, :ready, user: user, episode: ep)
-        # UserEpisode updated BEFORE digest_sent_at — not "new"
-        ue.update_column(:updated_at, 3.hours.ago)
-        ep
-      end
-
-      it "does not include episodes with user_episode updated before last digest_sent_at" do
-        mail = DigestMailer.daily_digest(user)
-        body = mail.html_part.body.to_s
-
-        expect(body).not_to include("Old Episode Before Digest")
-      end
-    end
+    # NOTE: The previous "edge case: old episodes before last digest not included"
+    # context was deleted as part of SN-17 / M6.
+    # Library-drip (PRD §1) explicitly inverts the prior 24h-window behavior:
+    # OLD episodes that haven't been featured yet are eligible. The selector is no
+    # longer anchored on user.digest_sent_at; eligibility is library + ready +
+    # digest_featured_at IS NULL. See `spec/integration/library_drip_digest_flow_spec.rb`
+    # ("edge: old (6-month) episode renders gracefully") for the new ground truth.
   end
 end

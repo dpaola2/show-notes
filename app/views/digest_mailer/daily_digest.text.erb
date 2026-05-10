@@ -1,5 +1,5 @@
-Your library — <%= @date %>
-<%= @total_count %> episode<%= 's' unless @total_count == 1 %> ready
+From your library — <%= @date %>
+<%= @total_count %> episode<%= 's' unless @total_count == 1 %> picked for you
 ========================================
 
 <%= @featured_episode.podcast.title %>
@@ -21,7 +21,7 @@ Read in app: <%= tracking_click_url(@click_events[@featured_episode.id][:summary
 <% if @recent_episodes.any? %>
 
 ----------------------------------------
-LATEST EPISODES
+NEXT FROM YOUR LIBRARY
 ----------------------------------------
 <% @recent_episodes.each do |episode| %>
 

@@ -19,8 +19,16 @@ class SendDailyDigestJob < ApplicationJob
     skipped_count = 0
 
     users_to_notify.find_each do |user|
-      if has_new_episodes?(user)
-        DigestMailer.daily_digest(user).deliver_later
+      relation = Episode.eligible_for_drip(user)
+      if relation.exists?
+        episodes = relation.limit(6).to_a
+        DigestMailer
+          .daily_digest(
+            user,
+            featured_episode_id: episodes.first&.id,
+            recent_episode_ids: episodes.drop(1).map(&:id)
+          )
+          .deliver_later
         user.update!(digest_sent_at: Time.current)
         sent_count += 1
       else
@@ -30,12 +38,5 @@ class SendDailyDigestJob < ApplicationJob
 
     message = "[SendDailyDigestJob] Sent #{sent_count} digests, skipped #{skipped_count}"
     Rails.logger.info(message)
-  end
-
-  private
-
-  def has_new_episodes?(user)
-    since = [ user.digest_sent_at, 24.hours.ago ].compact.max
-    Episode.library_ready_since(user, since).exists?
   end
 end

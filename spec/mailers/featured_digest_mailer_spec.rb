@@ -61,11 +61,12 @@ RSpec.describe DigestMailer, type: :mailer do
 
     context "FE-004: click events for featured vs recent episodes" do
       let!(:episodes) do
+        # Library-drip orders by published_at DESC NULLS LAST, id DESC.
+        # Episode 0 has the newest published_at -> wins as featured.
         3.times.map do |i|
-          ep = create(:episode, podcast: podcast, title: "Event Episode #{i}")
+          ep = create(:episode, podcast: podcast, title: "Event Episode #{i}", published_at: (i + 1).hours.ago)
           create(:summary, episode: ep)
-          ue = create(:user_episode, :ready, user: user, episode: ep)
-          ue.update_column(:updated_at, (i + 1).hours.ago)
+          create(:user_episode, :ready, user: user, episode: ep)
           ep
         end
       end
@@ -73,7 +74,8 @@ RSpec.describe DigestMailer, type: :mailer do
       it "does not create a listen click event for the featured episode" do
         DigestMailer.daily_digest(user)
 
-        # Featured episode is the most recently updated (Episode 0, updated 1 hour ago)
+        # Featured episode is the most-recently-published (Episode 0, published 1 hour ago)
+        # under library-drip ordering (published_at DESC NULLS LAST, id DESC).
         featured = episodes.first
         listen_event = EmailEvent.find_by(
           user: user, episode: featured, event_type: "click", link_type: "listen"
@@ -131,8 +133,10 @@ RSpec.describe DigestMailer, type: :mailer do
     # ── M2: Featured Episode HTML Template ───────────────────────────────
 
     context "featured episode rendering in HTML" do
+      # Library-drip orders by published_at DESC NULLS LAST, id DESC.
+      # The featured episode gets the newest published_at so it wins under the new selector.
       let!(:featured_episode) do
-        ep = create(:episode, podcast: podcast, title: "Featured Deep Dive")
+        ep = create(:episode, podcast: podcast, title: "Featured Deep Dive", published_at: 30.minutes.ago)
         create(:summary, episode: ep, sections: [
           { "title" => "Key Takeaways", "content" => "First section with important insights about the topic." },
           { "title" => "Expert Analysis", "content" => "Second section diving deeper into the implications." },
@@ -141,17 +145,15 @@ RSpec.describe DigestMailer, type: :mailer do
           { "text" => "This changes everything we know about the industry.", "start_time" => 500 },
           { "text" => "Innovation happens at the intersection of disciplines.", "start_time" => 1200 }
         ])
-        ue = create(:user_episode, :ready, user: user, episode: ep)
-        ue.update_column(:updated_at, 30.minutes.ago)
+        create(:user_episode, :ready, user: user, episode: ep)
         ep
       end
 
       let!(:recent_episodes) do
         2.times.map do |i|
-          ep = create(:episode, podcast: podcast, title: "Recent Episode #{i}")
+          ep = create(:episode, podcast: podcast, title: "Recent Episode #{i}", published_at: (i + 2).hours.ago)
           create(:summary, episode: ep)
-          ue = create(:user_episode, :ready, user: user, episode: ep)
-          ue.update_column(:updated_at, (i + 2).hours.ago)
+          create(:user_episode, :ready, user: user, episode: ep)
           ep
         end
       end
@@ -188,11 +190,11 @@ RSpec.describe DigestMailer, type: :mailer do
         expect(body).to include("Read in app")
       end
 
-      it "RE-001: shows Latest episodes heading when multiple episodes exist" do
+      it "RE-001: shows the library-drip section heading when multiple episodes exist" do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        expect(body).to include("Latest episodes")
+        expect(body).to include("Next from your library")
       end
 
       it "RE-006: displays That's all for now sign-off" do
@@ -286,11 +288,12 @@ RSpec.describe DigestMailer, type: :mailer do
       before { user.update_column(:digest_sent_at, 12.hours.ago) }
 
       let!(:episodes) do
+        # Library-drip orders by published_at DESC NULLS LAST, id DESC.
+        # Episode 0 is the newest, Episode 7 is the oldest.
         8.times.map do |i|
-          ep = create(:episode, podcast: podcast, title: "Overflow Episode #{i}")
+          ep = create(:episode, podcast: podcast, title: "Overflow Episode #{i}", published_at: (i + 1).hours.ago)
           create(:summary, episode: ep)
-          ue = create(:user_episode, :ready, user: user, episode: ep)
-          ue.update_column(:updated_at, (i + 1).hours.ago)
+          create(:user_episode, :ready, user: user, episode: ep)
           ep
         end
       end
@@ -299,7 +302,7 @@ RSpec.describe DigestMailer, type: :mailer do
         mail = DigestMailer.daily_digest(user)
         body = mail.html_part.body.to_s
 
-        # Episodes 6 and 7 are the oldest — should be omitted
+        # Episodes 6 and 7 are the oldest by published_at — should be omitted
         expect(body).not_to include("Overflow Episode 6")
         expect(body).not_to include("Overflow Episode 7")
       end

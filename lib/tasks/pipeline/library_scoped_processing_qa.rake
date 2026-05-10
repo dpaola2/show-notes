@@ -1,19 +1,29 @@
+# NOTE: Filename intentionally retained as `library_scoped_processing_qa.rake` per GP-2
+# decision (preserves `git log --follow` history). Body and operator-facing copy now
+# reflect the library-drip data model (SN-17).
+
 namespace :pipeline do
-  desc "Seed test data for library-scoped processing QA (idempotent, dev only)"
+  desc "Seed test data for library-drip digest QA: happy/exhausted/mixed + NULL/tiebreak edges (idempotent, dev/test only)"
   task library_scoped_processing_qa: :environment do
-    unless Rails.env.development?
-      abort "This task is only for development environments"
+    unless Rails.env.development? || Rails.env.test?
+      abort "This task is only for development or test environments"
     end
 
-    test_email = "library-qa@example.com"
-
-    # --- Test user ---
-    user = User.find_or_create_by!(email: test_email) do |u|
+    # --- Users ---
+    user_happy = User.find_or_create_by!(email: "library-qa-happy@example.com") do |u|
       u.digest_enabled = true
     end
-    user.update!(digest_enabled: true, digest_sent_at: 25.hours.ago)
+    user_happy.update!(digest_enabled: true)
 
-    puts "Test user: #{user.email} (digest_sent_at: #{user.digest_sent_at})"
+    user_exhausted = User.find_or_create_by!(email: "library-qa-exhausted@example.com") do |u|
+      u.digest_enabled = true
+    end
+    user_exhausted.update!(digest_enabled: true)
+
+    user_mixed = User.find_or_create_by!(email: "library-qa-mixed@example.com") do |u|
+      u.digest_enabled = true
+    end
+    user_mixed.update!(digest_enabled: true)
 
     # --- Podcasts ---
     podcast_a = Podcast.find_or_create_by!(feed_url: "https://feeds.example.com/library-qa-show-a") do |p|
@@ -26,102 +36,148 @@ namespace :pipeline do
       p.title = "Library QA — Show B"
     end
 
-    user.subscriptions.find_or_create_by!(podcast: podcast_a)
-    user.subscriptions.find_or_create_by!(podcast: podcast_b)
-
-    counts = { inbox: 0, library_ready: 0, library_pending: 0, library_error: 0, archived: 0, old_library: 0 }
-
-    # --- Helper to create episode + user_episode ---
-    create_ep = lambda do |podcast, guid_suffix, title, location:, processing_status:, updated_at: Time.current, with_summary: false|
-      guid = "#{podcast.feed_url}/#{guid_suffix}"
-      episode = Episode.find_or_initialize_by(guid: guid)
-      episode.assign_attributes(
-        podcast: podcast,
-        title: title,
-        audio_url: "https://audio.example.com/#{guid_suffix}.mp3",
-        published_at: 2.hours.ago,
-        duration_seconds: 1800,
-        description: "QA episode: #{title}"
-      )
-      episode.save!
-
-      ue = UserEpisode.find_or_initialize_by(user: user, episode: episode)
-      ue.assign_attributes(location: location, processing_status: processing_status)
-      ue.save!
-      ue.update_column(:updated_at, updated_at)
-
-      if with_summary
-        Transcript.find_or_create_by!(episode: episode) do |t|
-          t.content = "Sample transcript for #{title}."
-        end
-        unless episode.summary
-          Summary.create!(
-            episode: episode,
-            sections: [ { "title" => "Summary", "content" => "This is the summary for #{title}. It covers the main topics discussed." } ],
-            quotes: []
-          )
-        end
-      end
-
-      episode
+    [ user_happy, user_exhausted, user_mixed ].each do |u|
+      u.subscriptions.find_or_create_by!(podcast: podcast_a)
+      u.subscriptions.find_or_create_by!(podcast: podcast_b)
     end
 
-    # --- 1. Library + ready + recent (SHOULD appear in digest) ---
-    create_ep.call(podcast_a, "lib-ready-1", "Show A — Ready Recent 1",
-      location: :library, processing_status: :ready, updated_at: 2.hours.ago, with_summary: true)
-    create_ep.call(podcast_a, "lib-ready-2", "Show A — Ready Recent 2",
-      location: :library, processing_status: :ready, updated_at: 6.hours.ago, with_summary: true)
-    create_ep.call(podcast_b, "lib-ready-3", "Show B — Ready Recent 1",
-      location: :library, processing_status: :ready, updated_at: 1.hour.ago, with_summary: true)
-    counts[:library_ready] = 3
+    counts = {
+      happy_eligible: 0,
+      exhausted_already_featured: 0,
+      mixed_eligible: 0,
+      mixed_already_featured: 0,
+      excluded: 0
+    }
 
-    # --- 2. Library + ready + OLD (should NOT appear — 24-hour cap) ---
-    create_ep.call(podcast_a, "lib-ready-old", "Show A — Ready But Old (>24h)",
-      location: :library, processing_status: :ready, updated_at: 26.hours.ago, with_summary: true)
-    counts[:old_library] = 1
+    # --- 1. Happy path: 6 library + ready + unfeatured episodes ---
+    [
+      [ podcast_a, "happy-1", "Show A — Happy 1", 1.day.ago ],
+      [ podcast_a, "happy-2", "Show A — Happy 2", 2.days.ago ],
+      [ podcast_b, "happy-3", "Show B — Happy 1", 3.days.ago ],
+      [ podcast_a, "happy-4", "Show A — Happy 3", 5.days.ago ],
+      [ podcast_b, "happy-5", "Show B — Happy 2", 7.days.ago ],
+      [ podcast_b, "happy-6", "Show B — Happy 3", 9.days.ago ]
+    ].each do |podcast, slug, title, published_at|
+      ep = library_qa_find_or_create_episode(podcast, slug, title, published_at, with_summary: true)
+      library_qa_find_or_create_user_episode(user_happy, ep, location: :library, processing_status: :ready, digest_featured_at: nil)
+      counts[:happy_eligible] += 1
+    end
 
-    # --- 3. Library + pending (should NOT appear in digest) ---
-    create_ep.call(podcast_b, "lib-pending-1", "Show B — Pending Processing",
-      location: :library, processing_status: :pending)
-    counts[:library_pending] = 1
+    # --- 2. Exhausted: 4 episodes, all already featured ---
+    [
+      [ podcast_a, "exhausted-1", "Show A — Already Featured 1", 30.days.ago, 5.days.ago ],
+      [ podcast_b, "exhausted-2", "Show B — Already Featured 1", 45.days.ago, 4.days.ago ],
+      [ podcast_a, "exhausted-3", "Show A — Already Featured 2", 60.days.ago, 3.days.ago ],
+      [ podcast_b, "exhausted-4", "Show B — Already Featured 2", 75.days.ago, 2.days.ago ]
+    ].each do |podcast, slug, title, published_at, featured_at|
+      ep = library_qa_find_or_create_episode(podcast, slug, title, published_at, with_summary: true)
+      library_qa_find_or_create_user_episode(user_exhausted, ep, location: :library, processing_status: :ready, digest_featured_at: featured_at)
+      counts[:exhausted_already_featured] += 1
+    end
 
-    # --- 4. Library + error (should NOT appear in digest) ---
-    create_ep.call(podcast_a, "lib-error-1", "Show A — Error Processing",
-      location: :library, processing_status: :error)
-    counts[:library_error] = 1
+    # --- 3. Mixed: 4 episodes — 2 featured, 2 unfeatured ---
+    mixed_ues = [
+      [ podcast_a, "mixed-1", "Show A — Mixed Featured 1", 10.days.ago, 3.days.ago ],
+      [ podcast_b, "mixed-2", "Show B — Mixed Featured 2", 12.days.ago, 4.days.ago ],
+      [ podcast_a, "mixed-3", "Show A — Mixed Unfeatured 1", 1.day.ago, nil ],
+      [ podcast_b, "mixed-4", "Show B — Mixed Unfeatured 2", 2.days.ago, nil ]
+    ]
+    mixed_ues.each do |podcast, slug, title, published_at, featured_at|
+      ep = library_qa_find_or_create_episode(podcast, slug, title, published_at, with_summary: true)
+      library_qa_find_or_create_user_episode(user_mixed, ep, location: :library, processing_status: :ready, digest_featured_at: featured_at)
+      if featured_at.nil?
+        counts[:mixed_eligible] += 1
+      else
+        counts[:mixed_already_featured] += 1
+      end
+    end
 
-    # --- 5. Inbox only (should NOT appear in digest) ---
-    create_ep.call(podcast_a, "inbox-1", "Show A — Inbox Episode",
-      location: :inbox, processing_status: :pending)
-    create_ep.call(podcast_b, "inbox-2", "Show B — Inbox Episode",
-      location: :inbox, processing_status: :pending)
-    counts[:inbox] = 2
+    # --- 4. Edge: NULL published_at ---
+    null_pub_ep = library_qa_find_or_create_episode(podcast_a, "edge-null-published", "Edge: NULL published_at", nil, with_summary: true)
+    library_qa_find_or_create_user_episode(user_happy, null_pub_ep, location: :library, processing_status: :ready, digest_featured_at: nil)
+    counts[:happy_eligible] += 1
 
-    # --- 6. Archived (should NOT appear in digest) ---
-    create_ep.call(podcast_b, "archived-1", "Show B — Archived Episode",
-      location: :archive, processing_status: :ready, with_summary: true)
-    counts[:archived] = 1
+    # --- 5. Edge: identical published_at (id DESC tiebreak) ---
+    tie_at = 20.days.ago
+    tie_a = library_qa_find_or_create_episode(podcast_a, "edge-tie-1", "Edge: Tie A (lower id)", tie_at, with_summary: true)
+    tie_b = library_qa_find_or_create_episode(podcast_b, "edge-tie-2", "Edge: Tie B (higher id)", tie_at, with_summary: true)
+    library_qa_find_or_create_user_episode(user_happy, tie_a, location: :library, processing_status: :ready, digest_featured_at: nil)
+    library_qa_find_or_create_user_episode(user_happy, tie_b, location: :library, processing_status: :ready, digest_featured_at: nil)
+    counts[:happy_eligible] += 2
 
-    # --- Summary ---
+    # --- 6. Excluded variants (non-library, non-ready, archived) — should NOT appear in eligible_for_drip ---
+    excluded_ep_pending = library_qa_find_or_create_episode(podcast_b, "excluded-pending", "Excluded: Library Pending", 1.hour.ago, with_summary: false)
+    library_qa_find_or_create_user_episode(user_happy, excluded_ep_pending, location: :library, processing_status: :pending, digest_featured_at: nil)
+    counts[:excluded] += 1
+
+    excluded_ep_inbox = library_qa_find_or_create_episode(podcast_a, "excluded-inbox", "Excluded: Inbox", 1.hour.ago, with_summary: true)
+    library_qa_find_or_create_user_episode(user_happy, excluded_ep_inbox, location: :inbox, processing_status: :pending, digest_featured_at: nil)
+    counts[:excluded] += 1
+
+    excluded_ep_archive = library_qa_find_or_create_episode(podcast_b, "excluded-archive", "Excluded: Archived", 1.hour.ago, with_summary: true)
+    library_qa_find_or_create_user_episode(user_happy, excluded_ep_archive, location: :archive, processing_status: :ready, digest_featured_at: nil)
+    counts[:excluded] += 1
+
+    happy_eligible = Episode.eligible_for_drip(user_happy).count
+    exhausted_eligible = Episode.eligible_for_drip(user_exhausted).count
+    mixed_eligible = Episode.eligible_for_drip(user_mixed).count
+
     puts
-    puts "=== Library-Scoped Processing QA Seed Summary ==="
-    puts "User:                #{user.email} (digest_enabled: true, digest_sent_at: #{user.digest_sent_at})"
-    puts "Podcasts:            #{podcast_a.title}, #{podcast_b.title}"
+    puts "=== Library-Drip QA Seed Summary ==="
+    puts "Happy-path user:    #{user_happy.email}      (#{happy_eligible} eligible — incl. NULL-published + tiebreak edges)"
+    puts "Exhausted user:     #{user_exhausted.email}  (#{exhausted_eligible} eligible — all already featured, expect NullMail)"
+    puts "Mixed user:         #{user_mixed.email}      (#{mixed_eligible} eligible — half already featured)"
     puts
-    puts "Episodes by state:"
-    puts "  Library + ready (recent):  #{counts[:library_ready]}  <-- SHOULD appear in digest"
-    puts "  Library + ready (old >24h): #{counts[:old_library]}  <-- should NOT appear (24-hour cap)"
-    puts "  Library + pending:         #{counts[:library_pending]}  <-- should NOT appear"
-    puts "  Library + error:           #{counts[:library_error]}  <-- should NOT appear"
-    puts "  Inbox only:                #{counts[:inbox]}  <-- should NOT appear"
-    puts "  Archived:                  #{counts[:archived]}  <-- should NOT appear"
+    puts "=== Episodes by scenario (created/updated) ==="
+    puts "Happy eligible:           #{counts[:happy_eligible]}"
+    puts "Exhausted already-featured: #{counts[:exhausted_already_featured]}"
+    puts "Mixed eligible:           #{counts[:mixed_eligible]}"
+    puts "Mixed already-featured:   #{counts[:mixed_already_featured]}"
+    puts "Excluded variants:        #{counts[:excluded]}  (non-library or non-ready — must NOT appear)"
     puts
     puts "=== QA Scenarios ==="
     puts "1. Run: SendDailyDigestJob.perform_now"
-    puts "2. Check letter_opener — only #{counts[:library_ready]} episodes should appear"
-    puts "3. Subject should read: \"Your library — #{counts[:library_ready]} episodes ready\""
-    puts "4. Verify old (>24h), pending, error, inbox, and archived episodes are absent"
-    puts "5. Verify episodes grouped by show (Show A, Show B)"
+    puts "2. Check letter_opener — happy + mixed users get a digest; exhausted user does NOT"
+    puts "3. Verify featured + 5 compact for happy user, sorted by published_at DESC NULLS LAST, id DESC"
+    puts "4. Verify NULL-published episode appears LAST in compact (NULLS LAST)"
+    puts "5. Verify identical-published_at pair tiebroken by id DESC (deterministic across runs)"
+    puts "6. Re-run this task — idempotent (no duplicate users/podcasts/UserEpisodes)"
     puts
   end
+end
+
+def library_qa_find_or_create_episode(podcast, slug, title, published_at, with_summary: false)
+  guid = "#{podcast.feed_url}/#{slug}"
+  episode = Episode.find_or_initialize_by(guid: guid)
+  episode.assign_attributes(
+    podcast: podcast,
+    title: title,
+    audio_url: "https://audio.example.com/library-qa/#{slug}.mp3",
+    published_at: published_at,
+    duration_seconds: 1800,
+    description: "QA episode: #{title}"
+  )
+  episode.save!
+
+  if with_summary
+    Transcript.find_or_create_by!(episode: episode) do |t|
+      t.content = "Sample transcript for #{title}."
+    end
+    Summary.find_or_create_by!(episode: episode) do |s|
+      s.sections = [ { "title" => "Summary", "content" => "Summary for #{title}. Covers the main topics discussed." } ]
+      s.quotes = []
+    end
+  end
+
+  episode
+end
+
+def library_qa_find_or_create_user_episode(user, episode, location:, processing_status:, digest_featured_at:)
+  ue = UserEpisode.find_or_initialize_by(user: user, episode: episode)
+  ue.assign_attributes(location: location, processing_status: processing_status)
+  ue.save!
+  if ue.digest_featured_at != digest_featured_at
+    ue.update_column(:digest_featured_at, digest_featured_at)
+  end
+  ue
 end
