@@ -179,6 +179,8 @@ UTM params flow through the magic link signup: `GET /login?utm_source=share` →
 
 ## Production Server Operations
 
+> **Agent access policy (see CLAUDE.md → Guardrails → Production access):** Read-only log tailing via `journalctl` is allowed without per-session approval. Rails console, DB access, restarts, and any writes require explicit Dave approval each session.
+
 SSH into the server first:
 
 ```bash

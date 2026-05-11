@@ -311,7 +311,7 @@ When running autonomously:
 
 | Guardrail | Rule |
 |-----------|------|
-| **Production access** | Agents NEVER have production access. No deploy credentials, no production database access. |
+| **Production access** | Agents MAY SSH read-only to tail logs (`journalctl --user --unit=show-notes-server` / `--unit=show-notes-solid_queue`, including `--since`/`--until`/`--follow` and grep filters). Anything beyond log reads — Rails console (even reads), production database access, `systemctl` restarts, deploys, file writes, destructive commands — requires explicit per-session Dave approval. No deploy credentials. |
 | **Default branch** | Never commit or merge directly to the default branch. |
 | **Push** | Never push without explicit user request. |
 | **Destructive operations** | No `drop_table`, `reset`, or data deletion without human approval. |
