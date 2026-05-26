@@ -9,7 +9,7 @@ RSpec.describe UserMailer, type: :mailer do
       it "includes the Universal Link URL for iOS" do
         mail = described_class.magic_link(user, token, source: :ios)
 
-        expect(mail.body.encoded).to include("listen.davepaola.com")
+        expect(mail.body.encoded).to include("shownotes.dev")
         expect(mail.body.encoded).to include("/auth/verify")
         expect(mail.body.encoded).to include(token)
       end
@@ -17,7 +17,7 @@ RSpec.describe UserMailer, type: :mailer do
       it "uses https scheme for Universal Link" do
         mail = described_class.magic_link(user, token, source: :ios)
 
-        expect(mail.body.encoded).to include("https://listen.davepaola.com")
+        expect(mail.body.encoded).to include("https://shownotes.dev")
       end
     end
 

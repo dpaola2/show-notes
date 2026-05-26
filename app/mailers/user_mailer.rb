@@ -3,7 +3,8 @@ class UserMailer < ApplicationMailer
     @user = user
     @token = token
     @magic_link_url = if source.to_sym == :ios
-      "https://listen.davepaola.com/auth/verify?token=#{token}"
+      host = ENV.fetch("APP_HOST", "shownotes.dev")
+      "https://#{host}/auth/verify?token=#{token}"
     else
       verify_magic_link_url(token: token)
     end
