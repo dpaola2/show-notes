@@ -17,7 +17,7 @@ RSpec.describe SignupNotificationMailer, type: :mailer do
     end
 
     it "sends from the default sender" do
-      expect(mail.from).to include("noreply@listen.davepaola.com")
+      expect(mail.from).to include("noreply@shownotes.dev")
     end
 
     it "includes the user email in the HTML body" do

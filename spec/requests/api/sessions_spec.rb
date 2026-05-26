@@ -56,7 +56,7 @@ RSpec.describe "Api::Sessions", type: :request do
 
         expect(response).to have_http_status(:ok)
         delivered_email = ActionMailer::Base.deliveries.last
-        # The mailer should generate a Universal Link URL containing listen.davepaola.com
+        # The mailer should generate a Universal Link URL containing the configured APP_HOST
         # and /auth/verify with the magic token
         expect(delivered_email).to be_present
       end

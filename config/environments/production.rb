@@ -60,7 +60,7 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "listen.davepaola.com") }
+  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "shownotes.dev") }
 
   # Use Resend for transactional email (API key set in config/initializers/resend.rb)
   config.action_mailer.delivery_method = :resend
