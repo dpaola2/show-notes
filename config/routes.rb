@@ -99,6 +99,10 @@ Rails.application.routes.draw do
     post "tracking/click", to: "tracking#click"
   end
 
+  # Legal / support pages (no auth required — App Store reviewers and public must reach these)
+  get "privacy", to: "legal#privacy", as: :privacy
+  get "support", to: "legal#support", as: :support
+
   # Apple App Site Association (Universal Links)
   get ".well-known/apple-app-site-association", to: "well_known#apple_app_site_association"
 
