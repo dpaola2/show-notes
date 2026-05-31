@@ -27,6 +27,11 @@ class SessionsController < ApplicationController
     end
     UserMailer.magic_link(user, token).deliver_later
 
+    if new_signup
+      @current_user = user
+      track_event("user_signed_up", source: session[:utm_source])
+    end
+
     redirect_to magic_link_sent_path, notice: "Check your email for a login link"
   rescue ActiveRecord::RecordInvalid => e
     flash.now[:alert] = "Invalid email address"
@@ -51,6 +56,9 @@ class SessionsController < ApplicationController
       user.clear_magic_token!
       persist_referral_source(user)
       session[:user_id] = user.id
+      @current_user = user
+      identify_user(user, referral_source: user.referral_source)
+      track_event("user_logged_in")
       redirect_to session.delete(:return_to) || root_path, notice: "Welcome back!"
     else
       redirect_to login_path, alert: "This link has expired or is invalid. Please request a new one."

@@ -12,7 +12,16 @@ class PublicEpisodesController < ApplicationController
     @podcast = @episode.podcast
     @summary = @episode.summary
 
-    log_utm_params if utm_params_present?
+    if utm_params_present?
+      log_utm_params
+      track_event(
+        "shared_link_opened",
+        episode_id: @episode.id,
+        utm_source: params[:utm_source],
+        utm_medium: params[:utm_medium],
+        utm_content: params[:utm_content]
+      )
+    end
 
     render layout: "public"
   end
@@ -34,6 +43,7 @@ class PublicEpisodesController < ApplicationController
     )
 
     if share_event.save
+      track_event("episode_shared", episode_id: episode.id, share_target: params[:share_target])
       head :created
     else
       head :unprocessable_entity

@@ -15,6 +15,7 @@ class Api::InboxController < Api::BaseController
     user_episode = current_user.user_episodes.in_inbox.find(params[:id])
     user_episode.move_to_library!
     ProcessEpisodeJob.perform_later(user_episode.id)
+    track_event("episode_added_to_library", source: "inbox")
     render json: { message: "Added to library" }
   rescue ActiveRecord::RecordNotFound
     render_not_found
@@ -23,6 +24,7 @@ class Api::InboxController < Api::BaseController
   def skip
     user_episode = current_user.user_episodes.in_inbox.find(params[:id])
     user_episode.move_to_trash!
+    track_event("episode_skipped", source: "inbox")
     render json: { message: "Skipped" }
   rescue ActiveRecord::RecordNotFound
     render_not_found
@@ -36,6 +38,7 @@ class Api::InboxController < Api::BaseController
     end
     user_episode.retry_processing!
     ProcessEpisodeJob.perform_later(user_episode.id)
+    track_event("episode_retry_requested", source: "inbox")
     render json: { message: "Retrying" }
   rescue ActiveRecord::RecordNotFound
     render_not_found

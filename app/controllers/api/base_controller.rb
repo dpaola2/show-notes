@@ -1,5 +1,6 @@
 class Api::BaseController < ActionController::Base
   include Pagy::Method
+  include AnalyticsTrackable
 
   skip_forgery_protection
 
@@ -30,5 +31,9 @@ class Api::BaseController < ActionController::Base
 
   def render_not_found
     render json: { error: "Not found" }, status: :not_found
+  end
+
+  def analytics_platform
+    "ios"
   end
 end

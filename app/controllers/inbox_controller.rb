@@ -30,6 +30,7 @@ class InboxController < ApplicationController
       if user_episode.new_record? || !user_episode.library?
         user_episode.move_to_library!
         ProcessEpisodeJob.perform_later(user_episode.id)
+        track_event("episode_added_to_library", source: "show_archive")
         redirect_back fallback_location: library_index_path, notice: "Added to Library. Processing will begin shortly."
       else
         redirect_back fallback_location: library_index_path, notice: "Episode already in Library"
@@ -39,6 +40,7 @@ class InboxController < ApplicationController
       user_episode = current_user.user_episodes.find(params[:id])
       user_episode.move_to_library!
       ProcessEpisodeJob.perform_later(user_episode.id)
+      track_event("episode_added_to_library", source: "inbox")
       redirect_to inbox_index_path, notice: "Moved to Library. Processing will begin shortly."
     end
   end
@@ -53,6 +55,7 @@ class InboxController < ApplicationController
   def skip
     user_episode = current_user.user_episodes.find(params[:id])
     user_episode.move_to_trash!
+    track_event("episode_skipped", source: "inbox")
     redirect_to inbox_index_path, notice: "Moved to Trash"
   end
 

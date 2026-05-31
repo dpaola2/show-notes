@@ -23,6 +23,7 @@ class Api::LibraryController < Api::BaseController
   def archive
     user_episode = current_user.user_episodes.find(params[:id])
     user_episode.move_to_archive!
+    track_event("episode_archived")
     render json: { message: "Archived" }
   rescue ActiveRecord::RecordNotFound
     render_not_found
@@ -36,6 +37,7 @@ class Api::LibraryController < Api::BaseController
     end
     user_episode.retry_processing!
     ProcessEpisodeJob.perform_later(user_episode.id)
+    track_event("episode_retry_requested", source: "library")
     render json: { message: "Retrying" }
   rescue ActiveRecord::RecordNotFound
     render_not_found

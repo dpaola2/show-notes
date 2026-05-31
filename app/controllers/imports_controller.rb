@@ -64,6 +64,7 @@ class ImportsController < ApplicationController
     session.delete(:import_podcast_ids)
     session.delete(:import_skipped_count)
     session.delete(:import_failed)
+    track_event("opml_import_completed", podcast_count: podcast_ids.size)
     redirect_to complete_imports_path
   end
 
