@@ -37,7 +37,7 @@
           Read your podcasts.<br /><span style="color:<%= accent %>">All of them.</span>
         </h1>
         <p style="margin:0 0 38px;max-width:520px;font-family:'Source Serif 4',serif;font-size:19px;line-height:1.6;opacity:0.88">
-          Show Notes summarizes the new episodes from shows you already follow and emails them to you every morning. Skim, read, or open the audio if you want it.
+          Show Notes turns the shows you follow into a readable inbox. Pick the episodes worth it, get a clean summary you can read in a couple of minutes, and skip the hours of listening.
         </p>
         <%= render "shared/email_cta", accent: accent, size: "lg", id: "email-hero" %>
         <div style="margin-top:26px">
@@ -68,10 +68,10 @@
     <div style="max-width:920px;margin:0 auto;text-align:center">
       <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:<%= accent %>;margin-bottom:22px;font-weight:500">The shows below your cutoff</div>
       <h2 style="margin:0 0 30px;font-family:'Source Serif 4',serif;font-weight:600;font-size:clamp(30px, 4.2vw, 50px);line-height:1.18;letter-spacing:-0.02em">
-        You find out the episode was excellent <span style="color:<%= accent %>;font-style:italic;font-weight:400">weeks later</span> — from a clip, or a colleague.
+        You find out the episode was excellent <span style="color:<%= accent %>;font-style:italic;font-weight:400">weeks later</span>, from a clip or a colleague.
       </h2>
       <p style="margin:0 auto;max-width:660px;font-family:'Source Serif 4',serif;font-size:19px;line-height:1.65;opacity:0.82">
-        You subscribe to far more shows than you can play. The good ones below your listening cutoff don't announce themselves — they just pass by. Show Notes replaces that accidental recovery with a system: the substance of every new episode, waiting for you each morning.
+        You subscribe to far more shows than you can play. The good ones below your listening cutoff don't announce themselves, they just pass by. Show Notes puts every new episode in one place to scan, so the ones worth your time stop slipping past, and turns the ones you pick into a few minutes of reading.
       </p>
     </div>
   </section>
@@ -82,9 +82,9 @@
       <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:<%= accent %>;margin-bottom:22px;font-weight:500">How it works</div>
       <div style="display:flex;gap:56px;flex-wrap:wrap;margin-top:8px">
         <% [
-          ["1", "Tell us your shows", "Search to add them, or import an OPML file from your current podcast app in one step. Ten shows or fifty — it's the same setup."],
-          ["2", "We summarize new episodes", "Every morning, Show Notes reads the new episodes across all your shows and writes clean, substantive summaries — not transcripts, not blurbs."],
-          ["3", "Read your digest", "One email lands before you're awake. Skim it with coffee, read the ones that pull you in, and open the audio for anything worth the full listen."]
+          ["1", "Tell us your shows", "Search to add them, or import an OPML file from your current podcast app in one step. Ten shows or fifty, it's the same setup."],
+          ["2", "Pick what's worth reading", "New episodes from all your shows land in one place. Choose the ones you care about and Show Notes writes a clean, substantive summary, not a transcript and not a blurb."],
+          ["3", "Read instead of listen", "Read the summary in a couple of minutes, save it, or open the audio if it earns the full listen. A daily email keeps you current on what's new across your shows."]
         ].each do |n, title, body| %>
           <div style="flex:1;min-width:220px">
             <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:16px">
@@ -108,7 +108,7 @@
           Built to the standard of a great newsletter.
         </h2>
         <p style="margin:0 0 22px;font-family:'Source Serif 4',serif;font-size:18px;line-height:1.65;opacity:0.85">
-          Themed sections, generous excerpts, a clear sense of what's worth your time and what isn't. Each summary is long enough to carry the idea — and honest about which episodes to skip.
+          Themed sections, generous excerpts, a clear sense of what's worth your time and what isn't. Each summary is long enough to carry the idea, and honest about which episodes to skip.
         </p>
         <div style="display:flex;align-items:center;gap:14px;margin-top:30px">
           <%= render "shared/mini_wave", accent: accent, muted: false %>
@@ -167,7 +167,7 @@
         Get the value from every show you follow.
       </h2>
       <p style="margin:0 auto 38px;max-width:520px;font-family:'Source Serif 4',serif;font-size:19px;line-height:1.6;opacity:0.85">
-        Including the ones you'll never have time to play. Your first digest arrives tomorrow morning.
+        Including the ones you'll never have time to play. Add your shows and start reading in a couple of minutes.
       </p>
       <div style="display:flex;justify-content:center"><%= render "shared/email_cta", accent: accent, size: "lg", id: "email-closing" %></div>
     </div>

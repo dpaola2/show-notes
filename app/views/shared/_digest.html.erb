@@ -14,7 +14,7 @@
   <%# Intro %>
   <div style="padding:<%= compact ? "18px 26px 4px" : "26px 40px 6px" %>">
     <p style="margin:0;font-family:'Source Serif 4',Georgia,serif;font-style:italic;font-size:<%= compact ? "14px" : "16px" %>;line-height:1.55;color:#5a5446">
-      <%= compact ? "Nine new episodes across your shows. The two that matter most:" : "Nine new episodes across your shows since yesterday. Here is what happened — about a six-minute read." %>
+      <%= compact ? "Nine new episodes across your shows. The two that matter most:" : "Nine new episodes across your shows since yesterday. Here is what happened, about a six-minute read." %>
     </p>
   </div>
 
@@ -26,7 +26,7 @@
           quote: (compact ? nil : "“The model is the loss leader. The serving stack is the product.”") %>
     <%= render "shared/digest_entry", accent: accent, show: "Acquired", minutes: "6", listen: "3h 04m",
           title: "How a chip company became an operating system",
-          body: "A long history of how a single decision — to ship a programming layer alongside the silicon — quietly built a fifteen-year moat. The hosts trace the bets that looked like distractions at the time and compounded into lock-in." %>
+          body: "A long history of how a single decision, to ship a programming layer alongside the silicon, built a fifteen-year moat. The hosts trace the bets that looked like distractions at the time and compounded into lock-in." %>
     <% unless compact %>
       <%= render "shared/digest_entry", accent: accent, show: "Huberman Lab", minutes: "3", listen: "1h 48m",
             title: "Protocols for sustained focus",
