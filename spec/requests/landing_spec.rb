@@ -19,8 +19,17 @@ RSpec.describe "Landing", type: :request do
   end
 
   describe "GET / (logged in)" do
-    it "redirects to the inbox" do
+    it "redirects a new user with no subscriptions to onboarding" do
       user = create(:user)
+      sign_in(user)
+
+      get root_path
+      expect(response).to redirect_to(onboarding_path)
+    end
+
+    it "redirects a returning user with subscriptions to the inbox" do
+      user = create(:user)
+      user.subscriptions.create!(podcast: create(:podcast))
       sign_in(user)
 
       get root_path

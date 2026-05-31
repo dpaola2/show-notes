@@ -6,9 +6,10 @@ class LandingController < ApplicationController
   # flash.keep preserves any notice (e.g. "Welcome back!" set during magic-link
   # verify, which redirects to root) across this extra hop to the inbox.
   def show
-    if logged_in?
-      flash.keep
-      redirect_to inbox_index_path
-    end
+    return unless logged_in?
+
+    flash.keep
+    # New users (no subscriptions yet) go to onboarding; everyone else to the app.
+    redirect_to(current_user.subscriptions.any? ? inbox_index_path : onboarding_path)
   end
 end

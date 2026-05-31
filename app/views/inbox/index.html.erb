@@ -1,12 +1,12 @@
-<div class="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+<div class="max-w-4xl mx-auto px-4 py-8">
   <div class="flex items-center justify-between mb-4 sm:mb-6">
-    <h1 class="text-xl sm:text-2xl font-bold">Inbox (<%= @pagy.count %>)</h1>
+    <h1 class="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-ink">Inbox (<%= @pagy.count %>)</h1>
 
     <% if @user_episodes.any? %>
       <%= button_to "Clear Inbox",
           clear_inbox_index_path,
           method: :delete,
-          class: "bg-gray-100 text-gray-700 px-3 py-2 sm:px-4 rounded-lg hover:bg-gray-200 transition text-sm",
+          class: "inline-flex items-center justify-center font-mono text-sm rounded-lg border border-ink/15 text-ink px-4 py-2 hover:bg-ink/5 transition",
           data: {
             turbo_confirm: "Skip all #{@pagy.count} episodes in your inbox?"
           } %>
@@ -16,24 +16,24 @@
   <% if @user_episodes.any? %>
     <div class="space-y-3">
       <% @user_episodes.each do |user_episode| %>
-        <div id="<%= dom_id(user_episode) %>" class="p-4 bg-white rounded-lg shadow border border-gray-200">
+        <div id="<%= dom_id(user_episode) %>" class="bg-white rounded-xl border border-ink/10 shadow-sm p-5 sm:p-6">
           <div class="min-w-0">
-            <h3 class="font-medium line-clamp-2 sm:truncate"><%= user_episode.title %></h3>
-            <p class="text-gray-600 text-sm mt-0.5"><%= user_episode.podcast.title %></p>
-            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-sm">
+            <h3 class="font-serif font-semibold tracking-tight text-ink line-clamp-2 sm:truncate"><%= user_episode.title %></h3>
+            <p class="text-ink-soft text-sm mt-0.5"><%= user_episode.podcast.title %></p>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2">
               <% if user_episode.episode.published_at.present? %>
-                <span class="text-gray-500">
+                <span class="font-mono text-xs text-ink-muted">
                   <%= user_episode.episode.published_at.strftime("%b %d, %Y") %>
                 </span>
               <% end %>
               <% if user_episode.duration_seconds.present? %>
-                <span class="text-gray-400 hidden sm:inline">&middot;</span>
-                <span class="text-gray-500">
+                <span class="text-ink-muted hidden sm:inline">&middot;</span>
+                <span class="font-mono text-xs text-ink-muted">
                   <%= format_duration(user_episode.duration_seconds) %>
                 </span>
               <% end %>
               <% if user_episode.estimated_cost_cents > 0 %>
-                <span class="text-gray-400 hidden sm:inline">&middot;</span>
+                <span class="text-ink-muted hidden sm:inline">&middot;</span>
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= cost_badge_class(user_episode.estimated_cost_cents) %>">
                   ~<%= format_cost_cents(user_episode.estimated_cost_cents) %> to process
                 </span>
@@ -42,16 +42,16 @@
           </div>
 
           <% unless user_episode.pending? %>
-            <p class="text-sm mt-1">
+            <p class="mt-2">
               <% case user_episode.processing_status %>
               <% when "transcribing" %>
-                <span class="text-yellow-600">Transcribing...</span>
+                <span class="font-mono text-xs uppercase tracking-wide rounded-full px-2 py-0.5 bg-amber/15 text-amber">Transcribing...</span>
               <% when "summarizing" %>
-                <span class="text-yellow-600">Generating summary...</span>
+                <span class="font-mono text-xs uppercase tracking-wide rounded-full px-2 py-0.5 bg-amber/15 text-amber">Generating summary...</span>
               <% when "ready" %>
-                <span class="text-green-600">Ready</span>
+                <span class="font-mono text-xs uppercase tracking-wide rounded-full px-2 py-0.5 bg-green-100 text-green-800">Ready</span>
               <% when "error" %>
-                <span class="text-red-600">Failed: <%= user_episode.processing_error %></span>
+                <span class="font-mono text-xs uppercase tracking-wide rounded-full px-2 py-0.5 bg-red-100 text-red-700">Failed: <%= user_episode.processing_error %></span>
               <% end %>
             </p>
           <% end %>
@@ -60,16 +60,16 @@
             <%= button_to "Add to Library",
                 add_to_library_inbox_index_path(id: user_episode.id),
                 method: :post,
-                class: "flex-1 sm:flex-none bg-blue-600 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium" %>
+                class: "flex-1 sm:flex-none inline-flex items-center justify-center font-serif font-semibold rounded-lg bg-amber text-ink px-5 py-2.5 hover:brightness-105 transition" %>
             <%= button_to "Skip",
                 skip_inbox_index_path(id: user_episode.id),
                 method: :post,
-                class: "flex-1 sm:flex-none bg-gray-100 text-gray-700 px-4 py-2.5 sm:py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium" %>
+                class: "flex-1 sm:flex-none inline-flex items-center justify-center font-mono text-sm rounded-lg border border-ink/15 text-ink px-4 py-2 hover:bg-ink/5 transition" %>
             <% if user_episode.error? %>
               <%= button_to "Retry",
                   retry_processing_inbox_index_path(id: user_episode.id),
                   method: :post,
-                  class: "flex-1 sm:flex-none bg-red-600 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium" %>
+                  class: "flex-1 sm:flex-none inline-flex items-center justify-center font-mono text-sm rounded-lg border border-amber text-amber px-4 py-2 hover:bg-amber/10 transition" %>
             <% end %>
           </div>
         </div>
@@ -83,10 +83,10 @@
     <% end %>
   <% else %>
     <div class="text-center py-12">
-      <p class="text-gray-500 mb-4">Your inbox is empty. Subscribe to podcasts to see new episodes here.</p>
+      <p class="text-ink-soft mb-4">Your inbox is empty. Subscribe to podcasts to see new episodes here.</p>
       <div class="flex items-center justify-center gap-4">
-        <%= link_to "Import your podcasts", new_import_path, class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium inline-block" %>
-        <%= link_to "Find Podcasts", podcasts_path, class: "text-blue-600 hover:underline font-medium py-2 inline-block" %>
+        <%= link_to "Import your podcasts", new_import_path, class: "inline-flex items-center justify-center font-serif font-semibold rounded-lg bg-amber text-ink px-5 py-2.5 hover:brightness-105 transition" %>
+        <%= link_to "Find Podcasts", podcasts_path, class: "text-amber hover:underline font-medium py-2 inline-block" %>
       </div>
     </div>
   <% end %>

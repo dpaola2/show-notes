@@ -62,6 +62,9 @@ Rails.application.routes.draw do
   get "t/:token", to: "tracking#click", as: :tracking_click
   get "t/:token/pixel.gif", to: "tracking#pixel", as: :tracking_pixel
 
+  # First-run onboarding
+  get "onboarding", to: "onboarding#show", as: :onboarding
+
   # User settings
   resource :settings, only: [ :show, :update ]
 

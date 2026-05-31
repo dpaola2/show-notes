@@ -1,71 +1,71 @@
 <% content_for :title, "Privacy Policy — Show Notes" %>
 
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-  <article class="prose prose-gray max-w-none">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">Privacy Policy</h1>
-    <p class="text-sm text-gray-500 mb-8">Last updated: <%= Date.new(2026, 5, 26).strftime("%B %-d, %Y") %></p>
+<div class="max-w-2xl mx-auto px-4 py-10">
+  <article>
+    <h1 class="font-serif text-3xl font-bold tracking-tight text-ink mb-2">Privacy Policy</h1>
+    <p class="font-mono text-xs text-ink-muted mb-8">Last updated: <%= Date.new(2026, 5, 26).strftime("%B %-d, %Y") %></p>
 
-    <p>Show Notes is a reader for podcasts. This policy describes exactly what we collect, why, and what we don't do with it. Plain English, no legalese.</p>
+    <p class="text-ink-soft leading-relaxed mb-4">Show Notes is a reader for podcasts. This policy describes exactly what we collect, why, and what we don't do with it. Plain English, no legalese.</p>
 
-    <h2 class="text-xl font-semibold text-gray-900 mt-8 mb-3">What we collect</h2>
+    <h2 class="font-serif text-xl font-semibold text-ink mt-8 mb-3">What we collect</h2>
 
-    <p><strong>Your email address.</strong> Used to sign you in (we send a magic link instead of asking for a password) and to deliver your daily digest email if you've enabled it. We do not sell or rent your email to anyone.</p>
+    <p class="text-ink-soft leading-relaxed mb-4"><strong>Your email address.</strong> Used to sign you in (we send a magic link instead of asking for a password) and to deliver your daily digest email if you've enabled it. We do not sell or rent your email to anyone.</p>
 
-    <p><strong>Your podcast subscription list.</strong> The shows you've subscribed to, imported, or saved. We need this to know what to process for you.</p>
+    <p class="text-ink-soft leading-relaxed mb-4"><strong>Your podcast subscription list.</strong> The shows you've subscribed to, imported, or saved. We need this to know what to process for you.</p>
 
-    <p><strong>Your interactions with episodes.</strong> Which episodes you saved to your library, skipped, marked done, or shared. This is used to power the product (e.g. so the daily digest knows what's new) and is not shared with anyone outside Show Notes.</p>
+    <p class="text-ink-soft leading-relaxed mb-4"><strong>Your interactions with episodes.</strong> Which episodes you saved to your library, skipped, marked done, or shared. This is used to power the product (e.g. so the daily digest knows what's new) and is not shared with anyone outside Show Notes.</p>
 
-    <p><strong>Standard server logs.</strong> Your IP address and browser user-agent are written to ephemeral request logs for security and debugging. Logs are retained for no longer than 30 days and are not used to build advertising profiles.</p>
+    <p class="text-ink-soft leading-relaxed mb-4"><strong>Standard server logs.</strong> Your IP address and browser user-agent are written to ephemeral request logs for security and debugging. Logs are retained for no longer than 30 days and are not used to build advertising profiles.</p>
 
-    <h2 class="text-xl font-semibold text-gray-900 mt-8 mb-3">What we don't collect</h2>
+    <h2 class="font-serif text-xl font-semibold text-ink mt-8 mb-3">What we don't collect</h2>
 
-    <ul>
+    <ul class="text-ink-soft leading-relaxed list-disc pl-5 mb-4">
       <li>No advertising trackers. No third-party ad SDKs.</li>
       <li>No location data. We don't ask for it and the iOS app doesn't request the permission.</li>
       <li>No contacts, photos, microphone, or camera access.</li>
-      <li>No cross-app tracking. The iOS app does not link any identifier across other apps or websites — the App Tracking Transparency prompt is not triggered because we have nothing to ask for.</li>
+      <li>No cross-app tracking. The iOS app does not link any identifier across other apps or websites, the App Tracking Transparency prompt is not triggered because we have nothing to ask for.</li>
     </ul>
 
-    <h2 class="text-xl font-semibold text-gray-900 mt-8 mb-3">Third-party processors</h2>
+    <h2 class="font-serif text-xl font-semibold text-ink mt-8 mb-3">Third-party processors</h2>
 
-    <p>To deliver the product, we send specific data to specific vendors. Each is bound by a data processing agreement and limited to the scope below.</p>
+    <p class="text-ink-soft leading-relaxed mb-4">To deliver the product, we send specific data to specific vendors. Each is bound by a data processing agreement and limited to the scope below.</p>
 
-    <ul>
-      <li><strong>AssemblyAI</strong> — we send podcast audio URLs (publicly available from the podcast feed) for transcription. We do not send your email, name, or any identifier.</li>
-      <li><strong>Anthropic (Claude)</strong> — we send episode transcripts (derived from public podcast audio) for summarization. We do not send your email, name, or any identifier.</li>
-      <li><strong>Resend</strong> — we send your email address and the digest content for transactional email delivery (magic link, daily digest).</li>
-      <li><strong>Hatchbox and DigitalOcean</strong> — host the application server and database.</li>
-      <li><strong>Cloudflare</strong> — fronts the website (DNS, TLS, CDN).</li>
+    <ul class="text-ink-soft leading-relaxed list-disc pl-5 mb-4">
+      <li><strong>AssemblyAI</strong>, we send podcast audio URLs (publicly available from the podcast feed) for transcription. We do not send your email, name, or any identifier.</li>
+      <li><strong>Anthropic (Claude)</strong>, we send episode transcripts (derived from public podcast audio) for summarization. We do not send your email, name, or any identifier.</li>
+      <li><strong>Resend</strong>, we send your email address and the digest content for transactional email delivery (magic link, daily digest).</li>
+      <li><strong>Hatchbox and DigitalOcean</strong>, host the application server and database.</li>
+      <li><strong>Cloudflare</strong>, fronts the website (DNS, TLS, CDN).</li>
     </ul>
 
-    <p>We do not use any third-party analytics, marketing automation, or advertising platforms.</p>
+    <p class="text-ink-soft leading-relaxed mb-4">We do not use any third-party analytics, marketing automation, or advertising platforms.</p>
 
-    <h2 class="text-xl font-semibold text-gray-900 mt-8 mb-3">Cookies</h2>
+    <h2 class="font-serif text-xl font-semibold text-ink mt-8 mb-3">Cookies</h2>
 
-    <p>We set one cookie: a session cookie that keeps you signed in. It is HTTP-only, secure, and expires when you sign out. We do not set any other cookies.</p>
+    <p class="text-ink-soft leading-relaxed mb-4">We set one cookie: a session cookie that keeps you signed in. It is HTTP-only, secure, and expires when you sign out. We do not set any other cookies.</p>
 
-    <h2 class="text-xl font-semibold text-gray-900 mt-8 mb-3">Your rights</h2>
+    <h2 class="font-serif text-xl font-semibold text-ink mt-8 mb-3">Your rights</h2>
 
-    <p>You can:</p>
-    <ul>
+    <p class="text-ink-soft leading-relaxed mb-4">You can:</p>
+    <ul class="text-ink-soft leading-relaxed list-disc pl-5 mb-4">
       <li><strong>Access your data.</strong> Email us and we'll send you everything we have on file.</li>
       <li><strong>Delete your account.</strong> Email us and we'll permanently delete your account, podcast subscriptions, library, and any associated data within 30 days. In-app account deletion is coming to the iOS and web apps in a future release.</li>
       <li><strong>Export your data.</strong> Email us and we'll send you a portable export of your library, subscriptions, and account metadata.</li>
       <li><strong>Opt out of the daily digest.</strong> Unsubscribe link is in every digest email, or change the setting in the app.</li>
     </ul>
 
-    <p>If you're in the EU, UK, or California, the rights above apply to you under GDPR / UK GDPR / CCPA. You also have the right to lodge a complaint with your local data protection authority, though we hope you'd tell us first.</p>
+    <p class="text-ink-soft leading-relaxed mb-4">If you're in the EU, UK, or California, the rights above apply to you under GDPR / UK GDPR / CCPA. You also have the right to lodge a complaint with your local data protection authority, though we hope you'd tell us first.</p>
 
-    <h2 class="text-xl font-semibold text-gray-900 mt-8 mb-3">Children</h2>
+    <h2 class="font-serif text-xl font-semibold text-ink mt-8 mb-3">Children</h2>
 
-    <p>Show Notes is not designed for children under 13 (under 16 in the EU). We do not knowingly collect data from children. If you believe a child has signed up, email us and we'll delete the account.</p>
+    <p class="text-ink-soft leading-relaxed mb-4">Show Notes is not designed for children under 13 (under 16 in the EU). We do not knowingly collect data from children. If you believe a child has signed up, email us and we'll delete the account.</p>
 
-    <h2 class="text-xl font-semibold text-gray-900 mt-8 mb-3">Changes to this policy</h2>
+    <h2 class="font-serif text-xl font-semibold text-ink mt-8 mb-3">Changes to this policy</h2>
 
-    <p>If we change this policy, we'll update the "Last updated" date at the top and, for material changes, email signed-in users. Continued use after a change constitutes acceptance.</p>
+    <p class="text-ink-soft leading-relaxed mb-4">If we change this policy, we'll update the "Last updated" date at the top and, for material changes, email signed-in users. Continued use after a change constitutes acceptance.</p>
 
-    <h2 class="text-xl font-semibold text-gray-900 mt-8 mb-3">Contact</h2>
+    <h2 class="font-serif text-xl font-semibold text-ink mt-8 mb-3">Contact</h2>
 
-    <p>Email <a href="mailto:dpaola2@gmail.com" class="text-blue-600 hover:underline">dpaola2@gmail.com</a> for any privacy question, request, or concern. Show Notes is operated by Dave Paola as an individual; there is no LLC, no support team, no chatbot. You get a person.</p>
+    <p class="text-ink-soft leading-relaxed mb-4">Email <a href="mailto:dpaola2@gmail.com" class="text-amber hover:underline">dpaola2@gmail.com</a> for any privacy question, request, or concern. Show Notes is operated by Dave Paola as an individual; there is no LLC, no support team, no chatbot. You get a person.</p>
   </article>
 </div>

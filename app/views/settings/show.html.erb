@@ -1,53 +1,56 @@
 <div class="max-w-2xl mx-auto px-4 py-6 sm:py-8">
-  <h1 class="text-xl sm:text-2xl font-bold mb-6">Settings</h1>
+  <h1 class="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-ink mb-6">Settings</h1>
 
   <%= form_with model: @user, url: settings_path, method: :patch, class: "space-y-6" do |f| %>
-    <section class="bg-white rounded-lg shadow border border-gray-200 p-4 sm:p-6">
-      <h2 class="text-lg font-semibold mb-4">Email Preferences</h2>
+    <section class="bg-white rounded-xl border border-ink/10 shadow-sm p-5 sm:p-6">
+      <p class="font-mono text-xs uppercase tracking-[0.18em] text-amber mb-1">Notifications</p>
+      <h2 class="font-serif text-lg font-semibold tracking-tight text-ink mb-4">Email Preferences</h2>
 
       <div class="flex items-start gap-3">
         <%= f.check_box :digest_enabled,
-            class: "mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer",
+            class: "mt-1 h-5 w-5 rounded border-ink/30 text-amber focus:ring-2 focus:ring-amber/30 cursor-pointer",
             id: "digest_enabled" %>
         <div>
-          <%= f.label :digest_enabled, class: "font-medium text-gray-900 cursor-pointer" do %>
+          <%= f.label :digest_enabled, class: "font-medium text-ink cursor-pointer" do %>
             Daily Digest Email
           <% end %>
-          <p class="text-sm text-gray-600 mt-1">
+          <p class="text-sm text-ink-muted mt-1">
             Receive a daily morning briefing with AI summaries of new episodes from your subscribed podcasts.
           </p>
         </div>
       </div>
 
       <% if @user.digest_sent_at.present? %>
-        <p class="text-sm text-gray-500 mt-4">
+        <p class="text-sm text-ink-muted mt-4">
           Last digest sent: <%= time_ago_in_words(@user.digest_sent_at) %> ago
         </p>
       <% end %>
     </section>
 
-    <section class="bg-white rounded-lg shadow border border-gray-200 p-4 sm:p-6">
-      <h2 class="text-lg font-semibold mb-4">Account</h2>
+    <section class="bg-white rounded-xl border border-ink/10 shadow-sm p-5 sm:p-6">
+      <p class="font-mono text-xs uppercase tracking-[0.18em] text-amber mb-1">Profile</p>
+      <h2 class="font-serif text-lg font-semibold tracking-tight text-ink mb-4">Account</h2>
 
       <div class="space-y-3">
         <div>
-          <span class="text-sm text-gray-600">Email</span>
-          <p class="font-medium"><%= @user.email %></p>
+          <span class="font-mono text-xs uppercase tracking-[0.18em] text-ink-muted">Email</span>
+          <p class="font-medium text-ink"><%= @user.email %></p>
         </div>
       </div>
     </section>
 
     <div class="flex justify-end">
       <%= f.submit "Save Settings",
-          class: "bg-blue-600 text-white px-6 py-2.5 sm:py-2 rounded-lg hover:bg-blue-700 transition font-medium" %>
+          class: "inline-flex items-center justify-center font-serif font-semibold rounded-lg bg-amber text-ink px-5 py-2.5 hover:brightness-105 transition" %>
     </div>
   <% end %>
 
-  <section class="bg-white rounded-lg shadow border border-gray-200 p-4 sm:p-6">
-    <h2 class="text-lg font-semibold mb-4">Import Podcasts</h2>
-    <p class="text-sm text-gray-600 mb-3">
+  <section class="bg-white rounded-xl border border-ink/10 shadow-sm p-5 sm:p-6">
+    <p class="font-mono text-xs uppercase tracking-[0.18em] text-amber mb-1">Library</p>
+    <h2 class="font-serif text-lg font-semibold tracking-tight text-ink mb-4">Import Podcasts</h2>
+    <p class="text-sm text-ink-muted mb-3">
       Import your podcast subscriptions from another app via OPML file.
     </p>
-    <%= link_to "Import Podcasts", new_import_path, class: "text-blue-600 hover:underline font-medium" %>
+    <%= link_to "Import Podcasts", new_import_path, class: "text-amber hover:underline font-medium" %>
   </section>
 </div>

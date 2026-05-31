@@ -15,49 +15,39 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+
+    <%= render "shared/analytics" %>
   </head>
 
-  <body class="bg-gray-50 min-h-screen flex flex-col">
+  <body class="bg-navy text-cream min-h-screen flex flex-col">
     <% if flash[:notice].present? %>
-      <div class="fixed top-4 right-4 z-50 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg max-w-sm"
-           role="alert"
-           data-controller="flash"
-           data-flash-dismiss-after-value="5000">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-          </svg>
-          <span><%= flash[:notice] %></span>
-        </div>
+      <div class="fixed top-4 right-4 z-50 bg-cream border border-amber text-ink px-4 py-3 rounded-lg shadow-lg max-w-sm"
+           role="alert" data-controller="flash" data-flash-dismiss-after-value="5000">
+        <span class="font-mono text-sm"><%= flash[:notice] %></span>
       </div>
     <% end %>
 
     <% if flash[:alert].present? %>
-      <div class="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg max-w-sm"
-           role="alert"
-           data-controller="flash"
-           data-flash-dismiss-after-value="5000">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-          </svg>
-          <span><%= flash[:alert] %></span>
-        </div>
+      <div class="fixed top-4 right-4 z-50 bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg max-w-sm"
+           role="alert" data-controller="flash" data-flash-dismiss-after-value="5000">
+        <span class="font-mono text-sm"><%= flash[:alert] %></span>
       </div>
     <% end %>
 
-    <main class="flex-1">
+    <main class="flex-1 flex flex-col">
       <%= yield %>
     </main>
 
-    <footer class="bg-white border-t border-gray-200 py-4">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p class="text-center text-gray-500 text-sm">
-          Show Notes &mdash; Read-first podcast summaries powered by AI
-        </p>
-      </div>
+    <footer class="py-5">
+      <p class="text-center font-mono text-xs tracking-wide text-cream/45">
+        Show Notes · Read-first podcast summaries powered by AI
+      </p>
     </footer>
   </body>
 </html>

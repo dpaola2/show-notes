@@ -1,15 +1,15 @@
 <div class="max-w-4xl mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-6">Find Podcasts</h1>
+  <h1 class="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-ink mb-6">Find Podcasts</h1>
 
   <%= form_with url: podcasts_path, method: :get, class: "mb-8", data: { turbo_frame: "search_results" } do |f| %>
     <div class="flex gap-2">
       <%= f.search_field :q,
           value: params[:q],
           placeholder: "Search for podcasts...",
-          class: "flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500",
+          class: "flex-1 rounded-lg border border-ink/15 px-4 py-2.5 focus:border-amber focus:ring-2 focus:ring-amber/30 focus:outline-none",
           autofocus: true %>
       <%= f.submit "Search",
-          class: "bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition cursor-pointer" %>
+          class: "font-serif font-semibold rounded-lg bg-amber text-ink px-5 py-2.5 hover:brightness-105 transition cursor-pointer" %>
     </div>
   <% end %>
 
@@ -22,10 +22,10 @@
           <% end %>
         </div>
       <% else %>
-        <p class="text-gray-500 text-center py-8">No podcasts found for "<%= params[:q] %>"</p>
+        <p class="font-mono text-sm text-ink-muted text-center py-8">No podcasts found for "<%= params[:q] %>"</p>
       <% end %>
     <% else %>
-      <p class="text-gray-500 text-center py-8">Enter a search term to find podcasts</p>
+      <p class="font-mono text-sm text-ink-muted text-center py-8">Enter a search term to find podcasts</p>
     <% end %>
   <% end %>
 </div>

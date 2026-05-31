@@ -1,0 +1,41 @@
+<% content_for(:title) { "Get started - Show Notes" } %>
+
+<div class="max-w-3xl mx-auto px-4 py-10 sm:py-14">
+  <div class="text-center mb-10">
+    <p class="font-mono text-xs uppercase tracking-[0.18em] text-amber mb-3">Welcome to Show Notes</p>
+    <h1 class="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-ink">Connect your shows</h1>
+    <p class="text-lg text-ink-soft leading-relaxed mt-3 max-w-xl mx-auto">
+      Add the podcasts you follow and their new episodes show up in your inbox to read. Bring ten shows or fifty, it's the same setup.
+    </p>
+  </div>
+
+  <div class="grid gap-5 sm:grid-cols-2">
+    <%# Import OPML %>
+    <%= link_to new_import_path, class: "group bg-white rounded-xl border border-ink/10 shadow-sm p-6 hover:border-amber transition block" do %>
+      <div class="w-11 h-11 rounded-lg bg-amber/15 text-amber flex items-center justify-center mb-4">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0 0l-4-4m4 4l4-4"/>
+        </svg>
+      </div>
+      <h2 class="font-serif text-xl font-semibold tracking-tight text-ink mb-1.5">Import from your podcast app</h2>
+      <p class="text-ink-soft leading-relaxed mb-3">Export an OPML file from Apple Podcasts, Overcast, Pocket Casts, or wherever you listen, and bring every subscription over in one step.</p>
+      <span class="font-mono text-sm text-amber group-hover:underline">Import OPML &rarr;</span>
+    <% end %>
+
+    <%# Search %>
+    <%= link_to podcasts_path, class: "group bg-white rounded-xl border border-ink/10 shadow-sm p-6 hover:border-amber transition block" do %>
+      <div class="w-11 h-11 rounded-lg bg-amber/15 text-amber flex items-center justify-center mb-4">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+      <h2 class="font-serif text-xl font-semibold tracking-tight text-ink mb-1.5">Search and add shows</h2>
+      <p class="text-ink-soft leading-relaxed mb-3">Look up podcasts by name and subscribe to them one at a time. Good if you only follow a handful, or want to start small.</p>
+      <span class="font-mono text-sm text-amber group-hover:underline">Find podcasts &rarr;</span>
+    <% end %>
+  </div>
+
+  <div class="text-center mt-8">
+    <%= link_to "Skip for now", inbox_index_path, class: "font-mono text-xs tracking-wide text-ink-muted hover:text-ink hover:underline" %>
+  </div>
+</div>

@@ -1,36 +1,36 @@
 <div class="max-w-4xl mx-auto px-4 py-6 sm:py-8">
   <div class="flex items-start justify-between mb-2">
-    <h1 class="text-xl sm:text-2xl font-bold"><%= @episode.title %></h1>
+    <h1 class="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-ink"><%= @episode.title %></h1>
     <%= render "shared/share_button", episode: @episode %>
   </div>
-  <p class="text-gray-600"><%= @podcast.title %></p>
+  <p class="font-mono text-xs text-ink-muted"><%= @podcast.title %></p>
   <% if @episode.published_at.present? %>
-    <p class="text-gray-500 text-sm mb-4 sm:mb-6"><%= @episode.published_at.strftime("%b %d, %Y") %></p>
+    <p class="font-mono text-xs text-ink-muted mt-1 mb-4 sm:mb-6"><%= @episode.published_at.strftime("%b %d, %Y") %></p>
   <% else %>
     <div class="mb-4 sm:mb-6"></div>
   <% end %>
 
   <% if @summary.present? %>
     <section class="mb-6 sm:mb-8">
-      <h2 class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Summary</h2>
+      <p class="font-mono text-xs uppercase tracking-[0.18em] text-amber mb-3 sm:mb-4">Summary</p>
 
-      <div class="space-y-4 sm:space-y-6">
+      <div class="space-y-4 sm:space-y-6 max-w-2xl">
         <% @summary.sections.each do |section| %>
-          <div class="bg-white p-3 sm:p-4 rounded-lg shadow border border-gray-200">
-            <h3 class="font-semibold mb-2"><%= section["title"] %></h3>
-            <p class="text-gray-700 text-sm sm:text-base leading-relaxed"><%= section["content"] %></p>
+          <div class="bg-white rounded-xl border border-ink/10 shadow-sm p-5 sm:p-6">
+            <h3 class="font-serif text-lg font-semibold tracking-tight text-ink mb-2"><%= section["title"] %></h3>
+            <p class="font-serif text-ink-soft text-lg leading-relaxed"><%= section["content"] %></p>
           </div>
         <% end %>
       </div>
 
       <% if @summary.quotes.any? %>
-        <h3 class="text-base sm:text-lg font-semibold mt-5 sm:mt-6 mb-3 sm:mb-4">Notable Quotes</h3>
-        <div class="space-y-3">
+        <p class="font-mono text-xs uppercase tracking-[0.18em] text-amber mt-6 mb-3 sm:mb-4">Notable Quotes</p>
+        <div class="space-y-3 max-w-2xl">
           <% @summary.quotes.each do |quote| %>
-            <blockquote class="border-l-4 border-blue-500 pl-3 sm:pl-4 py-2 sm:py-3 bg-blue-50 rounded-r">
-              <p class="text-gray-800 text-sm sm:text-base">"<%= quote["text"] %>"</p>
+            <blockquote class="border-l-4 border-amber pl-4 py-3 bg-amber/10 rounded-r">
+              <p class="font-serif text-ink text-lg leading-relaxed">"<%= quote["text"] %>"</p>
               <% if quote["start_time"] %>
-                <p class="text-gray-500 text-xs sm:text-sm mt-1">
+                <p class="font-mono text-xs text-ink-muted mt-2">
                   <%= format_duration(quote["start_time"].to_i) %>
                 </p>
               <% end %>
@@ -40,14 +40,14 @@
       <% end %>
     </section>
   <% else %>
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4 mb-6 sm:mb-8">
-      <p class="text-yellow-800 text-sm sm:text-base">Summary processing...</p>
-      <p class="text-yellow-600 text-xs sm:text-sm mt-2">This episode is still being processed. Check back soon.</p>
+    <div class="bg-white rounded-xl border border-ink/10 shadow-sm p-5 sm:p-6 mb-6 sm:mb-8">
+      <p class="font-serif text-ink leading-relaxed">Summary processing...</p>
+      <p class="font-mono text-xs text-ink-muted mt-2">This episode is still being processed. Check back soon.</p>
     </div>
   <% end %>
 
   <section class="mb-6 sm:mb-8" id="audio">
-    <h2 class="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Audio</h2>
+    <p class="font-mono text-xs uppercase tracking-[0.18em] text-amber mb-3 sm:mb-4">Audio</p>
     <audio controls
            src="<%= @episode.audio_url %>"
            class="w-full"
