@@ -5,6 +5,11 @@ CI.run do
 
   step "Style: Ruby", "bin/rubocop"
 
+  # Refresh the vulnerability DB first so local runs catch newly-published
+  # advisories the same way GitHub Actions does (it gets a fresh DB on every
+  # gem install). Without this, bin/ci can use a stale vendored DB and pass
+  # while CI fails.
+  step "Security: Update advisory DB", "bin/bundler-audit update"
   step "Security: Gem audit", "bin/bundler-audit"
   step "Security: Importmap vulnerability audit", "bin/importmap audit"
   step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
