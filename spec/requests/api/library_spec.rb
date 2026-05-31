@@ -366,4 +366,74 @@ RSpec.describe "Api::Library", type: :request do
       expect(ep["episode"]["podcast"]).to have_key("artwork_url")
     end
   end
+
+  describe "POST /api/library/:id/retry_processing" do
+    context "happy path" do
+      it "resets error state and enqueues ProcessEpisodeJob" do
+        episode = create(:episode, podcast: podcast)
+        user_episode = create(:user_episode, :with_error, user: user, episode: episode)
+
+        expect {
+          post "/api/library/#{user_episode.id}/retry_processing", headers: api_headers(token), as: :json
+        }.to have_enqueued_job(ProcessEpisodeJob).with(user_episode.id)
+
+        expect(response).to have_http_status(:ok)
+        parsed = JSON.parse(response.body)
+        expect(parsed["message"]).to eq("Retrying")
+
+        user_episode.reload
+        expect(user_episode.processing_status).to eq("pending")
+        expect(user_episode.processing_error).to be_nil
+      end
+    end
+
+    context "episode not in error state" do
+      it "returns 422 for a non-error episode" do
+        episode = create(:episode, podcast: podcast)
+        user_episode = create(:user_episode, :ready, user: user, episode: episode)
+
+        post "/api/library/#{user_episode.id}/retry_processing", headers: api_headers(token), as: :json
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        parsed = JSON.parse(response.body)
+        expect(parsed["error"]).to eq("Episode is not in error state")
+      end
+    end
+
+    context "not found" do
+      it "returns 404 for an errored episode that is not in the library (inbox)" do
+        episode = create(:episode, podcast: podcast)
+        user_episode = create(:user_episode, user: user, episode: episode, location: :inbox, processing_status: :error)
+
+        post "/api/library/#{user_episode.id}/retry_processing", headers: api_headers(token), as: :json
+
+        expect(response).to have_http_status(:not_found)
+        parsed = JSON.parse(response.body)
+        expect(parsed["error"]).to eq("Not found")
+      end
+
+      it "returns 404 for another user's library episode" do
+        other_user = create(:user)
+        episode = create(:episode, podcast: podcast)
+        other_ue = create(:user_episode, :with_error, user: other_user, episode: episode)
+
+        post "/api/library/#{other_ue.id}/retry_processing", headers: api_headers(token), as: :json
+
+        expect(response).to have_http_status(:not_found)
+        parsed = JSON.parse(response.body)
+        expect(parsed["error"]).to eq("Not found")
+      end
+    end
+
+    context "requires bearer token" do
+      it "returns 401 without a bearer token" do
+        episode = create(:episode, podcast: podcast)
+        user_episode = create(:user_episode, :with_error, user: user, episode: episode)
+
+        post "/api/library/#{user_episode.id}/retry_processing", as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end

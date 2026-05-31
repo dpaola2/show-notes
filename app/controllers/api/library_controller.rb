@@ -27,4 +27,17 @@ class Api::LibraryController < Api::BaseController
   rescue ActiveRecord::RecordNotFound
     render_not_found
   end
+
+  def retry_processing
+    user_episode = current_user.user_episodes.in_library.find(params[:id])
+    unless user_episode.error?
+      render json: { error: "Episode is not in error state" }, status: :unprocessable_entity
+      return
+    end
+    user_episode.retry_processing!
+    ProcessEpisodeJob.perform_later(user_episode.id)
+    render json: { message: "Retrying" }
+  rescue ActiveRecord::RecordNotFound
+    render_not_found
+  end
 end

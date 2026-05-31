@@ -74,6 +74,7 @@ Rails.application.routes.draw do
     resources :library, only: [ :index, :show ] do
       member do
         post :archive
+        post :retry_processing
       end
     end
 
