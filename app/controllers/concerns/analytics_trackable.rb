@@ -27,7 +27,24 @@ module AnalyticsTrackable
   end
 
   def analytics_distinct_id
-    current_user&.id&.to_s || (session[:analytics_id] ||= SecureRandom.uuid)
+    current_user&.id&.to_s || posthog_cookie_distinct_id || (session[:analytics_id] ||= SecureRandom.uuid)
+  end
+
+  # Align anonymous server-side events with posthog-js by reusing the
+  # distinct_id it stores in its cookie. Once the visitor logs in, the JS
+  # `identify(user.id)` call merges that anonymous id into the user — so the
+  # pre-login server events follow along. Falls back to a session id when the
+  # cookie isn't present (e.g. API requests, or JS not yet loaded).
+  def posthog_cookie_distinct_id
+    key = ENV["POSTHOG_API_KEY"]
+    return nil if key.blank?
+
+    raw = cookies["ph_#{key}_posthog"]
+    return nil if raw.blank?
+
+    JSON.parse(raw)["distinct_id"].presence
+  rescue JSON::ParserError
+    nil
   end
 
   # Overridden in Api::BaseController.

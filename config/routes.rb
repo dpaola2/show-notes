@@ -95,6 +95,9 @@ Rails.application.routes.draw do
       end
     end
 
+    # Current authenticated user (for analytics identity unification)
+    get "me", to: "me#show"
+
     # Deep linking: episode library entry lookup and tracking click
     get "episodes/:episode_id/library_entry", to: "episodes#library_entry"
     post "tracking/click", to: "tracking#click"
