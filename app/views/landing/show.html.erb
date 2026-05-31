@@ -1,0 +1,203 @@
+<% accent = "#D9883F" %>
+<div style="background:#F4EAD0">
+
+  <%# ===== Sticky CTA bar (revealed on scroll) ===== %>
+  <div id="sticky-cta" style="position:fixed;top:0;left:0;right:0;z-index:50;transform:translateY(-110%);transition:transform .35s cubic-bezier(.2,.7,.2,1);background:rgba(11,20,42,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(244,234,208,0.12)">
+    <div style="max-width:1180px;margin:0 auto;padding:12px 40px;display:flex;align-items:center;gap:20px;color:#F4EAD0">
+      <div style="display:flex;align-items:center;gap:11px">
+        <%= render "shared/sn_mark", size: 30, accent: accent %>
+        <span style="font-family:'Source Serif 4',serif;font-weight:600;font-size:17px">Show Notes</span>
+      </div>
+      <span style="flex:1"></span>
+      <div class="sticky-cta-wrap" style="min-width:380px"><%= render "shared/email_cta", accent: accent, size: "sm", id: "email-sticky" %></div>
+    </div>
+  </div>
+
+  <%# ===== Header ===== %>
+  <header style="background:transparent;position:relative;z-index:2">
+    <div style="max-width:1180px;margin:0 auto;padding:26px 40px;display:flex;align-items:center;color:#F4EAD0">
+      <div style="display:flex;align-items:center;gap:12px">
+        <%= render "shared/sn_mark", size: 36, accent: accent %>
+        <span style="font-family:'Source Serif 4',serif;font-weight:600;font-size:20px;letter-spacing:-0.01em">Show Notes</span>
+      </div>
+      <span style="flex:1"></span>
+      <nav style="display:flex;gap:30px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.06em">
+        <a href="#sample-digest" style="color:inherit;text-decoration:none;opacity:0.8">Sample digest</a>
+        <%= link_to "Sign in", login_path, style: "color:inherit;text-decoration:none;opacity:0.8" %>
+      </nav>
+    </div>
+  </header>
+
+  <%# ===== Hero ===== %>
+  <section id="hero" style="background:radial-gradient(120% 90% at 30% 10%, #1A2742 0%, #0B142A 60%);color:#F4EAD0;position:relative;overflow:hidden">
+    <div class="hero-grid" style="max-width:1180px;margin:0 auto;padding:60px 40px 96px;display:grid;grid-template-columns:1.05fr 0.95fr;gap:64px;align-items:center">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:<%= accent %>;margin-bottom:22px;font-weight:500">A daily read · not another player</div>
+        <h1 style="margin:0 0 26px;font-family:'Source Serif 4',serif;font-weight:600;font-size:clamp(40px, 5.2vw, 68px);line-height:1.04;letter-spacing:-0.025em">
+          Read your podcasts.<br /><span style="color:<%= accent %>">All of them.</span>
+        </h1>
+        <p style="margin:0 0 38px;max-width:520px;font-family:'Source Serif 4',serif;font-size:19px;line-height:1.6;opacity:0.88">
+          Show Notes summarizes the new episodes from shows you already follow and emails them to you every morning. Skim, read, or open the audio if you want it.
+        </p>
+        <%= render "shared/email_cta", accent: accent, size: "lg", id: "email-hero" %>
+        <div style="margin-top:26px">
+          <a href="#sample-digest" style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.08em;color:inherit;opacity:0.7;text-decoration:none;border-bottom:1px solid <%= accent %>;padding-bottom:3px">See a sample digest ↓</a>
+        </div>
+      </div>
+
+      <div class="hero-digest" style="position:relative">
+        <div style="transform:rotate(1.4deg);max-width:420px;margin-left:auto">
+          <%= render "shared/digest", variant: "hero", accent: accent %>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;bottom:0;left:0;right:0">
+      <svg viewBox="0 0 800 40" preserveAspectRatio="none" style="width:100%;height:28px;display:block" aria-hidden="true">
+        <g fill="rgba(217,136,63,0.16)">
+          <% (0...80).each do |i| %>
+            <% h = 3 + (Math.sin(i * 0.7) * 14).abs + (i % 5 == 0 ? 8 : 0) %>
+            <rect x="<%= i * 10 %>" y="<%= (20 - h / 2).round(2) %>" width="3.4" height="<%= h.round(2) %>" rx="1.6" />
+          <% end %>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <%# ===== The reframe ===== %>
+  <section style="background:#0B142A;color:#F4EAD0;padding:110px 40px">
+    <div style="max-width:920px;margin:0 auto;text-align:center">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:<%= accent %>;margin-bottom:22px;font-weight:500">The shows below your cutoff</div>
+      <h2 style="margin:0 0 30px;font-family:'Source Serif 4',serif;font-weight:600;font-size:clamp(30px, 4.2vw, 50px);line-height:1.18;letter-spacing:-0.02em">
+        You find out the episode was excellent <span style="color:<%= accent %>;font-style:italic;font-weight:400">weeks later</span> — from a clip, or a colleague.
+      </h2>
+      <p style="margin:0 auto;max-width:660px;font-family:'Source Serif 4',serif;font-size:19px;line-height:1.65;opacity:0.82">
+        You subscribe to far more shows than you can play. The good ones below your listening cutoff don't announce themselves — they just pass by. Show Notes replaces that accidental recovery with a system: the substance of every new episode, waiting for you each morning.
+      </p>
+    </div>
+  </section>
+
+  <%# ===== How it works ===== %>
+  <section style="background:#FBF6EA;color:#1A1814;padding:100px 40px">
+    <div style="max-width:1100px;margin:0 auto">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:<%= accent %>;margin-bottom:22px;font-weight:500">How it works</div>
+      <div style="display:flex;gap:56px;flex-wrap:wrap;margin-top:8px">
+        <% [
+          ["1", "Tell us your shows", "Search to add them, or import an OPML file from your current podcast app in one step. Ten shows or fifty — it's the same setup."],
+          ["2", "We summarize new episodes", "Every morning, Show Notes reads the new episodes across all your shows and writes clean, substantive summaries — not transcripts, not blurbs."],
+          ["3", "Read your digest", "One email lands before you're awake. Skim it with coffee, read the ones that pull you in, and open the audio for anything worth the full listen."]
+        ].each do |n, title, body| %>
+          <div style="flex:1;min-width:220px">
+            <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:16px">
+              <span style="font-family:'Source Serif 4',serif;font-size:15px;font-weight:600;color:<%= accent %>;font-variant-numeric:tabular-nums">0<%= n %></span>
+              <span style="flex:1;height:1px;background:rgba(26,24,20,0.16)"></span>
+            </div>
+            <h3 style="margin:0 0 10px;font-family:'Source Serif 4',serif;font-weight:600;font-size:23px;letter-spacing:-0.015em;color:#1A1814;line-height:1.2"><%= title %></h3>
+            <p style="margin:0;font-family:'Source Serif 4',serif;font-size:16px;line-height:1.6;color:#4a4537"><%= body %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== Show the digest ===== %>
+  <section id="sample-digest" style="background:radial-gradient(120% 80% at 70% 0%, #1A2742, #0B142A);color:#F4EAD0;padding:100px 40px">
+    <div class="digest-grid" style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:0.8fr 1.2fr;gap:70px;align-items:start">
+      <div class="digest-copy" style="position:sticky;top:100px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:<%= accent %>;margin-bottom:22px;font-weight:500">The thing you'll actually receive</div>
+        <h2 style="margin:0 0 24px;font-family:'Source Serif 4',serif;font-weight:600;font-size:clamp(30px, 3.6vw, 44px);line-height:1.14;letter-spacing:-0.02em">
+          Built to the standard of a great newsletter.
+        </h2>
+        <p style="margin:0 0 22px;font-family:'Source Serif 4',serif;font-size:18px;line-height:1.65;opacity:0.85">
+          Themed sections, generous excerpts, a clear sense of what's worth your time and what isn't. Each summary is long enough to carry the idea — and honest about which episodes to skip.
+        </p>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:30px">
+          <%= render "shared/mini_wave", accent: accent, muted: false %>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:0.06em;opacity:0.75">A five-minute read across nine episodes.</span>
+        </div>
+      </div>
+      <div style="max-width:560px">
+        <%= render "shared/digest", variant: "full", accent: accent %>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== It compounds ===== %>
+  <section style="background:#F4EAD0;color:#1A1814;padding:100px 40px">
+    <div style="max-width:980px;margin:0 auto">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:<%= accent %>;margin-bottom:22px;font-weight:500">It compounds</div>
+      <h2 style="margin:0 0 30px;max-width:760px;font-family:'Source Serif 4',serif;font-weight:600;font-size:clamp(28px, 3.6vw, 44px);line-height:1.16;letter-spacing:-0.02em">
+        Every digest you read becomes a library you can search.
+      </h2>
+      <div style="display:flex;gap:56px;flex-wrap:wrap">
+        <p style="flex:1;min-width:280px;margin:0;font-family:'Source Serif 4',serif;font-size:18px;line-height:1.65;color:#4a4537">
+          The summaries are yours to keep. Search them, reference them, and pull the one idea you half-remember from a show three months ago. The longer you use Show Notes, the more it knows what you've already heard — and the more valuable that archive becomes.
+        </p>
+        <p style="flex:1;min-width:280px;margin:0;font-family:'Source Serif 4',serif;font-size:18px;line-height:1.65;color:#4a4537">
+          It isn't a feed that scrolls away. It's a record of the ideas moving through the shows you follow — current when you read it, useful when you come back to it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== Voice of customer ===== %>
+  <section style="background:#0B142A;color:#F4EAD0;padding:100px 40px">
+    <div style="max-width:1100px;margin:0 auto">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:<%= accent %>;margin-bottom:22px;font-weight:500">From the people we built it for</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:24px;margin-top:8px">
+        <% [
+          ["It's an ever-flowing stream and I only ride on some of the boats.", "Engineering lead · 40+ subscriptions"],
+          ["Sometimes I'll see a clip for an episode I missed and go back. I want that to not be an accident.", "Staff engineer"],
+          ["I read the show notes first and only download the episodes I think are most interesting.", "Director of engineering"]
+        ].each do |quote, tag| %>
+          <figure style="margin:0;padding:30px 32px;background:#13203b;border:1px solid rgba(244,234,208,0.1);border-radius:14px">
+            <blockquote style="margin:0;font-family:'Source Serif 4',serif;font-style:italic;font-weight:400;font-size:21px;line-height:1.45;color:#F4EAD0;letter-spacing:-0.01em">“<%= quote %>”</blockquote>
+            <figcaption style="margin-top:18px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:#9aa6c0"><%= tag %></figcaption>
+          </figure>
+        <% end %>
+      </div>
+      <p style="margin-top:28px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.08em;opacity:0.5">Paraphrased from user-research conversations.</p>
+    </div>
+  </section>
+
+  <%# ===== Closing CTA ===== %>
+  <section style="background:radial-gradient(120% 100% at 50% 0%, #1A2742, #0B142A);color:#F4EAD0;padding:110px 40px 90px;text-align:center">
+    <div style="max-width:720px;margin:0 auto">
+      <div style="display:flex;justify-content:center;margin-bottom:30px"><%= render "shared/sn_mark", size: 64, accent: accent %></div>
+      <h2 style="margin:0 0 22px;font-family:'Source Serif 4',serif;font-weight:600;font-size:clamp(32px, 4.4vw, 52px);line-height:1.1;letter-spacing:-0.025em">
+        Get the value from every show you follow.
+      </h2>
+      <p style="margin:0 auto 38px;max-width:520px;font-family:'Source Serif 4',serif;font-size:19px;line-height:1.6;opacity:0.85">
+        Including the ones you'll never have time to play. Your first digest arrives tomorrow morning.
+      </p>
+      <div style="display:flex;justify-content:center"><%= render "shared/email_cta", accent: accent, size: "lg", id: "email-closing" %></div>
+    </div>
+  </section>
+
+  <%# ===== Footer ===== %>
+  <footer style="background:#08101f;color:#9aa6c0;padding:40px">
+    <div style="max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.06em">
+      <div style="display:flex;align-items:center;gap:10px">
+        <%= render "shared/sn_mark", size: 26, accent: accent %>
+        <span style="color:#F4EAD0">Show Notes</span>
+      </div>
+      <span style="opacity:0.6">shownotes.dev</span>
+      <span style="flex:1"></span>
+      <%= link_to "Privacy", privacy_path, style: "color:inherit;text-decoration:none;opacity:0.7" %>
+      <%= link_to "Support", support_path, style: "color:inherit;text-decoration:none;opacity:0.7" %>
+    </div>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var hero = document.getElementById('hero');
+    var bar = document.getElementById('sticky-cta');
+    if (!bar) return;
+    var onScroll = function () {
+      var threshold = (hero ? hero.offsetHeight : 700) - 80;
+      bar.classList.toggle('sticky-show', window.scrollY > threshold);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>

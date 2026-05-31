@@ -1,0 +1,22 @@
+<%# Passwordless email signup CTA — the one conversion action, reused in the hero,
+    the closing section, and the sticky bar. Posts to the real magic-link flow
+    (SessionsController#create), which emails a sign-in link and redirects to the
+    "check your inbox" page. locals: size ('lg'|'sm'), accent, id %>
+<% size ||= "lg" %>
+<% accent ||= "#D9883F" %>
+<% id ||= "email-cta" %>
+<% big = size == "lg" %>
+<div style="max-width:<%= big ? 520 : 460 %>px">
+  <%= form_with url: login_path, method: :post, data: { turbo: false }, html: { class: "cta-form", style: "display:flex;gap:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(244,234,208,0.28);border-radius:12px;padding:7px" } do %>
+    <input type="email" name="email" id="<%= id %>" required
+      placeholder="you@company.com" aria-label="Email address"
+      style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-family:'JetBrains Mono',monospace;font-size:14px;color:inherit;padding:<%= big ? "12px" : "10px 12px" %>;letter-spacing:0.01em" />
+    <button type="submit" class="cta-btn"
+      style="flex-shrink:0;border:none;cursor:pointer;border-radius:8px;background:<%= accent %>;color:#1A1814;font-family:'Source Serif 4',serif;font-weight:600;font-size:<%= big ? 16 : 15 %>px;padding:<%= big ? "12px 22px" : "10px 18px" %>;letter-spacing:-0.01em;white-space:nowrap;transition:transform .15s ease,filter .15s ease">
+      Get my first digest
+    </button>
+  <% end %>
+  <p style="margin:12px 2px 0;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.02em;opacity:0.62;line-height:1.6">
+    Just your email. No password, no credit card. Your first digest arrives tomorrow morning.
+  </p>
+</div>

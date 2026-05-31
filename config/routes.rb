@@ -113,6 +113,7 @@ Rails.application.routes.draw do
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Root path
-  root "inbox#index"
+  # Root path — public landing page for logged-out visitors; the landing
+  # controller redirects authenticated users to the inbox.
+  root "landing#show"
 end

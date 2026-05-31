@@ -88,7 +88,8 @@ RSpec.describe "Sessions", type: :request do
         get verify_magic_link_path(token: token)
 
         expect(response).to redirect_to(root_path)
-        follow_redirect!
+        follow_redirect! # root → landing, which redirects authenticated users on to the inbox
+        follow_redirect! if response.redirect?
         expect(response.body).to include("Welcome back!")
       end
 

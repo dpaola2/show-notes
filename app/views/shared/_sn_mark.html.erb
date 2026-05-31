@@ -1,0 +1,19 @@
+<%# SN Monogram mark, from the icon design. locals: size (px), accent %>
+<% size ||= 36 %>
+<% accent ||= "#D9883F" %>
+<svg width="<%= size %>" height="<%= size %>" viewBox="0 0 1024 1024" style="display:block;border-radius:<%= (size * 0.2237).round(1) %>px" aria-hidden="true">
+  <defs>
+    <linearGradient id="snm-bg-<%= size %>" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A2742" />
+      <stop offset="1" stop-color="#0B142A" />
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#snm-bg-<%= size %>)" />
+  <text x="512" y="690" text-anchor="middle" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="620" letter-spacing="-10" fill="#F4EAD0">SN</text>
+  <g transform="translate(512,470)" fill="<%= accent %>">
+    <% [6, 12, 20, 30, 22, 14, 22, 36, 26, 16, 10, 6].each_with_index do |h, i| %>
+      <rect x="<%= i * 13 %>" y="<%= -h %>" width="7" height="<%= h * 2 %>" rx="2" />
+      <rect x="<%= -(i + 1) * 13 %>" y="<%= -h %>" width="7" height="<%= h * 2 %>" rx="2" />
+    <% end %>
+  </g>
+</svg>

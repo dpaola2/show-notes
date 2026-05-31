@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= content_for(:title) || "Show Notes — Read your podcasts" %></title>
+    <meta name="description" content="A daily email of AI-written summaries of the new episodes from podcasts you already follow. Get the value from every show you subscribe to, even the ones you'll never have time to play." />
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body { background: #0B142A; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+      ::selection { background: #D9883F; color: #1A1814; }
+
+      input::placeholder { color: currentColor; opacity: 0.4; }
+
+      .cta-form:focus-within { border-color: #D9883F !important; }
+      .cta-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+      .cta-btn:active { transform: translateY(0); }
+
+      nav a:hover { opacity: 1 !important; }
+      footer a:hover { opacity: 1 !important; color: #F4EAD0 !important; }
+
+      #sticky-cta.sticky-show { transform: translateY(0) !important; }
+
+      .sticky-cta-wrap { display: none; }
+      @media (min-width: 760px) {
+        .sticky-cta-wrap { display: block !important; }
+      }
+
+      @media (max-width: 900px) {
+        .hero-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+        .hero-digest { order: -1; }
+        .hero-digest > div { transform: none !important; margin: 0 auto !important; }
+        .digest-grid { grid-template-columns: 1fr !important; gap: 44px !important; }
+        .digest-copy { position: static !important; }
+      }
+    </style>
+
+    <%= render "shared/analytics" %>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
+</html>
