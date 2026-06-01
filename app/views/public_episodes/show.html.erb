@@ -6,9 +6,15 @@
   <meta property="og:url" content="<%= public_episode_url(@episode) %>">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Show Notes">
-  <% if @episode.og_image.attached? %>
-    <meta property="og:image" content="<%= @episode.og_image_url %>">
+  <% og_image = @episode.og_image.attached? ? @episode.og_image_url : "#{request.base_url}/og-default.png" %>
+  <meta property="og:image" content="<%= og_image %>">
+  <% unless @episode.og_image.attached? %>
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
   <% end %>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= truncate(@episode.title, length: 80) %>">
+  <meta name="twitter:image" content="<%= og_image %>">
 <% end %>
 
 <div class="max-w-3xl mx-auto px-4 py-8 sm:py-12">

@@ -1,0 +1,19 @@
+<%# Open Graph + Twitter Card defaults for the public landing page.
+    locals (all optional): title, description, url %>
+<% og_title = local_assigns.fetch(:title, "Show Notes — Read your podcasts") %>
+<% og_description = local_assigns.fetch(:description, "A daily read of clean, AI-written summaries of the new episodes from podcasts you already follow. Get the value from every show, even the ones you'll never have time to play.") %>
+<% og_url = local_assigns.fetch(:url, request.original_url) %>
+<% og_image = "#{request.base_url}/og-default.png" %>
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Show Notes">
+<meta property="og:title" content="<%= og_title %>">
+<meta property="og:description" content="<%= og_description %>">
+<meta property="og:url" content="<%= og_url %>">
+<meta property="og:image" content="<%= og_image %>">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= og_title %>">
+<meta name="twitter:description" content="<%= og_description %>">
+<meta name="twitter:image" content="<%= og_image %>">
